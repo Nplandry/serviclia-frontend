@@ -648,6 +648,7 @@ const App = {
     const bubble = document.createElement('div');
     bubble.className = 'chat-bubble ' + sender;
     bubble.textContent = text;
+    elements.messages.classList.add('has-messages');
     elements.messages.appendChild(bubble);
     elements.messages.scrollTop = elements.messages.scrollHeight;
   },
@@ -656,6 +657,7 @@ const App = {
     const bubble = document.createElement('div');
     bubble.className = 'chat-bubble bot typing';
     bubble.textContent = '';
+    elements.messages.classList.add('has-messages');
     elements.messages.appendChild(bubble);
     elements.messages.scrollTop = elements.messages.scrollHeight;
 
@@ -844,6 +846,7 @@ const App = {
       const containerId = data.containerId || 'mainChatMessages';
       const container = document.getElementById(containerId);
       if (container) {
+        container.classList.add('has-messages');
         container.appendChild(bubble);
         container.scrollTop = container.scrollHeight;
       }

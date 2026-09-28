@@ -507,7 +507,8 @@ form {
 }
 
 .chat-messages {
-  height: 18rem;
+  max-height: 18rem;
+  min-height: 4rem;
   overflow-y: auto;
   padding: var(--space-md);
   display: flex;
@@ -523,6 +524,7 @@ form {
   font-size: var(--font-size-base);
   line-height: 1.45;
   word-wrap: break-word;
+  flex-shrink: 0;
 }
 
 .chat-bubble.user {

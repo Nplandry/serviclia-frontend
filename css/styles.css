@@ -13,16 +13,27 @@
   --color-emergency: #b00020;
   --color-emergency-dark: #7a0016;
   --font-base: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  --font-size-base: 1.25rem;
-  --font-size-lg: 1.5rem;
-  --font-size-xl: 2rem;
+  --font-size-base: 1rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.5rem;
   --space-xs: 0.5rem;
   --space-sm: 0.75rem;
   --space-md: 1rem;
-  --space-lg: 1.5rem;
-  --space-xl: 2rem;
+  --space-lg: 1.25rem;
+  --space-xl: 1.75rem;
   --radius: 0.75rem;
-  --touch-min: 3rem;
+  --touch-min: 2.75rem;
+}
+
+@media (min-width: 40rem) {
+  :root {
+    --font-size-base: 1.125rem;
+    --font-size-lg: 1.35rem;
+    --font-size-xl: 1.85rem;
+    --space-lg: 1.5rem;
+    --space-xl: 2rem;
+    --touch-min: 3rem;
+  }
 }
 
 * {
@@ -59,7 +70,7 @@ body {
 .app-header {
   background-color: var(--color-primary);
   color: #ffffff;
-  padding: var(--space-md);
+  padding: var(--space-sm) var(--space-md);
   text-align: center;
 }
 
@@ -67,31 +78,31 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: var(--space-sm);
+  gap: var(--space-xs);
 }
 
 .brand-mark {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 2.5rem;
-  height: 2.5rem;
+  width: 2rem;
+  height: 2rem;
   background-color: #ffffff;
   color: var(--color-primary);
   border-radius: 50%;
   font-weight: 700;
-  font-size: var(--font-size-xl);
+  font-size: 1.25rem;
 }
 
 .brand-title {
   margin: 0;
-  font-size: var(--font-size-xl);
+  font-size: var(--font-size-lg);
   font-weight: 700;
 }
 
 .brand-subtitle {
   margin: var(--space-xs) 0 0;
-  font-size: var(--font-size-base);
+  font-size: 0.875rem;
   opacity: 0.95;
 }
 
@@ -99,8 +110,8 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: var(--space-sm);
-  margin-top: var(--space-sm);
+  gap: var(--space-xs);
+  margin-top: var(--space-xs);
   flex-wrap: wrap;
 }
 
@@ -113,9 +124,9 @@ body {
 }
 
 .role-btn {
-  min-height: var(--touch-min);
-  padding: var(--space-sm) var(--space-md);
-  font-size: var(--font-size-base);
+  min-height: 2.25rem;
+  padding: var(--space-xs) var(--space-sm);
+  font-size: 0.875rem;
   font-weight: 600;
   color: #ffffff;
   background-color: transparent;
@@ -140,9 +151,9 @@ body {
 }
 
 .header-actions .install-btn {
-  min-height: var(--touch-min);
-  padding: var(--space-sm) var(--space-md);
-  font-size: var(--font-size-base);
+  min-height: 2.25rem;
+  padding: var(--space-xs) var(--space-sm);
+  font-size: 0.875rem;
   font-weight: 600;
   color: var(--color-primary);
   background-color: #ffffff;
@@ -158,10 +169,44 @@ body {
   outline-offset: 2px;
 }
 
+@media (min-width: 40rem) {
+  .brand-mark {
+    width: 2.5rem;
+    height: 2.5rem;
+    font-size: var(--font-size-xl);
+  }
+
+  .brand-title {
+    font-size: var(--font-size-xl);
+  }
+
+  .brand-subtitle {
+    font-size: var(--font-size-base);
+  }
+
+  .header-actions {
+    gap: var(--space-sm);
+    margin-top: var(--space-sm);
+  }
+
+  .role-btn,
+  .header-actions .install-btn {
+    min-height: var(--touch-min);
+    padding: var(--space-sm) var(--space-md);
+    font-size: var(--font-size-base);
+  }
+}
+
 .main {
   max-width: 48rem;
   margin: 0 auto;
-  padding: var(--space-lg);
+  padding: var(--space-md);
+}
+
+@media (min-width: 40rem) {
+  .main {
+    padding: var(--space-lg);
+  }
 }
 
 .view {
@@ -173,29 +218,29 @@ body {
 }
 
 .hero {
-  margin-bottom: var(--space-xl);
+  margin-bottom: var(--space-lg);
 }
 
 .hero h2 {
   font-size: var(--font-size-xl);
-  margin: 0 0 var(--space-sm);
+  margin: 0 0 var(--space-xs);
 }
 
 .hero-text {
-  font-size: var(--font-size-lg);
+  font-size: var(--font-size-base);
   color: var(--color-muted);
   margin: 0;
 }
 
 .search-box {
-  margin-bottom: var(--space-xl);
+  margin-bottom: var(--space-lg);
 }
 
 .search-box input {
   width: 100%;
   min-height: var(--touch-min);
   padding: var(--space-sm) var(--space-md);
-  font-size: var(--font-size-lg);
+  font-size: var(--font-size-base);
   border: 2px solid var(--color-border);
   border-radius: var(--radius);
   background-color: var(--color-bg);
@@ -209,9 +254,35 @@ body {
 }
 
 .help-text {
-  font-size: var(--font-size-base);
+  font-size: 0.875rem;
   color: var(--color-muted);
   margin: var(--space-xs) 0 0;
+}
+
+@media (min-width: 40rem) {
+  .hero {
+    margin-bottom: var(--space-xl);
+  }
+
+  .hero h2 {
+    margin: 0 0 var(--space-sm);
+  }
+
+  .hero-text {
+    font-size: var(--font-size-lg);
+  }
+
+  .search-box {
+    margin-bottom: var(--space-xl);
+  }
+
+  .search-box input {
+    font-size: var(--font-size-lg);
+  }
+
+  .help-text {
+    font-size: var(--font-size-base);
+  }
 }
 
 .error-text {
@@ -249,7 +320,7 @@ body {
   align-items: flex-start;
   width: 100%;
   min-height: var(--touch-min);
-  padding: var(--space-lg);
+  padding: var(--space-md);
   font-size: var(--font-size-lg);
   font-weight: 600;
   text-align: left;
@@ -275,6 +346,12 @@ body {
   margin-top: var(--space-xs);
 }
 
+@media (min-width: 40rem) {
+  .category-card {
+    padding: var(--space-lg);
+  }
+}
+
 .zero-results {
   background-color: #fff6f0;
   border: 0;
@@ -295,11 +372,11 @@ body {
 
 .emergency-btn {
   position: fixed;
-  bottom: var(--space-lg);
-  right: var(--space-lg);
+  bottom: var(--space-md);
+  right: var(--space-md);
   z-index: 100;
-  padding: var(--space-md) var(--space-lg);
-  font-size: var(--font-size-lg);
+  padding: var(--space-sm) var(--space-md);
+  font-size: var(--font-size-base);
   font-weight: 700;
   color: #ffffff;
   background-color: var(--color-emergency);
@@ -315,6 +392,15 @@ body {
   background-color: var(--color-emergency-dark);
   outline: 3px solid #ffffff;
   outline-offset: 2px;
+}
+
+@media (min-width: 40rem) {
+  .emergency-btn {
+    bottom: var(--space-lg);
+    right: var(--space-lg);
+    padding: var(--space-md) var(--space-lg);
+    font-size: var(--font-size-lg);
+  }
 }
 
 .back-btn {
@@ -345,8 +431,8 @@ body {
 
 .content-card {
   width: 100%;
-  padding: var(--space-lg);
-  font-size: var(--font-size-lg);
+  padding: var(--space-md);
+  font-size: var(--font-size-base);
   text-align: left;
   color: var(--color-text);
   background-color: var(--color-bg);
@@ -365,14 +451,14 @@ body {
 #categoryTitle,
 #formTitle,
 #detailArticle h2 {
-  font-size: var(--font-size-xl);
+  font-size: var(--font-size-lg);
   margin: 0 0 var(--space-sm);
 }
 
 #categoryDescription,
 #detailArticle p,
 #detailArticle li {
-  font-size: var(--font-size-lg);
+  font-size: var(--font-size-base);
 }
 
 #detailArticle ul,
@@ -384,6 +470,25 @@ body {
   margin-bottom: var(--space-sm);
 }
 
+@media (min-width: 40rem) {
+  .content-card {
+    padding: var(--space-lg);
+    font-size: var(--font-size-lg);
+  }
+
+  #categoryTitle,
+  #formTitle,
+  #detailArticle h2 {
+    font-size: var(--font-size-xl);
+  }
+
+  #categoryDescription,
+  #detailArticle p,
+  #detailArticle li {
+    font-size: var(--font-size-lg);
+  }
+}
+
 .speak-controls {
   margin-top: var(--space-xl);
 }
@@ -393,12 +498,21 @@ body {
 .submit-btn {
   width: 100%;
   min-height: var(--touch-min);
-  padding: var(--space-md);
-  font-size: var(--font-size-lg);
+  padding: var(--space-sm) var(--space-md);
+  font-size: var(--font-size-base);
   font-weight: 600;
   border: none;
   border-radius: var(--radius);
   cursor: pointer;
+}
+
+@media (min-width: 40rem) {
+  .speak-btn,
+  .stop-speak-btn,
+  .submit-btn {
+    padding: var(--space-md);
+    font-size: var(--font-size-lg);
+  }
 }
 
 .speak-btn {
@@ -438,7 +552,7 @@ form {
 }
 
 .field label {
-  font-size: var(--font-size-lg);
+  font-size: var(--font-size-base);
   font-weight: 600;
   margin-bottom: var(--space-xs);
 }
@@ -448,12 +562,20 @@ form {
   width: 100%;
   min-height: var(--touch-min);
   padding: var(--space-sm) var(--space-md);
-  font-size: var(--font-size-lg);
+  font-size: var(--font-size-base);
   font-family: inherit;
   border: 2px solid var(--color-border);
   border-radius: var(--radius);
   background-color: var(--color-bg);
   color: var(--color-text);
+}
+
+@media (min-width: 40rem) {
+  .field label,
+  .field input,
+  .field textarea {
+    font-size: var(--font-size-lg);
+  }
 }
 
 .field input:focus,
@@ -499,15 +621,15 @@ form {
 
 .chat-title {
   margin: 0;
-  padding: var(--space-md) var(--space-lg);
-  font-size: var(--font-size-lg);
+  padding: var(--space-sm) var(--space-md);
+  font-size: var(--font-size-base);
   background-color: var(--color-secondary);
   color: var(--color-primary);
   border-bottom: 2px solid var(--color-border);
 }
 
 .chat-messages {
-  max-height: 18rem;
+  max-height: 14rem;
   min-height: 0;
   overflow-y: auto;
   padding: 0;
@@ -518,13 +640,13 @@ form {
 }
 
 .chat-messages.has-messages {
-  padding: var(--space-md);
-  gap: var(--space-md);
+  padding: var(--space-sm);
+  gap: var(--space-sm);
 }
 
 .chat-bubble {
-  max-width: 85%;
-  padding: var(--space-sm) var(--space-md);
+  max-width: 90%;
+  padding: var(--space-xs) var(--space-sm);
   border-radius: var(--radius);
   font-size: var(--font-size-base);
   line-height: 1.45;
@@ -554,8 +676,8 @@ form {
 
 .chat-form {
   display: flex;
-  gap: var(--space-sm);
-  padding: var(--space-md);
+  gap: var(--space-xs);
+  padding: var(--space-sm);
   border-top: 2px solid var(--color-border);
   background-color: var(--color-bg);
 }
@@ -563,8 +685,8 @@ form {
 .chat-form input {
   flex: 1;
   min-height: var(--touch-min);
-  padding: var(--space-sm) var(--space-md);
-  font-size: var(--font-size-lg);
+  padding: var(--space-xs) var(--space-sm);
+  font-size: var(--font-size-base);
   font-family: inherit;
   border: 2px solid var(--color-border);
   border-radius: var(--radius);
@@ -580,8 +702,8 @@ form {
 
 .chat-send {
   min-height: var(--touch-min);
-  padding: var(--space-sm) var(--space-lg);
-  font-size: var(--font-size-lg);
+  padding: var(--space-xs) var(--space-sm);
+  font-size: var(--font-size-base);
   font-weight: 600;
   color: #ffffff;
   background-color: var(--color-primary);
@@ -606,29 +728,64 @@ form {
   display: none;
 }
 
+@media (min-width: 40rem) {
+  .chat-title {
+    padding: var(--space-md) var(--space-lg);
+    font-size: var(--font-size-lg);
+  }
+
+  .chat-messages {
+    max-height: 18rem;
+  }
+
+  .chat-messages.has-messages {
+    padding: var(--space-md);
+    gap: var(--space-md);
+  }
+
+  .chat-bubble {
+    max-width: 85%;
+    padding: var(--space-sm) var(--space-md);
+  }
+
+  .chat-form {
+    gap: var(--space-sm);
+    padding: var(--space-md);
+  }
+
+  .chat-form input {
+    padding: var(--space-sm) var(--space-md);
+    font-size: var(--font-size-lg);
+  }
+
+  .chat-send {
+    padding: var(--space-sm) var(--space-lg);
+    font-size: var(--font-size-lg);
+  }
+}
+
 .app-footer {
   background-color: #f5f5f5;
   color: var(--color-muted);
-  padding: var(--space-lg);
+  padding: var(--space-md);
   text-align: center;
-  margin-top: var(--space-xl);
+  margin-top: var(--space-lg);
+  font-size: 0.875rem;
 }
 
 .app-footer p {
-  margin: 0 0 var(--space-sm);
-  font-size: var(--font-size-base);
+  margin: 0 0 var(--space-xs);
 }
 
 .app-footer nav {
   display: flex;
   justify-content: center;
-  gap: var(--space-md);
+  gap: var(--space-sm);
   flex-wrap: wrap;
 }
 
 .app-footer a {
   color: var(--color-primary);
-  font-size: var(--font-size-base);
   text-decoration: underline;
 }
 
@@ -637,12 +794,27 @@ form {
   color: var(--color-primary-dark);
 }
 
-/* Install Modal */
+@media (min-width: 40rem) {
+  .app-footer {
+    padding: var(--space-lg);
+    margin-top: var(--space-xl);
+    font-size: var(--font-size-base);
+  }
+
+  .app-footer p {
+    margin: 0 0 var(--space-sm);
+  }
+
+  .app-footer nav {
+    gap: var(--space-md);
+  }
+}
+
 .install-modal {
   position: fixed;
   inset: 0;
-  width: 90vw;
-  max-width: 28rem;
+  width: 92vw;
+  max-width: 26rem;
   max-height: 90vh;
   margin: auto;
   padding: 0;
@@ -660,32 +832,32 @@ form {
 }
 
 .modal-content {
-  padding: var(--space-lg);
+  padding: var(--space-md);
   position: relative;
 }
 
 .modal-content h2 {
-  margin: 0 0 var(--space-lg);
+  margin: 0 0 var(--space-md);
   font-size: var(--font-size-lg);
   color: var(--color-primary);
 }
 
 .modal-content h3 {
-  margin: 0 0 var(--space-md);
+  margin: 0 0 var(--space-sm);
   font-size: var(--font-size-base);
   color: var(--color-primary-dark);
 }
 
 .modal-close {
   position: absolute;
-  top: var(--space-md);
-  right: var(--space-md);
+  top: var(--space-sm);
+  right: var(--space-sm);
   width: 2rem;
   height: 2rem;
   padding: 0;
   border: none;
   background: none;
-  font-size: 2rem;
+  font-size: 1.75rem;
   color: var(--color-muted);
   cursor: pointer;
   border-radius: 50%;
@@ -698,28 +870,28 @@ form {
 }
 
 .install-view {
-  margin-bottom: var(--space-lg);
+  margin-bottom: var(--space-md);
 }
 
 .install-steps {
-  margin: var(--space-md) 0;
+  margin: var(--space-sm) 0;
 }
 
 .install-steps ol {
-  margin: 0 0 var(--space-lg);
-  padding-left: 1.5rem;
+  margin: 0 0 var(--space-md);
+  padding-left: 1.25rem;
 }
 
 .install-steps li {
-  margin-bottom: var(--space-md);
-  line-height: 1.6;
+  margin-bottom: var(--space-sm);
+  line-height: 1.5;
 }
 
 .install-hint {
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   color: var(--color-muted);
-  margin: var(--space-md) 0;
-  padding: var(--space-sm);
+  margin: var(--space-sm) 0;
+  padding: var(--space-xs);
   background-color: var(--color-secondary);
   border-left: 3px solid var(--color-primary);
   border-radius: 0.25rem;
@@ -728,8 +900,8 @@ form {
 .modal-btn {
   display: block;
   width: 100%;
-  padding: var(--space-md) var(--space-lg);
-  margin-top: var(--space-md);
+  padding: var(--space-sm) var(--space-md);
+  margin-top: var(--space-sm);
   border: none;
   border-radius: var(--radius);
   font-size: var(--font-size-base);
@@ -756,4 +928,51 @@ form {
 .modal-btn.primary:focus {
   background-color: var(--color-primary-dark);
   outline: 2px solid var(--color-primary);
+}
+
+@media (min-width: 40rem) {
+  .modal-content {
+    padding: var(--space-lg);
+  }
+
+  .modal-content h2 {
+    margin: 0 0 var(--space-lg);
+  }
+
+  .modal-content h3 {
+    margin: 0 0 var(--space-md);
+  }
+
+  .modal-close {
+    top: var(--space-md);
+    right: var(--space-md);
+    font-size: 2rem;
+  }
+
+  .install-view {
+    margin-bottom: var(--space-lg);
+  }
+
+  .install-steps {
+    margin: var(--space-md) 0;
+  }
+
+  .install-steps ol {
+    margin: 0 0 var(--space-lg);
+    padding-left: 1.5rem;
+  }
+
+  .install-steps li {
+    margin-bottom: var(--space-md);
+  }
+
+  .install-hint {
+    margin: var(--space-md) 0;
+    padding: var(--space-sm);
+  }
+
+  .modal-btn {
+    padding: var(--space-md) var(--space-lg);
+    margin-top: var(--space-md);
+  }
 }

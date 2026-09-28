@@ -62,6 +62,17 @@
       <h2 id="categoryTitle"></h2>
       <p id="categoryDescription"></p>
       <div id="categoryContent" class="content-cards"></div>
+
+      <div class="chat-section">
+        <h3 class="chat-title">Asistente ServicIA</h3>
+        <div id="chatMessages" class="chat-messages" role="log" aria-live="polite" aria-label="Mensajes del asistente"></div>
+        <form id="chatForm" class="chat-form">
+          <label for="chatInput" class="visually-hidden">Escriba su consulta</label>
+          <input id="chatInput" type="text" placeholder="Escriba su consulta..." autocomplete="off" maxlength="300">
+          <button id="chatSend" class="chat-send" type="submit" aria-label="Enviar mensaje">Enviar</button>
+        </form>
+        <p id="chatStatus" class="chat-status" aria-live="polite"></p>
+      </div>
     </section>
 
     <section id="detailView" class="view" hidden>
@@ -100,6 +111,50 @@
       </form>
     </section>
   </main>
+
+  <!-- Install Modal -->
+  <dialog id="installModal" class="install-modal">
+    <div class="modal-content">
+      <button id="closeInstallModal" class="modal-close" type="button" aria-label="Cerrar">×</button>
+      <h2>Agregar ServicIA a tu dispositivo</h2>
+      
+      <div id="installAndroidView" class="install-view" hidden>
+        <h3>Android</h3>
+        <div class="install-steps">
+          <ol>
+            <li>Toca el botón <strong>Instalar</strong> en el siguiente diálogo</li>
+            <li>ServicIA aparecerá en tu pantalla de inicio</li>
+            <li>¡Listo! Puedes usar la app sin internet</li>
+          </ol>
+          <button id="installAndroidBtn" class="modal-btn primary" type="button">Instalar ahora</button>
+        </div>
+      </div>
+
+      <div id="installIOSView" class="install-view" hidden>
+        <h3>iPhone / iPad</h3>
+        <div class="install-steps">
+          <ol>
+            <li>Toca el botón <strong>Compartir</strong> en la parte inferior</li>
+            <li>Desplázate y toca <strong>Agregar a pantalla de inicio</strong></li>
+            <li>En el diálogo, toca <strong>Agregar</strong></li>
+            <li>¡Listo! ServicIA estará en tu pantalla de inicio</li>
+          </ol>
+          <p class="install-hint">Nota: El icono está en la barra inferior, usualmente junto a un ↑</p>
+          <button class="modal-btn" type="button">Entendido</button>
+        </div>
+      </div>
+
+      <div id="installWebView" class="install-view" hidden>
+        <h3>Desde navegador</h3>
+        <p>Tu navegador no soporta instalación directa. Intenta:</p>
+        <ul>
+          <li>Usar Chrome en Android y crea el acceso directo</li>
+          <li>Usar Safari en iPhone/iPad y crea el acceso directo</li>
+        </ul>
+        <button class="modal-btn" type="button">Cerrar</button>
+      </div>
+    </div>
+  </dialog>
 
   <footer class="app-footer">
     <p>ServicIA es una orientación inicial, no reemplaza asesoría profesional.</p>

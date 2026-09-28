@@ -485,6 +485,120 @@ form {
   cursor: not-allowed;
 }
 
+.chat-section {
+  margin-top: var(--space-xl);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius);
+  background-color: var(--color-bg);
+  overflow: hidden;
+}
+
+.chat-title {
+  margin: 0;
+  padding: var(--space-md) var(--space-lg);
+  font-size: var(--font-size-lg);
+  background-color: var(--color-secondary);
+  color: var(--color-primary);
+  border-bottom: 2px solid var(--color-border);
+}
+
+.chat-messages {
+  height: 18rem;
+  overflow-y: auto;
+  padding: var(--space-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  background-color: #f8f9fa;
+}
+
+.chat-bubble {
+  max-width: 85%;
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius);
+  font-size: var(--font-size-base);
+  line-height: 1.45;
+  word-wrap: break-word;
+}
+
+.chat-bubble.user {
+  align-self: flex-end;
+  background-color: var(--color-primary);
+  color: #ffffff;
+  border-bottom-right-radius: 0.25rem;
+}
+
+.chat-bubble.bot {
+  align-self: flex-start;
+  background-color: #ffffff;
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  border-bottom-left-radius: 0.25rem;
+}
+
+.chat-bubble.typing {
+  font-style: italic;
+  color: var(--color-muted);
+}
+
+.chat-form {
+  display: flex;
+  gap: var(--space-sm);
+  padding: var(--space-md);
+  border-top: 2px solid var(--color-border);
+  background-color: var(--color-bg);
+}
+
+.chat-form input {
+  flex: 1;
+  min-height: var(--touch-min);
+  padding: var(--space-sm) var(--space-md);
+  font-size: var(--font-size-lg);
+  font-family: inherit;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius);
+  background-color: var(--color-bg);
+  color: var(--color-text);
+}
+
+.chat-form input:focus {
+  outline: 3px solid var(--color-primary);
+  outline-offset: 2px;
+  border-color: var(--color-primary);
+}
+
+.chat-send {
+  min-height: var(--touch-min);
+  padding: var(--space-sm) var(--space-lg);
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  color: #ffffff;
+  background-color: var(--color-primary);
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+
+.chat-send:hover,
+.chat-send:focus {
+  background-color: var(--color-primary-dark);
+  outline: 3px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.chat-send:disabled {
+  background-color: var(--color-muted);
+  cursor: not-allowed;
+}
+
+.chat-status {
+  margin: 0;
+  padding: 0 var(--space-md) var(--space-md);
+  font-size: var(--font-size-base);
+  color: var(--color-muted);
+  min-height: 1.5rem;
+}
+
 .app-footer {
   background-color: #f5f5f5;
   color: var(--color-muted);
@@ -514,4 +628,125 @@ form {
 .app-footer a:hover,
 .app-footer a:focus {
   color: var(--color-primary-dark);
+}
+
+/* Install Modal */
+.install-modal {
+  position: fixed;
+  inset: 0;
+  width: 90vw;
+  max-width: 28rem;
+  max-height: 90vh;
+  margin: auto;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(4px);
+  background-color: var(--color-bg);
+  z-index: 1000;
+  overflow-y: auto;
+}
+
+.install-modal::backdrop {
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal-content {
+  padding: var(--space-lg);
+  position: relative;
+}
+
+.modal-content h2 {
+  margin: 0 0 var(--space-lg);
+  font-size: var(--font-size-lg);
+  color: var(--color-primary);
+}
+
+.modal-content h3 {
+  margin: 0 0 var(--space-md);
+  font-size: var(--font-size-base);
+  color: var(--color-primary-dark);
+}
+
+.modal-close {
+  position: absolute;
+  top: var(--space-md);
+  right: var(--space-md);
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border: none;
+  background: none;
+  font-size: 2rem;
+  color: var(--color-muted);
+  cursor: pointer;
+  border-radius: 50%;
+}
+
+.modal-close:hover,
+.modal-close:focus {
+  background-color: #f0f0f0;
+  color: var(--color-primary);
+}
+
+.install-view {
+  margin-bottom: var(--space-lg);
+}
+
+.install-steps {
+  margin: var(--space-md) 0;
+}
+
+.install-steps ol {
+  margin: 0 0 var(--space-lg);
+  padding-left: 1.5rem;
+}
+
+.install-steps li {
+  margin-bottom: var(--space-md);
+  line-height: 1.6;
+}
+
+.install-hint {
+  font-size: 0.9rem;
+  color: var(--color-muted);
+  margin: var(--space-md) 0;
+  padding: var(--space-sm);
+  background-color: var(--color-secondary);
+  border-left: 3px solid var(--color-primary);
+  border-radius: 0.25rem;
+}
+
+.modal-btn {
+  display: block;
+  width: 100%;
+  padding: var(--space-md) var(--space-lg);
+  margin-top: var(--space-md);
+  border: none;
+  border-radius: var(--radius);
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  cursor: pointer;
+  background-color: #f0f0f0;
+  color: var(--color-text);
+  transition: all 0.2s ease;
+}
+
+.modal-btn:hover,
+.modal-btn:focus {
+  background-color: var(--color-border);
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.modal-btn.primary {
+  background-color: var(--color-primary);
+  color: #ffffff;
+}
+
+.modal-btn.primary:hover,
+.modal-btn.primary:focus {
+  background-color: var(--color-primary-dark);
+  outline: 2px solid var(--color-primary);
 }

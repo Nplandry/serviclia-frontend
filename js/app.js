@@ -170,6 +170,11 @@ const App = {
     App.elements.greeting = document.getElementById('greeting');
     App.elements.roleButtons = document.querySelectorAll('.role-btn');
     App.elements.installBtn = document.getElementById('installBtn');
+    App.elements.chatForm = document.getElementById('chatForm');
+    App.elements.chatInput = document.getElementById('chatInput');
+    App.elements.chatSend = document.getElementById('chatSend');
+    App.elements.chatMessages = document.getElementById('chatMessages');
+    App.elements.chatStatus = document.getElementById('chatStatus');
   },
 
   bindEvents: function () {
@@ -185,6 +190,7 @@ const App = {
     App.elements.roleButtons.forEach(function (button) {
       button.addEventListener('click', App.handleRoleClick);
     });
+    App.elements.chatForm.addEventListener('submit', App.handleChatSubmit);
 
     if (window.speechSynthesis) {
       window.speechSynthesis.onvoiceschanged = App.loadVoices;
@@ -552,6 +558,8 @@ const App = {
 
   setupInstall: function () {
     let deferredPrompt = null;
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    const isAndroid = /Android/.test(navigator.userAgent);
 
     window.addEventListener('beforeinstallprompt', function (event) {
       event.preventDefault();
@@ -559,22 +567,112 @@ const App = {
       App.elements.installBtn.hidden = false;
     });
 
-    App.elements.installBtn.addEventListener('click', async function () {
-      if (deferredPrompt === null) {
-        return;
+    App.elements.installBtn.addEventListener('click', function () {
+      const modal = document.getElementById('installModal');
+      const androidView = document.getElementById('installAndroidView');
+      const iosView = document.getElementById('installIOSView');
+      const webView = document.getElementById('installWebView');
+
+      // Reset views
+      androidView.hidden = true;
+      iosView.hidden = true;
+      webView.hidden = true;
+
+      if (deferredPrompt && isAndroid) {
+        // Show Android view
+        androidView.hidden = false;
+        const androidBtn = document.getElementById('installAndroidBtn');
+        androidBtn.onclick = async function () {
+          deferredPrompt.prompt();
+          const choice = await deferredPrompt.userChoice;
+          if (choice.outcome === 'accepted') {
+            App.elements.installBtn.hidden = true;
+            modal.close();
+          }
+          deferredPrompt = null;
+        };
+      } else if (isIOS) {
+        // Show iOS view with manual instructions
+        iosView.hidden = false;
+        const iosBtn = iosView.querySelector('.modal-btn');
+        iosBtn.onclick = function () {
+          modal.close();
+        };
+      } else {
+        // Show web fallback
+        webView.hidden = false;
+        const webBtn = webView.querySelector('.modal-btn');
+        webBtn.onclick = function () {
+          modal.close();
+        };
       }
-      deferredPrompt.prompt();
-      const choice = await deferredPrompt.userChoice;
-      if (choice.outcome === 'accepted') {
-        App.elements.installBtn.hidden = true;
-      }
-      deferredPrompt = null;
+
+      modal.showModal();
     });
+
+    // Close modal button
+    const closeBtn = document.getElementById('closeInstallModal');
+    if (closeBtn) {
+      closeBtn.addEventListener('click', function () {
+        document.getElementById('installModal').close();
+      });
+    }
 
     window.addEventListener('appinstalled', function () {
       App.elements.installBtn.hidden = true;
       deferredPrompt = null;
     });
+  },
+
+  addChatMessage: function (text, sender) {
+    const bubble = document.createElement('div');
+    bubble.className = 'chat-bubble ' + sender;
+    bubble.textContent = text;
+    App.elements.chatMessages.appendChild(bubble);
+    App.elements.chatMessages.scrollTop = App.elements.chatMessages.scrollHeight;
+  },
+
+  streamTextToBubble: async function (text) {
+    const bubble = document.createElement('div');
+    bubble.className = 'chat-bubble bot typing';
+    bubble.textContent = '';
+    App.elements.chatMessages.appendChild(bubble);
+    App.elements.chatMessages.scrollTop = App.elements.chatMessages.scrollHeight;
+
+    for (let i = 0; i < text.length; i++) {
+      bubble.textContent += text.charAt(i);
+      App.elements.chatMessages.scrollTop = App.elements.chatMessages.scrollHeight;
+      await App.delay(35);
+    }
+
+    bubble.classList.remove('typing');
+  },
+
+  delay: function (ms) {
+    return new Promise(function (resolve) {
+      setTimeout(resolve, ms);
+    });
+  },
+
+  handleChatSubmit: async function (event) {
+    event.preventDefault();
+
+    const message = Security.sanitizeText(App.elements.chatInput.value);
+    if (message.length === 0) {
+      return;
+    }
+
+    App.addChatMessage(message, 'user');
+    App.elements.chatInput.value = '';
+    App.elements.chatSend.disabled = true;
+    App.elements.chatStatus.textContent = 'El asistente está escribiendo...';
+
+    await App.delay(400);
+    await App.streamTextToBubble('Disponible proximamente');
+
+    App.elements.chatSend.disabled = false;
+    App.elements.chatStatus.textContent = '';
+    App.elements.chatInput.focus();
   }
 };
 

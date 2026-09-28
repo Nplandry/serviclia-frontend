@@ -1,118 +1,22 @@
 const ROL_ACTUAL = 'operador';
 
 const CATEGORIAS = [
-  {
-    id: 'creditos',
-    title: 'Créditos',
-    short: 'Créditos preaprobados',
-    description: 'Ofrecen dinero fácil por teléfono o WhatsApp. Puede ser una estafa o un crédito caro.',
-    items: [
-      {
-        id: 'credito-preaprobado',
-        title: 'Me ofrecieron un crédito preaprobado',
-        content: [
-          'No dé datos personales si no pidió el crédito.',
-          'Pida el nombre de la empresa, su RUT y el número de inscripción en la CMF.',
-          'Desconfíe si le piden pagar un seguro, comisión o gasto antes de recibir el dinero.',
-          'Puede revisar en el sitio de la Comisión para el Mercado Financiero si la empresa está autorizada.'
-        ]
-      },
-      {
-        id: 'credito-cobro-anticipado',
-        title: 'Me pidieron pagar antes de recibir el crédito',
-        content: [
-          'Exigir dinero por adelantado es una señal de alerta.',
-          'No realice transferencias ni entregue claves.',
-          'Corte la comunicación y guarde evidencia: mensajes, números y pantallas.',
-          'Denuncie en SERNAC o en la Comisión para el Mercado Financiero.'
-        ]
-      }
-    ]
-  },
-  {
-    id: 'seguros',
-    title: 'Seguros',
-    short: 'Seguros atados o agregados',
-    description: 'Le venden un seguro junto con otro producto o se lo agregan sin explicarle bien.',
-    items: [
-      {
-        id: 'seguro-agregado',
-        title: 'Me agregaron un seguro que no pedí',
-        content: [
-          'Revisa el contrato y los cargos en tu cuenta bancaria o tarjeta.',
-          'Solicita la póliza y el detalle de la cobertura por escrito.',
-          'Si no lo contrataste, exige la anulación y la devolución del dinero.',
-          'Puedes reclamar ante la Comisión para el Mercado Financiero o SERNAC.'
-        ]
-      },
-      {
-        id: 'seguro-credito',
-        title: 'Me dijeron que el seguro es obligatorio para el crédito',
-        content: [
-          'Pregunte si puede contratar el seguro con otra aseguradora.',
-          'Pida que le expliquen el costo total del seguro durante toda la vida del crédito.',
-          'Compare precios y coberturas con al menos dos aseguradoras.',
-          'Si le presionan, no firme y pida revisar el contrato en su casa.'
-        ]
-      }
-    ]
-  },
-  {
-    id: 'cobranzas',
-    title: 'Cobranzas',
-    short: 'Cobros no reconocidos',
-    description: 'Llegan cobros de deudas que no recuerda o que no reconoce.',
-    items: [
-      {
-        id: 'cobro-no-reconocido',
-        title: 'Me están cobrando una deuda que no reconozco',
-        content: [
-          'Exija por escrito el detalle de la deuda, el monto y quién es el acreedor.',
-          'No se deje presionar con amenazas. Las llamadas deben ser en horario hábil.',
-          'Pida la copia del contrato que origina la deuda.',
-          'Si no le dan información clara, acuda a SERNAC o a un consultorio jurídico gratuito.'
-        ]
-      },
-      {
-        id: 'cobro-terceros',
-        title: 'Una empresa externa me llama para cobrarme',
-        content: [
-          'Pida el nombre de la cobranza y el RUT de la empresa.',
-          'No entregue datos de familiares ni vecinos.',
-          'Exija que toda la comunicación sea por escrito.',
-          'Guarde fecha, hora y número de cada llamada.'
-        ]
-      }
-    ]
-  },
-  {
-    id: 'servicios',
-    title: 'Servicios',
-    short: 'Portabilidad involuntaria',
-    description: 'Le cambiaron de compañía de teléfono, internet o luz sin que usted haya pedido el cambio.',
-    items: [
-      {
-        id: 'portabilidad-forzada',
-        title: 'Me cambiaron de compañía sin mi permiso',
-        content: [
-          'Revise sus boletas y contratos recientes.',
-          'Comuníquese con la empresa a la que nunca pidió cambiarse y exija la reversión.',
-          'Solicite constancia escrita del cambio y quién lo autorizó.',
-          'Denuncie ante la Subsecretaría de Telecomunicaciones o SERNAC.'
-        ]
-      },
-      {
-        id: 'cambio-proveedor',
-        title: 'Un vendedor me visitó y ahora tengo otra empresa',
-        content: [
-          'Tiene derecho a retracto: puede anular el contrato dentro de los 10 días hábiles siguientes.',
-          'La retractación debe ser gratuita y sin penalización.',
-          'Hágalo por escrito y guarde copia.',
-          'Si no respetan su retracto, reclame en SERNAC.'
-        ]
-      }
-    ]
-  }
+  { id: 'creditos', title: 'Créditos', short: 'Créditos preaprobados', description: 'Ofrecen dinero fácil por teléfono o WhatsApp. Puede ser una estafa o un crédito caro.', items: [
+    { id: 'credito-preaprobado', title: 'Me ofrecieron un crédito preaprobado', content: ['No dé datos personales si no pidió el crédito.', 'Pida el nombre de la empresa, su RUT y el número de inscripción en la CMF.', 'Desconfíe si le piden pagar un seguro, comisión o gasto antes de recibir el dinero.', 'Puede revisar en el sitio de la Comisión para el Mercado Financiero si la empresa está autorizada.'] },
+    { id: 'credito-cobro-anticipado', title: 'Me pidieron pagar antes de recibir el crédito', content: ['Exigir dinero por adelantado es una señal de alerta.', 'No realice transferencias ni entregue claves.', 'Corte la comunicación y guarde evidencia: mensajes, números y pantallas.', 'Denuncie en SERNAC o en la Comisión para el Mercado Financiero.'] }
+  ]},
+  { id: 'seguros', title: 'Seguros', short: 'Seguros atados o agregados', description: 'Le venden un seguro junto con otro producto o se lo agregan sin explicarle bien.', items: [
+    { id: 'seguro-agregado', title: 'Me agregaron un seguro que no pedí', content: ['Revisa el contrato y los cargos en tu cuenta bancaria o tarjeta.', 'Solicita la póliza y el detalle de la cobertura por escrito.', 'Si no lo contrataste, exige la anulación y la devolución del dinero.', 'Puedes reclamar ante la Comisión para el Mercado Financiero o SERNAC.'] },
+    { id: 'seguro-credito', title: 'Me dijeron que el seguro es obligatorio para el crédito', content: ['Pregunte si puede contratar el seguro con otra aseguradora.', 'Pida que le expliquen el costo total del seguro durante toda la vida del crédito.', 'Compare precios y coberturas con al menos dos aseguradoras.', 'Si le presionan, no firme y pida revisar el contrato en su casa.'] }
+  ]},
+  { id: 'cobranzas', title: 'Cobranzas', short: 'Cobros no reconocidos', description: 'Llegan cobros de deudas que no recuerda o que no reconoce.', items: [
+    { id: 'cobro-no-reconocido', title: 'Me están cobrando una deuda que no reconozco', content: ['Exija por escrito el detalle de la deuda, el monto y quién es el acreedor.', 'No se deje presionar con amenazas. Las llamadas deben ser en horario hábil.', 'Pida la copia del contrato que origina la deuda.', 'Si no le dan información clara, acuda a SERNAC o a un consultorio jurídico gratuito.'] },
+    { id: 'cobro-terceros', title: 'Una empresa externa me llama para cobrarme', content: ['Pida el nombre de la cobranza y el RUT de la empresa.', 'No entregue datos de familiares ni vecinos.', 'Exija que toda la comunicación sea por escrito.', 'Guarde fecha, hora y número de cada llamada.'] }
+  ]},
+  { id: 'servicios', title: 'Servicios', short: 'Portabilidad involuntaria', description: 'Le cambiaron de compañía de teléfono, internet o luz sin que usted haya pedido el cambio.', items: [
+    { id: 'portabilidad-forzada', title: 'Me cambiaron de compañía sin mi permiso', content: ['Revise sus boletas y contratos recientes.', 'Comuníquese con la empresa a la que nunca pidió cambiarse y exija la reversión.', 'Solicite constancia escrita del cambio y quién lo autorizó.', 'Denuncie ante la Subsecretaría de Telecomunicaciones o SERNAC.'] },
+    { id: 'cambio-proveedor', title: 'Un vendedor me visitó y ahora tengo otra empresa', content: ['Tiene derecho a retracto: puede anular el contrato dentro de los 10 días hábiles siguientes.', 'La retractación debe ser gratuita y sin penalización.', 'Hágalo por escrito y guarde copia.', 'Si no respetan su retracto, reclame en SERNAC.'] }
+  ]}
 ];
 
 const FRASES_EMERGENCIA = [
@@ -124,16 +28,10 @@ const FRASES_EMERGENCIA = [
 ];
 
 const App = {
-  state: {
-    role: ROL_ACTUAL,
-    currentCategory: null,
-    currentItem: null,
-    voices: []
-  },
-
+  state: { role: ROL_ACTUAL, currentCategory: null, currentItem: null, voices: [] },
   elements: {},
 
-  init: function () {
+  init() {
     App.cacheElements();
     App.bindEvents();
     App.setRoleFromHash();
@@ -144,45 +42,13 @@ const App = {
     App.setupInstall();
   },
 
-  cacheElements: function () {
-    App.elements.homeView = document.getElementById('homeView');
-    App.elements.categoryView = document.getElementById('categoryView');
-    App.elements.detailView = document.getElementById('detailView');
-    App.elements.formView = document.getElementById('formView');
-    App.elements.searchInput = document.getElementById('searchInput');
-    App.elements.categoryList = document.getElementById('categoryList');
-    App.elements.zeroResults = document.getElementById('zeroResults');
-    App.elements.emergencyBtn = document.getElementById('emergencyBtn');
-    App.elements.backFromCategory = document.getElementById('backFromCategory');
-    App.elements.backFromDetail = document.getElementById('backFromDetail');
-    App.elements.backFromForm = document.getElementById('backFromForm');
-    App.elements.categoryTitle = document.getElementById('categoryTitle');
-    App.elements.categoryDescription = document.getElementById('categoryDescription');
-    App.elements.categoryContent = document.getElementById('categoryContent');
-    App.elements.detailArticle = document.getElementById('detailArticle');
-    App.elements.speakBtn = document.getElementById('speakBtn');
-    App.elements.stopSpeakBtn = document.getElementById('stopSpeakBtn');
-    App.elements.orientationForm = document.getElementById('orientationForm');
-    App.elements.formRut = document.getElementById('formRut');
-    App.elements.rutError = document.getElementById('rutError');
-    App.elements.submitForm = document.getElementById('submitForm');
-    App.elements.formStatus = document.getElementById('formStatus');
-    App.elements.greeting = document.getElementById('greeting');
+  cacheElements() {
+    const ids = ['homeView','categoryView','detailView','formView','searchInput','categoryList','zeroResults','emergencyBtn','backFromCategory','backFromDetail','backFromForm','categoryTitle','categoryDescription','categoryContent','detailArticle','speakBtn','stopSpeakBtn','orientationForm','formRut','rutError','submitForm','formStatus','greeting','installBtn','chatForm','chatInput','chatSend','chatMessages','chatStatus','mainChatForm','mainChatInput','mainChatSend','mainChatMessages','mainChatStatus'];
+    ids.forEach(id => App.elements[id] = document.getElementById(id));
     App.elements.roleButtons = document.querySelectorAll('.role-btn');
-    App.elements.installBtn = document.getElementById('installBtn');
-    App.elements.chatForm = document.getElementById('chatForm');
-    App.elements.chatInput = document.getElementById('chatInput');
-    App.elements.chatSend = document.getElementById('chatSend');
-    App.elements.chatMessages = document.getElementById('chatMessages');
-    App.elements.chatStatus = document.getElementById('chatStatus');
-    App.elements.mainChatForm = document.getElementById('mainChatForm');
-    App.elements.mainChatInput = document.getElementById('mainChatInput');
-    App.elements.mainChatSend = document.getElementById('mainChatSend');
-    App.elements.mainChatMessages = document.getElementById('mainChatMessages');
-    App.elements.mainChatStatus = document.getElementById('mainChatStatus');
   },
 
-  bindEvents: function () {
+  bindEvents() {
     App.elements.searchInput.addEventListener('input', App.handleSearch);
     App.elements.emergencyBtn.addEventListener('click', App.handleEmergency);
     App.elements.backFromCategory.addEventListener('click', App.showHome);
@@ -192,254 +58,114 @@ const App = {
     App.elements.stopSpeakBtn.addEventListener('click', App.stopSpeaking);
     App.elements.orientationForm.addEventListener('submit', App.handleFormSubmit);
     App.elements.formRut.addEventListener('blur', App.handleRutBlur);
-    App.elements.roleButtons.forEach(function (button) {
-      button.addEventListener('click', App.handleRoleClick);
-    });
-    App.elements.chatForm.addEventListener('submit', function (event) {
-      App.handleChatSubmit(event, {
-        input: App.elements.chatInput,
-        send: App.elements.chatSend,
-        messages: App.elements.chatMessages,
-        status: App.elements.chatStatus
-      });
-    });
-    App.elements.mainChatForm.addEventListener('submit', function (event) {
-      App.handleChatSubmit(event, {
-        input: App.elements.mainChatInput,
-        send: App.elements.mainChatSend,
-        messages: App.elements.mainChatMessages,
-        status: App.elements.mainChatStatus
-      });
-    });
-
-    if (window.speechSynthesis) {
-      window.speechSynthesis.onvoiceschanged = App.loadVoices;
-    }
+    App.elements.roleButtons.forEach(b => b.addEventListener('click', App.handleRoleClick));
+    App.bindChat(App.elements.chatForm, App.elements.chatInput, App.elements.chatSend, App.elements.chatMessages);
+    App.bindChat(App.elements.mainChatForm, App.elements.mainChatInput, App.elements.mainChatSend, App.elements.mainChatMessages);
+    if (window.speechSynthesis) window.speechSynthesis.onvoiceschanged = App.loadVoices;
   },
 
-  setRoleFromHash: function () {
-    const roles = ['adulto_mayor', 'operador', 'admin'];
+  bindChat(form, input, send, messages) {
+    form.addEventListener('submit', e => App.handleChatSubmit(e, { input, send, messages }));
+  },
+
+  setRoleFromHash() {
     const hash = window.location.hash.replace('#', '');
-    if (roles.indexOf(hash) !== -1) {
-      App.state.role = hash;
-    } else {
-      App.state.role = ROL_ACTUAL;
-    }
+    App.state.role = ['adulto_mayor','operador','admin'].includes(hash) ? hash : ROL_ACTUAL;
     App.updateRoleButtons();
   },
 
-  handleRoleClick: function (event) {
-    const role = event.currentTarget.getAttribute('data-role');
-    App.state.role = role;
-    window.location.hash = role;
+  handleRoleClick(e) {
+    App.state.role = e.currentTarget.dataset.role;
+    window.location.hash = App.state.role;
     App.updateRoleButtons();
     App.setGreeting();
     App.updateEmergencyButton();
-    if (App.state.currentCategory) {
-      App.openCategory(App.state.currentCategory.id);
-    }
+    if (App.state.currentCategory) App.openCategory(App.state.currentCategory.id);
   },
 
-  updateRoleButtons: function () {
-    App.elements.roleButtons.forEach(function (button) {
-      if (button.getAttribute('data-role') === App.state.role) {
-        button.classList.add('active');
-        button.setAttribute('aria-current', 'true');
-      } else {
-        button.classList.remove('active');
-        button.removeAttribute('aria-current');
-      }
+  updateRoleButtons() {
+    App.elements.roleButtons.forEach(b => {
+      const active = b.dataset.role === App.state.role;
+      b.classList.toggle('active', active);
+      active ? b.setAttribute('aria-current','true') : b.removeAttribute('aria-current');
     });
   },
 
-  setGreeting: function () {
-    const hour = new Date().getHours();
-    let text = 'Buenos días';
-    if (hour >= 12 && hour < 20) {
-      text = 'Buenas tardes';
-    } else if (hour >= 20 || hour < 6) {
-      text = 'Buenas noches';
-    }
-
-    if (App.state.role === 'adulto_mayor') {
-      text += ', bienvenido a ServicIA';
-    } else if (App.state.role === 'operador') {
-      text += ', modo acompañante activo';
-    } else {
-      text += ', panel de administración';
-    }
-
-    App.elements.greeting.textContent = text;
+  setGreeting() {
+    const h = new Date().getHours();
+    let t = h < 12 ? 'Buenos días' : h < 20 ? 'Buenas tardes' : 'Buenas noches';
+    t += App.state.role === 'adulto_mayor' ? ', bienvenido a ServicIA' : App.state.role === 'operador' ? ', modo acompañante activo' : ', panel de administración';
+    App.elements.greeting.textContent = t;
   },
 
-  updateEmergencyButton: function () {
-    if (App.state.role === 'adulto_mayor') {
-      App.elements.emergencyBtn.textContent = '¿Qué digo ahora?';
-      App.elements.emergencyBtn.hidden = false;
-    } else if (App.state.role === 'operador') {
-      App.elements.emergencyBtn.textContent = 'Frase de ayuda';
-      App.elements.emergencyBtn.hidden = false;
-    } else {
-      App.elements.emergencyBtn.hidden = true;
-    }
+  updateEmergencyButton() {
+    App.elements.emergencyBtn.hidden = App.state.role === 'admin';
+    if (!App.elements.emergencyBtn.hidden) App.elements.emergencyBtn.textContent = App.state.role === 'adulto_mayor' ? '¿Qué digo ahora?' : 'Frase de ayuda';
   },
 
-  clearChildren: function (element) {
-    while (element.firstChild) {
-      element.removeChild(element.firstChild);
-    }
-  },
+  clearChildren(el) { while (el.firstChild) el.removeChild(el.firstChild); },
 
-  renderCategories: function (categories) {
+  renderCategories(categories) {
     App.clearChildren(App.elements.categoryList);
-
-    if (categories.length === 0) {
-      App.elements.zeroResults.hidden = false;
-      return;
-    }
-
-    App.elements.zeroResults.hidden = true;
-
-    categories.forEach(function (category) {
+    App.elements.zeroResults.hidden = categories.length > 0;
+    categories.forEach(c => {
       const li = document.createElement('li');
-      const button = document.createElement('button');
-      button.className = 'category-card';
-      button.setAttribute('type', 'button');
-
-      const title = document.createElement('span');
-      title.textContent = category.title;
-      button.appendChild(title);
-
-      const desc = document.createElement('span');
-      desc.className = 'category-desc';
-      desc.textContent = category.short;
-      button.appendChild(desc);
-
-      button.addEventListener('click', function () {
-        App.openCategory(category.id);
-      });
-
-      li.appendChild(button);
+      const btn = document.createElement('button');
+      btn.className = 'category-card';
+      btn.type = 'button';
+      btn.innerHTML = `<span>${c.title}</span><span class="category-desc">${c.short}</span>`;
+      btn.addEventListener('click', () => App.openCategory(c.id));
+      li.appendChild(btn);
       App.elements.categoryList.appendChild(li);
     });
   },
 
-  handleSearch: function () {
-    const query = Security.sanitizeText(App.elements.searchInput.value).toLowerCase();
-
-    if (query.length === 0) {
-      App.renderCategories(CATEGORIAS);
-      return;
-    }
-
-    const filtered = CATEGORIAS.filter(function (category) {
-      return (
-        category.title.toLowerCase().includes(query) ||
-        category.short.toLowerCase().includes(query) ||
-        category.description.toLowerCase().includes(query) ||
-        category.items.some(function (item) {
-          return item.title.toLowerCase().includes(query);
-        })
-      );
-    });
-
-    App.renderCategories(filtered);
+  handleSearch() {
+    const q = Security.sanitizeText(App.elements.searchInput.value).toLowerCase();
+    App.renderCategories(q ? CATEGORIAS.filter(c => c.title.toLowerCase().includes(q) || c.short.toLowerCase().includes(q) || c.description.toLowerCase().includes(q) || c.items.some(i => i.title.toLowerCase().includes(q))) : CATEGORIAS);
   },
 
-  handleEmergency: function () {
+  handleEmergency() {
     const phrase = FRASES_EMERGENCIA[Math.floor(Math.random() * FRASES_EMERGENCIA.length)];
-
-    if (window.speechSynthesis && App.state.role === 'adulto_mayor') {
-      App.speakText(phrase);
-    }
-
-    const originalText = App.elements.emergencyBtn.textContent;
+    if (window.speechSynthesis && App.state.role === 'adulto_mayor') App.speakText(phrase);
     App.elements.emergencyBtn.textContent = phrase;
-    setTimeout(function () {
-      if (App.state.role === 'adulto_mayor') {
-        App.elements.emergencyBtn.textContent = '¿Qué digo ahora?';
-      } else if (App.state.role === 'operador') {
-        App.elements.emergencyBtn.textContent = 'Frase de ayuda';
-      }
-    }, 4000);
+    setTimeout(() => App.updateEmergencyButton(), 4000);
   },
 
-  openCategory: function (categoryId) {
-    const category = CATEGORIAS.find(function (c) {
-      return c.id === categoryId;
-    });
-
-    if (!category) {
-      return;
-    }
-
-    App.state.currentCategory = category;
-
-    App.elements.categoryTitle.textContent = category.title;
-    App.elements.categoryDescription.textContent = category.description;
+  openCategory(id) {
+    const c = CATEGORIAS.find(x => x.id === id);
+    if (!c) return;
+    App.state.currentCategory = c;
+    App.elements.categoryTitle.textContent = c.title;
+    App.elements.categoryDescription.textContent = c.description;
     App.clearChildren(App.elements.categoryContent);
-
-    if (App.state.role === 'admin') {
-      const formButton = document.createElement('button');
-      formButton.className = 'content-card';
-      formButton.setAttribute('type', 'button');
-      formButton.textContent = 'Ver solicitudes ingresadas';
-      formButton.addEventListener('click', App.showForm);
-      App.elements.categoryContent.appendChild(formButton);
-    }
-
-    category.items.forEach(function (item) {
-      const button = document.createElement('button');
-      button.className = 'content-card';
-      button.setAttribute('type', 'button');
-      button.textContent = item.title;
-      button.addEventListener('click', function () {
-        App.openDetail(item.id);
-      });
-      App.elements.categoryContent.appendChild(button);
-    });
-
-    const formButton = document.createElement('button');
-    formButton.className = 'content-card';
-    formButton.setAttribute('type', 'button');
-    formButton.textContent = 'Solicitar orientación personalizada';
-    formButton.addEventListener('click', App.showForm);
-    App.elements.categoryContent.appendChild(formButton);
-
+    if (App.state.role === 'admin') App.addContentCard('Ver solicitudes ingresadas', App.showForm);
+    c.items.forEach(i => App.addContentCard(i.title, () => App.openDetail(i.id)));
+    App.addContentCard('Solicitar orientación personalizada', App.showForm);
     App.showView('categoryView');
   },
 
-  openDetail: function (itemId) {
-    const item = App.state.currentCategory.items.find(function (i) {
-      return i.id === itemId;
-    });
+  addContentCard(text, onClick) {
+    const btn = document.createElement('button');
+    btn.className = 'content-card';
+    btn.type = 'button';
+    btn.textContent = text;
+    btn.addEventListener('click', onClick);
+    App.elements.categoryContent.appendChild(btn);
+  },
 
-    if (!item) {
-      return;
-    }
-
+  openDetail(id) {
+    const item = App.state.currentCategory.items.find(i => i.id === id);
+    if (!item) return;
     App.state.currentItem = item;
-
     const article = document.createElement('article');
-    const h2 = document.createElement('h2');
-    h2.textContent = item.title;
-    article.appendChild(h2);
-
-    const ol = document.createElement('ol');
-    item.content.forEach(function (step) {
-      const li = document.createElement('li');
-      li.textContent = step;
-      ol.appendChild(li);
-    });
-    article.appendChild(ol);
-
+    article.innerHTML = `<h2>${item.title}</h2><ol>${item.content.map(s => `<li>${s}</li>`).join('')}</ol>`;
     App.clearChildren(App.elements.detailArticle);
     App.elements.detailArticle.appendChild(article);
-
     App.showView('detailView');
   },
 
-  showHome: function () {
+  showHome() {
     App.state.currentCategory = null;
     App.state.currentItem = null;
     App.elements.searchInput.value = '';
@@ -447,16 +173,12 @@ const App = {
     App.showView('homeView');
   },
 
-  showCategory: function () {
+  showCategory() {
     App.state.currentItem = null;
-    if (App.state.currentCategory) {
-      App.openCategory(App.state.currentCategory.id);
-    } else {
-      App.showHome();
-    }
+    App.state.currentCategory ? App.openCategory(App.state.currentCategory.id) : App.showHome();
   },
 
-  showForm: function () {
+  showForm() {
     App.elements.orientationForm.reset();
     App.elements.rutError.textContent = '';
     App.elements.formStatus.textContent = '';
@@ -464,54 +186,32 @@ const App = {
     App.showView('formView');
   },
 
-  handleRutBlur: function () {
-    const raw = App.elements.formRut.value;
-    if (raw.trim().length === 0) {
-      return;
-    }
-    const formatted = Security.formatRut(raw);
-    App.elements.formRut.value = formatted;
-
-    if (Security.validateRut(formatted)) {
-      App.elements.rutError.textContent = '';
-    } else {
-      App.elements.rutError.textContent = 'El RUT ingresado no es válido. Revise el número y el dígito verificador.';
-    }
+  handleRutBlur() {
+    const raw = App.elements.formRut.value.trim();
+    if (!raw) return;
+    const fmt = Security.formatRut(raw);
+    App.elements.formRut.value = fmt;
+    App.elements.rutError.textContent = Security.validateRut(fmt) ? '' : 'El RUT ingresado no es válido. Revise el número y el dígito verificador.';
   },
 
-  handleFormSubmit: async function (event) {
-    event.preventDefault();
-    App.elements.formStatus.textContent = '';
-
-    const formData = new FormData(App.elements.orientationForm);
-    const payload = {
-      nombre: Security.sanitizeText(formData.get('nombre')),
-      rut: Security.sanitizeText(formData.get('rut')),
-      tema: Security.sanitizeText(formData.get('tema')),
-      mensaje: Security.sanitizeText(formData.get('mensaje'))
-    };
-
-    if (payload.nombre.length < 2 || payload.tema.length < 3 || payload.mensaje.length < 10) {
+  async handleFormSubmit(e) {
+    e.preventDefault();
+    const fd = new FormData(App.elements.orientationForm);
+    const p = { nombre: Security.sanitizeText(fd.get('nombre')), rut: Security.sanitizeText(fd.get('rut')), tema: Security.sanitizeText(fd.get('tema')), mensaje: Security.sanitizeText(fd.get('mensaje')) };
+    if (p.nombre.length < 2 || p.tema.length < 3 || p.mensaje.length < 10) {
       App.elements.formStatus.textContent = 'Por favor complete todos los campos correctamente.';
       App.elements.formStatus.style.color = 'var(--color-error)';
       return;
     }
-
-    if (Security.validateRut(payload.rut) === false) {
-      App.elements.rutError.textContent = 'El RUT ingresado no es válido.';
-      App.elements.formRut.focus();
-      return;
-    }
-
+    if (!Security.validateRut(p.rut)) { App.elements.rutError.textContent = 'El RUT ingresado no es válido.'; App.elements.formRut.focus(); return; }
     App.elements.submitForm.disabled = true;
     App.elements.formStatus.style.color = 'var(--color-success)';
     App.elements.formStatus.textContent = 'Analizando...';
-
     try {
-      const response = await Security.simulateApiCall('/api/orientacion', payload);
-      App.elements.formStatus.textContent = response.message + ' Ticket: ' + response.ticket;
+      const r = await Security.simulateApiCall('/api/orientacion', p);
+      App.elements.formStatus.textContent = `${r.message} Ticket: ${r.ticket}`;
       App.elements.orientationForm.reset();
-    } catch (error) {
+    } catch {
       App.elements.formStatus.style.color = 'var(--color-error)';
       App.elements.formStatus.textContent = 'Ocurrió un error. Intente nuevamente.';
     } finally {
@@ -519,376 +219,152 @@ const App = {
     }
   },
 
-  showView: function (viewName) {
-    ['homeView', 'categoryView', 'detailView', 'formView'].forEach(function (name) {
-      App.elements[name].hidden = name !== viewName;
-    });
+  showView(name) {
+    ['homeView','categoryView','detailView','formView'].forEach(n => App.elements[n].hidden = n !== name);
     window.scrollTo(0, 0);
   },
 
-  loadVoices: function () {
-    if (!window.speechSynthesis) {
-      return;
-    }
-    App.state.voices = window.speechSynthesis.getVoices();
+  loadVoices() {
+    if (window.speechSynthesis) App.state.voices = window.speechSynthesis.getVoices();
   },
 
-  speakCurrent: function () {
-    if (!App.state.currentItem) {
-      return;
-    }
-    const text = App.state.currentItem.title + '. ' + App.state.currentItem.content.join('. ');
-    App.speakText(text);
+  speakCurrent() {
+    if (!App.state.currentItem) return;
+    App.speakText(`${App.state.currentItem.title}. ${App.state.currentItem.content.join('. ')}`);
   },
 
-  speakText: function (text) {
-    if (!window.speechSynthesis) {
-      return;
-    }
+  speakText(text) {
+    if (!window.speechSynthesis) return;
     App.stopSpeaking();
-
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = 'es-CL';
-    utterance.rate = 0.9;
-    utterance.pitch = 1;
-
-    const spanishVoice = App.state.voices.find(function (voice) {
-      return voice.lang.startsWith('es');
-    });
-    if (spanishVoice) {
-      utterance.voice = spanishVoice;
-    }
-
-    utterance.onstart = function () {
-      App.elements.stopSpeakBtn.hidden = false;
-    };
-    utterance.onend = function () {
-      App.elements.stopSpeakBtn.hidden = true;
-    };
-
-    window.speechSynthesis.speak(utterance);
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'es-CL'; u.rate = 0.9; u.pitch = 1;
+    const v = App.state.voices.find(x => x.lang.startsWith('es'));
+    if (v) u.voice = v;
+    u.onstart = () => App.elements.stopSpeakBtn.hidden = false;
+    u.onend = () => App.elements.stopSpeakBtn.hidden = true;
+    window.speechSynthesis.speak(u);
   },
 
-  stopSpeaking: function () {
-    if (window.speechSynthesis) {
-      window.speechSynthesis.cancel();
-    }
+  stopSpeaking() {
+    if (window.speechSynthesis) window.speechSynthesis.cancel();
     App.elements.stopSpeakBtn.hidden = true;
   },
 
-  setupInstall: function () {
+  setupInstall() {
     let deferredPrompt = null;
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
     const isAndroid = /Android/.test(navigator.userAgent);
-
-    window.addEventListener('beforeinstallprompt', function (event) {
-      event.preventDefault();
-      deferredPrompt = event;
-      App.elements.installBtn.hidden = false;
-    });
-
-    App.elements.installBtn.addEventListener('click', function () {
+    window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferredPrompt = e; });
+    App.elements.installBtn.addEventListener('click', () => {
       const modal = document.getElementById('installModal');
-      const androidView = document.getElementById('installAndroidView');
-      const iosView = document.getElementById('installIOSView');
-      const webView = document.getElementById('installWebView');
-
-      // Reset views
-      androidView.hidden = true;
-      iosView.hidden = true;
-      webView.hidden = true;
-
+      const views = ['installAndroidView','installIOSView','installWebView'].map(id => document.getElementById(id));
+      views.forEach(v => v.hidden = true);
       if (deferredPrompt && isAndroid) {
-        // Show Android view
-        androidView.hidden = false;
-        const androidBtn = document.getElementById('installAndroidBtn');
-        androidBtn.onclick = async function () {
-          deferredPrompt.prompt();
-          const choice = await deferredPrompt.userChoice;
-          if (choice.outcome === 'accepted') {
-            App.elements.installBtn.hidden = true;
-            modal.close();
-          }
+        views[0].hidden = false;
+        document.getElementById('installAndroidBtn').onclick = async () => {
+          await deferredPrompt.prompt();
+          const { outcome } = await deferredPrompt.userChoice;
+          if (outcome === 'accepted') { App.elements.installBtn.hidden = true; modal.close(); }
           deferredPrompt = null;
         };
-      } else if (isIOS) {
-        // Show iOS view with manual instructions
-        iosView.hidden = false;
-        const iosBtn = iosView.querySelector('.modal-btn');
-        iosBtn.onclick = function () {
-          modal.close();
-        };
-      } else {
-        // Show web fallback
-        webView.hidden = false;
-        const webBtn = webView.querySelector('.modal-btn');
-        webBtn.onclick = function () {
-          modal.close();
-        };
-      }
-
+      } else if (isIOS) { views[1].hidden = false; views[1].querySelector('.modal-btn').onclick = () => modal.close(); }
+      else { views[2].hidden = false; views[2].querySelector('.modal-btn').onclick = () => modal.close(); }
       modal.showModal();
     });
-
-    // Close modal button
-    const closeBtn = document.getElementById('closeInstallModal');
-    if (closeBtn) {
-      closeBtn.addEventListener('click', function () {
-        document.getElementById('installModal').close();
-      });
-    }
-
-    window.addEventListener('appinstalled', function () {
-      App.elements.installBtn.hidden = true;
-      deferredPrompt = null;
-    });
+    document.getElementById('closeInstallModal')?.addEventListener('click', () => document.getElementById('installModal').close());
+    window.addEventListener('appinstalled', () => { App.elements.installBtn.hidden = true; deferredPrompt = null; });
   },
 
-  addChatMessage: function (text, sender, elements) {
-    const bubble = document.createElement('div');
-    bubble.className = 'chat-bubble ' + sender;
-    bubble.textContent = text;
-    elements.messages.classList.add('has-messages');
-    elements.messages.appendChild(bubble);
-    elements.messages.scrollTop = elements.messages.scrollHeight;
+  addChatMessage(text, sender, messages) {
+    const b = document.createElement('div');
+    b.className = `chat-bubble ${sender}`;
+    b.textContent = text;
+    messages.classList.add('has-messages');
+    messages.appendChild(b);
+    messages.scrollTop = messages.scrollHeight;
   },
 
-  streamTextToBubble: async function (text, elements) {
-    const bubble = document.createElement('div');
-    bubble.className = 'chat-bubble bot typing';
-    bubble.textContent = '';
-    elements.messages.classList.add('has-messages');
-    elements.messages.appendChild(bubble);
-    elements.messages.scrollTop = elements.messages.scrollHeight;
-
-    for (let i = 0; i < text.length; i++) {
-      bubble.textContent += text.charAt(i);
-      elements.messages.scrollTop = elements.messages.scrollHeight;
-      await App.delay(35);
-    }
-
-    bubble.classList.remove('typing');
+  async streamTextToBubble(text, messages) {
+    const b = document.createElement('div');
+    b.className = 'chat-bubble bot typing';
+    messages.classList.add('has-messages');
+    messages.appendChild(b);
+    for (const ch of text) { b.textContent += ch; messages.scrollTop = messages.scrollHeight; await App.delay(35); }
+    b.classList.remove('typing');
   },
 
-  delay: function (ms) {
-    return new Promise(function (resolve) {
-      setTimeout(resolve, ms);
-    });
-  },
+  delay(ms) { return new Promise(r => setTimeout(r, ms)); },
 
-  handleChatSubmit: async function (event, elements) {
-    event.preventDefault();
-
-    const message = Security.sanitizeText(elements.input.value);
-    if (message.length === 0) {
-      return;
-    }
-
-    App.addChatMessage(message, 'user', elements);
-    elements.input.value = '';
-    elements.send.disabled = true;
-
+  async handleChatSubmit(e, { input, send, messages }) {
+    e.preventDefault();
+    const msg = Security.sanitizeText(input.value);
+    if (!msg) return;
+    App.addChatMessage(msg, 'user', messages);
+    input.value = '';
+    send.disabled = true;
     await App.delay(400);
-    await App.streamTextToBubble('Disponible proximamente', elements);
-
-    elements.send.disabled = false;
-    elements.input.focus();
+    await App.streamTextToBubble('Disponible proximamente', messages);
+    send.disabled = false;
+    input.focus();
   },
 
   Chat: {
-    ws: null,
-    isConnected: false,
-    reconnectDelay: 3000,
-    maxReconnectDelay: 30000,
-    currentDelay: 3000,
-    reconnectAttempts: 0,
-    maxReconnectAttempts: 10,
-    pendingQueue: [],
-    activeStreams: new Map(),
-
-    config: {
-      url: null,
-      autoConnect: false,
-      categoryContext: false
+    ws: null, isConnected: false, reconnectDelay: 3000, maxReconnectDelay: 30000, currentDelay: 3000, reconnectAttempts: 0, maxReconnectAttempts: 10, pendingQueue: [], activeStreams: new Map(),
+    config: { url: null, autoConnect: false, categoryContext: false },
+    init(o = {}) { Object.assign(App.Chat.config, o); if (App.Chat.config.autoConnect && App.Chat.config.url) App.Chat.connect(); },
+    connect() {
+      if (App.Chat.ws?.readyState === WebSocket.CONNECTING || App.Chat.ws?.readyState === WebSocket.OPEN) return;
+      if (!App.Chat.config.url) return;
+      App.Chat.ws = new WebSocket(App.Chat.config.url);
+      App.Chat.ws.onopen = () => { App.Chat.isConnected = true; App.Chat.reconnectAttempts = 0; App.Chat.currentDelay = App.Chat.reconnectDelay; App.Chat.flushPendingQueue(); document.dispatchEvent(new CustomEvent('chat:connected')); };
+      App.Chat.ws.onmessage = e => App.Chat.handleMessage(e.data);
+      App.Chat.ws.onerror = () => document.dispatchEvent(new CustomEvent('chat:error', { detail: { message: 'Error de conexión con el asistente' } }));
+      App.Chat.ws.onclose = () => { App.Chat.isConnected = false; document.dispatchEvent(new CustomEvent('chat:disconnected')); App.Chat.scheduleReconnect(); };
     },
-
-    init: function (options) {
-      App.Chat.config.url = options.url || null;
-      App.Chat.config.autoConnect = options.autoConnect || false;
-      App.Chat.config.categoryContext = options.categoryContext || false;
-
-      if (App.Chat.config.autoConnect && App.Chat.config.url) {
-        App.Chat.connect();
-      }
-    },
-
-    connect: function () {
-      if (App.Chat.ws && (App.Chat.ws.readyState === WebSocket.CONNECTING || App.Chat.ws.readyState === WebSocket.OPEN)) {
-        return;
-      }
-
-      if (!App.Chat.config.url) {
-        console.warn('Chat: no URL configurada');
-        return;
-      }
-
-      try {
-        App.Chat.ws = new WebSocket(App.Chat.config.url);
-
-        App.Chat.ws.onopen = function () {
-          App.Chat.isConnected = true;
-          App.Chat.reconnectAttempts = 0;
-          App.Chat.currentDelay = App.Chat.reconnectDelay;
-          App.Chat.flushPendingQueue();
-          document.dispatchEvent(new CustomEvent('chat:connected'));
-        };
-
-        App.Chat.ws.onmessage = function (event) {
-          App.Chat.handleMessage(event.data);
-        };
-
-        App.Chat.ws.onerror = function () {
-          document.dispatchEvent(new CustomEvent('chat:error', { detail: { message: 'Error de conexión con el asistente' } }));
-        };
-
-        App.Chat.ws.onclose = function () {
-          App.Chat.isConnected = false;
-          document.dispatchEvent(new CustomEvent('chat:disconnected'));
-          App.Chat.scheduleReconnect();
-        };
-      } catch (error) {
-        console.error('Chat: error al crear WebSocket', error);
-      }
-    },
-
-    disconnect: function () {
-      if (App.Chat.ws) {
-        App.Chat.ws.close();
-        App.Chat.ws = null;
-      }
-      App.Chat.isConnected = false;
-    },
-
-    scheduleReconnect: function () {
-      if (App.Chat.reconnectAttempts >= App.Chat.maxReconnectAttempts) {
-        document.dispatchEvent(new CustomEvent('chat:error', { detail: { message: 'No se pudo reconectar con el asistente' } }));
-        return;
-      }
-
-      App.Chat.reconnectAttempts += 1;
-      setTimeout(function () {
-        App.Chat.connect();
-      }, App.Chat.currentDelay);
-
+    disconnect() { App.Chat.ws?.close(); App.Chat.ws = null; App.Chat.isConnected = false; },
+    scheduleReconnect() {
+      if (App.Chat.reconnectAttempts >= App.Chat.maxReconnectAttempts) { document.dispatchEvent(new CustomEvent('chat:error', { detail: { message: 'No se pudo reconectar con el asistente' } })); return; }
+      App.Chat.reconnectAttempts++;
+      setTimeout(() => App.Chat.connect(), App.Chat.currentDelay);
       App.Chat.currentDelay = Math.min(App.Chat.currentDelay * 1.5, App.Chat.maxReconnectDelay);
     },
-
-    send: function (message, options) {
-      const payload = {
-        type: 'message',
-        message: Security.sanitizeText(message),
-        timestamp: new Date().toISOString()
-      };
-
-      if (options && options.categoryId) {
-        payload.categoryId = options.categoryId;
-      }
-
-      if (App.Chat.config.categoryContext && App.state.currentCategory) {
-        payload.categoryId = App.state.currentCategory.id;
-      }
-
-      if (App.Chat.isConnected && App.Chat.ws.readyState === WebSocket.OPEN) {
-        App.Chat.ws.send(JSON.stringify(payload));
-      } else {
-        App.Chat.pendingQueue.push(payload);
-        if (!App.Chat.isConnected) {
-          App.Chat.connect();
-        }
-      }
+    send(msg, opts = {}) {
+      const p = { type: 'message', message: Security.sanitizeText(msg), timestamp: new Date().toISOString(), ...opts };
+      if (App.Chat.config.categoryContext && App.state.currentCategory) p.categoryId = App.state.currentCategory.id;
+      if (App.Chat.isConnected && App.Chat.ws.readyState === WebSocket.OPEN) App.Chat.ws.send(JSON.stringify(p));
+      else { App.Chat.pendingQueue.push(p); if (!App.Chat.isConnected) App.Chat.connect(); }
     },
-
-    flushPendingQueue: function () {
-      while (App.Chat.pendingQueue.length > 0 && App.Chat.ws.readyState === WebSocket.OPEN) {
-        const payload = App.Chat.pendingQueue.shift();
-        App.Chat.ws.send(JSON.stringify(payload));
-      }
+    flushPendingQueue() { while (App.Chat.pendingQueue.length && App.Chat.ws.readyState === WebSocket.OPEN) App.Chat.ws.send(JSON.stringify(App.Chat.pendingQueue.shift())); },
+    handleMessage(raw) {
+      let d; try { d = JSON.parse(raw); } catch { d = { type: 'text', content: raw }; }
+      if (d.type === 'stream' || d.type === 'chunk') App.Chat.handleStreamChunk(d);
+      else if (d.type === 'stream_start') App.Chat.handleStreamStart(d);
+      else if (d.type === 'stream_end') App.Chat.handleStreamEnd(d);
+      else if (d.type === 'error') document.dispatchEvent(new CustomEvent('chat:error', { detail: d }));
+      else document.dispatchEvent(new CustomEvent('chat:message', { detail: d }));
     },
-
-    handleMessage: function (raw) {
-      let data;
-      try {
-        data = JSON.parse(raw);
-      } catch (error) {
-        data = { type: 'text', content: raw };
-      }
-
-      if (data.type === 'stream' || data.type === 'chunk') {
-        App.Chat.handleStreamChunk(data);
-      } else if (data.type === 'stream_start') {
-        App.Chat.handleStreamStart(data);
-      } else if (data.type === 'stream_end') {
-        App.Chat.handleStreamEnd(data);
-      } else if (data.type === 'error') {
-        document.dispatchEvent(new CustomEvent('chat:error', { detail: data }));
-      } else {
-        document.dispatchEvent(new CustomEvent('chat:message', { detail: data }));
-      }
+    handleStreamStart(d) {
+      const id = d.streamId || 'default';
+      const b = document.createElement('div'); b.className = 'chat-bubble bot typing'; b.id = `stream-${id}`; b.textContent = '';
+      const c = document.getElementById(d.containerId || 'mainChatMessages');
+      if (c) { c.classList.add('has-messages'); c.appendChild(b); c.scrollTop = c.scrollHeight; }
+      App.Chat.activeStreams.set(id, { bubble: b, container: c });
+      document.dispatchEvent(new CustomEvent('chat:streamStart', { detail: d }));
     },
-
-    handleStreamStart: function (data) {
-      const streamId = data.streamId || 'default';
-      const bubble = document.createElement('div');
-      bubble.className = 'chat-bubble bot typing';
-      bubble.id = 'stream-' + streamId;
-      bubble.textContent = '';
-
-      const containerId = data.containerId || 'mainChatMessages';
-      const container = document.getElementById(containerId);
-      if (container) {
-        container.classList.add('has-messages');
-        container.appendChild(bubble);
-        container.scrollTop = container.scrollHeight;
-      }
-
-      App.Chat.activeStreams.set(streamId, {
-        bubble: bubble,
-        container: container
-      });
-
-      document.dispatchEvent(new CustomEvent('chat:streamStart', { detail: data }));
+    handleStreamChunk(d) {
+      const s = App.Chat.activeStreams.get(d.streamId || 'default');
+      if (s?.bubble) { s.bubble.textContent += d.content || ''; s.container.scrollTop = s.container.scrollHeight; }
+      document.dispatchEvent(new CustomEvent('chat:streamChunk', { detail: d }));
     },
-
-    handleStreamChunk: function (data) {
-      const streamId = data.streamId || 'default';
-      const stream = App.Chat.activeStreams.get(streamId);
-
-      if (stream && stream.bubble) {
-        stream.bubble.textContent += data.content || '';
-        stream.container.scrollTop = stream.container.scrollHeight;
-      }
-
-      document.dispatchEvent(new CustomEvent('chat:streamChunk', { detail: data }));
-    },
-
-    handleStreamEnd: function (data) {
-      const streamId = data.streamId || 'default';
-      const stream = App.Chat.activeStreams.get(streamId);
-
-      if (stream && stream.bubble) {
-        stream.bubble.classList.remove('typing');
-        stream.bubble.id = '';
-        App.Chat.activeStreams.delete(streamId);
-      }
-
-      document.dispatchEvent(new CustomEvent('chat:streamEnd', { detail: data }));
+    handleStreamEnd(d) {
+      const s = App.Chat.activeStreams.get(d.streamId || 'default');
+      if (s?.bubble) { s.bubble.classList.remove('typing'); s.bubble.id = ''; App.Chat.activeStreams.delete(d.streamId || 'default'); }
+      document.dispatchEvent(new CustomEvent('chat:streamEnd', { detail: d }));
     }
   }
 };
 
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', () => {
   App.init();
-
-  // Inicializar conexión WebSocket del chat cuando haya endpoint disponible
   // App.Chat.init({ url: 'wss://tu-api.com/chat', autoConnect: true, categoryContext: true });
 });

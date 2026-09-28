@@ -277,10 +277,10 @@ body {
 
 .zero-results {
   background-color: #fff6f0;
-  border: 2px solid var(--color-accent);
-  border-radius: var(--radius);
-  padding: var(--space-lg);
-  margin-top: var(--space-lg);
+  border: 0;
+  border-radius: 10px;
+  padding: 20px;
+  margin-top: 0;
 }
 
 .zero-results p {

@@ -598,11 +598,7 @@ form {
 }
 
 .chat-status {
-  margin: 0;
-  padding: 0 var(--space-md) var(--space-md);
-  font-size: var(--font-size-base);
-  color: var(--color-muted);
-  min-height: 1.5rem;
+  display: none;
 }
 
 .app-footer {

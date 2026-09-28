@@ -685,13 +685,11 @@ const App = {
     App.addChatMessage(message, 'user', elements);
     elements.input.value = '';
     elements.send.disabled = true;
-    elements.status.textContent = 'El asistente está escribiendo...';
 
     await App.delay(400);
     await App.streamTextToBubble('Disponible proximamente', elements);
 
     elements.send.disabled = false;
-    elements.status.textContent = '';
     elements.input.focus();
   },
 

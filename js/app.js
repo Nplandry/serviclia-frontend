@@ -175,6 +175,11 @@ const App = {
     App.elements.chatSend = document.getElementById('chatSend');
     App.elements.chatMessages = document.getElementById('chatMessages');
     App.elements.chatStatus = document.getElementById('chatStatus');
+    App.elements.mainChatForm = document.getElementById('mainChatForm');
+    App.elements.mainChatInput = document.getElementById('mainChatInput');
+    App.elements.mainChatSend = document.getElementById('mainChatSend');
+    App.elements.mainChatMessages = document.getElementById('mainChatMessages');
+    App.elements.mainChatStatus = document.getElementById('mainChatStatus');
   },
 
   bindEvents: function () {
@@ -190,7 +195,22 @@ const App = {
     App.elements.roleButtons.forEach(function (button) {
       button.addEventListener('click', App.handleRoleClick);
     });
-    App.elements.chatForm.addEventListener('submit', App.handleChatSubmit);
+    App.elements.chatForm.addEventListener('submit', function (event) {
+      App.handleChatSubmit(event, {
+        input: App.elements.chatInput,
+        send: App.elements.chatSend,
+        messages: App.elements.chatMessages,
+        status: App.elements.chatStatus
+      });
+    });
+    App.elements.mainChatForm.addEventListener('submit', function (event) {
+      App.handleChatSubmit(event, {
+        input: App.elements.mainChatInput,
+        send: App.elements.mainChatSend,
+        messages: App.elements.mainChatMessages,
+        status: App.elements.mainChatStatus
+      });
+    });
 
     if (window.speechSynthesis) {
       window.speechSynthesis.onvoiceschanged = App.loadVoices;
@@ -624,24 +644,24 @@ const App = {
     });
   },
 
-  addChatMessage: function (text, sender) {
+  addChatMessage: function (text, sender, elements) {
     const bubble = document.createElement('div');
     bubble.className = 'chat-bubble ' + sender;
     bubble.textContent = text;
-    App.elements.chatMessages.appendChild(bubble);
-    App.elements.chatMessages.scrollTop = App.elements.chatMessages.scrollHeight;
+    elements.messages.appendChild(bubble);
+    elements.messages.scrollTop = elements.messages.scrollHeight;
   },
 
-  streamTextToBubble: async function (text) {
+  streamTextToBubble: async function (text, elements) {
     const bubble = document.createElement('div');
     bubble.className = 'chat-bubble bot typing';
     bubble.textContent = '';
-    App.elements.chatMessages.appendChild(bubble);
-    App.elements.chatMessages.scrollTop = App.elements.chatMessages.scrollHeight;
+    elements.messages.appendChild(bubble);
+    elements.messages.scrollTop = elements.messages.scrollHeight;
 
     for (let i = 0; i < text.length; i++) {
       bubble.textContent += text.charAt(i);
-      App.elements.chatMessages.scrollTop = App.elements.chatMessages.scrollHeight;
+      elements.messages.scrollTop = elements.messages.scrollHeight;
       await App.delay(35);
     }
 
@@ -654,26 +674,220 @@ const App = {
     });
   },
 
-  handleChatSubmit: async function (event) {
+  handleChatSubmit: async function (event, elements) {
     event.preventDefault();
 
-    const message = Security.sanitizeText(App.elements.chatInput.value);
+    const message = Security.sanitizeText(elements.input.value);
     if (message.length === 0) {
       return;
     }
 
-    App.addChatMessage(message, 'user');
-    App.elements.chatInput.value = '';
-    App.elements.chatSend.disabled = true;
-    App.elements.chatStatus.textContent = 'El asistente está escribiendo...';
+    App.addChatMessage(message, 'user', elements);
+    elements.input.value = '';
+    elements.send.disabled = true;
+    elements.status.textContent = 'El asistente está escribiendo...';
 
     await App.delay(400);
-    await App.streamTextToBubble('Disponible proximamente');
+    await App.streamTextToBubble('Disponible proximamente', elements);
 
-    App.elements.chatSend.disabled = false;
-    App.elements.chatStatus.textContent = '';
-    App.elements.chatInput.focus();
+    elements.send.disabled = false;
+    elements.status.textContent = '';
+    elements.input.focus();
+  },
+
+  Chat: {
+    ws: null,
+    isConnected: false,
+    reconnectDelay: 3000,
+    maxReconnectDelay: 30000,
+    currentDelay: 3000,
+    reconnectAttempts: 0,
+    maxReconnectAttempts: 10,
+    pendingQueue: [],
+    activeStreams: new Map(),
+
+    config: {
+      url: null,
+      autoConnect: false,
+      categoryContext: false
+    },
+
+    init: function (options) {
+      App.Chat.config.url = options.url || null;
+      App.Chat.config.autoConnect = options.autoConnect || false;
+      App.Chat.config.categoryContext = options.categoryContext || false;
+
+      if (App.Chat.config.autoConnect && App.Chat.config.url) {
+        App.Chat.connect();
+      }
+    },
+
+    connect: function () {
+      if (App.Chat.ws && (App.Chat.ws.readyState === WebSocket.CONNECTING || App.Chat.ws.readyState === WebSocket.OPEN)) {
+        return;
+      }
+
+      if (!App.Chat.config.url) {
+        console.warn('Chat: no URL configurada');
+        return;
+      }
+
+      try {
+        App.Chat.ws = new WebSocket(App.Chat.config.url);
+
+        App.Chat.ws.onopen = function () {
+          App.Chat.isConnected = true;
+          App.Chat.reconnectAttempts = 0;
+          App.Chat.currentDelay = App.Chat.reconnectDelay;
+          App.Chat.flushPendingQueue();
+          document.dispatchEvent(new CustomEvent('chat:connected'));
+        };
+
+        App.Chat.ws.onmessage = function (event) {
+          App.Chat.handleMessage(event.data);
+        };
+
+        App.Chat.ws.onerror = function () {
+          document.dispatchEvent(new CustomEvent('chat:error', { detail: { message: 'Error de conexión con el asistente' } }));
+        };
+
+        App.Chat.ws.onclose = function () {
+          App.Chat.isConnected = false;
+          document.dispatchEvent(new CustomEvent('chat:disconnected'));
+          App.Chat.scheduleReconnect();
+        };
+      } catch (error) {
+        console.error('Chat: error al crear WebSocket', error);
+      }
+    },
+
+    disconnect: function () {
+      if (App.Chat.ws) {
+        App.Chat.ws.close();
+        App.Chat.ws = null;
+      }
+      App.Chat.isConnected = false;
+    },
+
+    scheduleReconnect: function () {
+      if (App.Chat.reconnectAttempts >= App.Chat.maxReconnectAttempts) {
+        document.dispatchEvent(new CustomEvent('chat:error', { detail: { message: 'No se pudo reconectar con el asistente' } }));
+        return;
+      }
+
+      App.Chat.reconnectAttempts += 1;
+      setTimeout(function () {
+        App.Chat.connect();
+      }, App.Chat.currentDelay);
+
+      App.Chat.currentDelay = Math.min(App.Chat.currentDelay * 1.5, App.Chat.maxReconnectDelay);
+    },
+
+    send: function (message, options) {
+      const payload = {
+        type: 'message',
+        message: Security.sanitizeText(message),
+        timestamp: new Date().toISOString()
+      };
+
+      if (options && options.categoryId) {
+        payload.categoryId = options.categoryId;
+      }
+
+      if (App.Chat.config.categoryContext && App.state.currentCategory) {
+        payload.categoryId = App.state.currentCategory.id;
+      }
+
+      if (App.Chat.isConnected && App.Chat.ws.readyState === WebSocket.OPEN) {
+        App.Chat.ws.send(JSON.stringify(payload));
+      } else {
+        App.Chat.pendingQueue.push(payload);
+        if (!App.Chat.isConnected) {
+          App.Chat.connect();
+        }
+      }
+    },
+
+    flushPendingQueue: function () {
+      while (App.Chat.pendingQueue.length > 0 && App.Chat.ws.readyState === WebSocket.OPEN) {
+        const payload = App.Chat.pendingQueue.shift();
+        App.Chat.ws.send(JSON.stringify(payload));
+      }
+    },
+
+    handleMessage: function (raw) {
+      let data;
+      try {
+        data = JSON.parse(raw);
+      } catch (error) {
+        data = { type: 'text', content: raw };
+      }
+
+      if (data.type === 'stream' || data.type === 'chunk') {
+        App.Chat.handleStreamChunk(data);
+      } else if (data.type === 'stream_start') {
+        App.Chat.handleStreamStart(data);
+      } else if (data.type === 'stream_end') {
+        App.Chat.handleStreamEnd(data);
+      } else if (data.type === 'error') {
+        document.dispatchEvent(new CustomEvent('chat:error', { detail: data }));
+      } else {
+        document.dispatchEvent(new CustomEvent('chat:message', { detail: data }));
+      }
+    },
+
+    handleStreamStart: function (data) {
+      const streamId = data.streamId || 'default';
+      const bubble = document.createElement('div');
+      bubble.className = 'chat-bubble bot typing';
+      bubble.id = 'stream-' + streamId;
+      bubble.textContent = '';
+
+      const containerId = data.containerId || 'mainChatMessages';
+      const container = document.getElementById(containerId);
+      if (container) {
+        container.appendChild(bubble);
+        container.scrollTop = container.scrollHeight;
+      }
+
+      App.Chat.activeStreams.set(streamId, {
+        bubble: bubble,
+        container: container
+      });
+
+      document.dispatchEvent(new CustomEvent('chat:streamStart', { detail: data }));
+    },
+
+    handleStreamChunk: function (data) {
+      const streamId = data.streamId || 'default';
+      const stream = App.Chat.activeStreams.get(streamId);
+
+      if (stream && stream.bubble) {
+        stream.bubble.textContent += data.content || '';
+        stream.container.scrollTop = stream.container.scrollHeight;
+      }
+
+      document.dispatchEvent(new CustomEvent('chat:streamChunk', { detail: data }));
+    },
+
+    handleStreamEnd: function (data) {
+      const streamId = data.streamId || 'default';
+      const stream = App.Chat.activeStreams.get(streamId);
+
+      if (stream && stream.bubble) {
+        stream.bubble.classList.remove('typing');
+        stream.bubble.id = '';
+        App.Chat.activeStreams.delete(streamId);
+      }
+
+      document.dispatchEvent(new CustomEvent('chat:streamEnd', { detail: data }));
+    }
   }
 };
 
-document.addEventListener('DOMContentLoaded', App.init);
+document.addEventListener('DOMContentLoaded', function () {
+  App.init();
+
+  // Inicializar conexión WebSocket del chat cuando haya endpoint disponible
+  // App.Chat.init({ url: 'wss://tu-api.com/chat', autoConnect: true, categoryContext: true });
+});

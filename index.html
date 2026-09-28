@@ -52,6 +52,17 @@
         </ul>
       </div>
 
+      <div class="chat-section main-chat">
+        <h3 class="chat-title">Asistente ServicIA</h3>
+        <div id="mainChatMessages" class="chat-messages" role="log" aria-live="polite" aria-label="Mensajes del asistente"></div>
+        <form id="mainChatForm" class="chat-form">
+          <label for="mainChatInput" class="visually-hidden">Escriba su consulta</label>
+          <input id="mainChatInput" type="text" placeholder="Escriba su consulta..." autocomplete="off" maxlength="300">
+          <button id="mainChatSend" class="chat-send" type="submit" aria-label="Enviar mensaje">Enviar</button>
+        </form>
+        <p id="mainChatStatus" class="chat-status" aria-live="polite"></p>
+      </div>
+
       <button id="emergencyBtn" class="emergency-btn" type="button" aria-live="polite">
         ¿Qué digo ahora?
       </button>

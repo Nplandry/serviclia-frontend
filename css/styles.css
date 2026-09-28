@@ -493,6 +493,10 @@ form {
   overflow: hidden;
 }
 
+.chat-section.main-chat {
+  margin-top: var(--space-lg);
+}
+
 .chat-title {
   margin: 0;
   padding: var(--space-md) var(--space-lg);

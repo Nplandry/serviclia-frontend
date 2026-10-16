@@ -112,7 +112,7 @@ const Security = {
           ok: true,
           caseId: caseId,
           sent: { rut: anonRut, token: token, relato: redactedRelato },
-          fuentes: ['SII', 'Registro Civil', 'CMF', 'AFC/AFP', 'SUBTEL', 'PEP', 'Interpol'],
+          fuentes: ['SII', 'Registro Civil', 'CMF', 'AFC y AFP', 'SUBTEL', 'PEP', 'Interpol'],
           hallazgos: {
             bienesRaices: tieneBienes ? seed % 3 + 1 : 0,
             vehiculos: tieneBienes ? seed % 2 : 0,

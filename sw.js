@@ -1,10 +1,15 @@
-const CACHE_NAME = 'servicia-v1';
+const CACHE_NAME = 'servicia-v3';
 const ASSETS = [
   './',
   './index.html',
+  './onboarding/',
+  './onboarding/index.html',
   './css/styles.css',
   './js/app.js',
   './js/security.js',
+  './js/auth.js',
+  './js/history.js',
+  './js/onboarding.js',
   './manifest.json'
 ];
 

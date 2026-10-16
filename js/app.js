@@ -1,10 +1,8 @@
-const ROL_ACTUAL = 'operador';
-
 const CATEGORIAS = [
   {
     id: 'embargo-falso',
     title: 'Amenaza de embargo',
-    short: 'Caso 1 · Defensa patrimonial',
+    short: 'Caso 1 - Defensa patrimonial',
     description: 'Llamada o carta que amenaza con embargar su casa o auto por una deuda antigua.',
     cruce: { endpoint: '/v1/patrimonio', fuentes: ['SII (Propiedades)', 'Registro Civil (Vehículos)'] },
     frases: ['Sé que no registro bienes embargables a mi nombre. Exijo notificación judicial formal antes de responder.'],
@@ -16,9 +14,9 @@ const CATEGORIAS = [
   {
     id: 'seguros',
     title: 'Seguros no consentidos',
-    short: 'Caso 2 · Auditoría financiera',
+    short: 'Caso 2 - Auditoría financiera',
     description: 'Descuento extraño en la pensión o cartola bajo concepto de seguros o asistencias.',
-    cruce: { endpoint: '/v1/polizas', fuentes: ['CMF (Depósito de pólizas)'] },
+    cruce: { endpoint: '/v1/polizas', fuentes: ['CMF'] },
     frases: ['No autoricé ni firmé este seguro. Exijo la prueba de aceptación y la restitución retroactiva de lo cobrado.'],
     items: [
       { id: 'seguro-agregado', title: 'Me agregaron un seguro que no pedí', content: ['Revise los cargos en su cartola bancaria o liquidación de pensión.', 'Solicite la póliza y la prueba de aceptación por escrito.', 'Si no la contrató, exija anulación y devolución con intereses.', 'El acompañante genera un folio de reclamo CMF/SERNAC.'] },
@@ -28,37 +26,13 @@ const CATEGORIAS = [
   {
     id: 'portabilidad',
     title: 'Cambio de plan engañoso',
-    short: 'Caso 3 · Telecomunicaciones',
+    short: 'Caso 3 - Telecomunicaciones',
     description: 'Llamada para "actualizar su plan" que exige un código SMS de verificación.',
     cruce: { endpoint: '/v1/subtel', fuentes: ['SUBTEL (Traspaso de operador)'] },
     frases: ['No autorizo el cambio de compañía ni entregaré códigos SMS.'],
     items: [
       { id: 'portabilidad-sms', title: 'Me piden un código SMS para "mejorar mi plan"', content: ['Nunca entregue un código SMS que llega a su teléfono.', 'Ese código autoriza el traspaso de su número a otra compañía.', 'Corte la llamada y verifique directamente con su operador.', 'El acompañante revisa si hay una señal de traspaso en SUBTEL.'] },
       { id: 'portabilidad-forzada', title: 'Me cambiaron de compañía sin mi permiso', content: ['Revise sus boletas y contratos recientes.', 'Exija a la nueva empresa la reversión del cambio.', 'Pida constancia escrita de quién autorizó el cambio.', 'Denuncie ante SUBTEL o SERNAC.'] }
-    ]
-  },
-  {
-    id: 'solvencia',
-    title: 'Evaluación de solvencia',
-    short: 'Caso 4 · B2B DataCheck API',
-    description: 'Un cliente postula a arriendo o crédito. Verifique bienes, vehículos y estado laboral.',
-    b2b: true,
-    cruce: { endpoint: '/v1/patrimonio', fuentes: ['SII', 'Registro Civil', 'AFC/AFP'] },
-    frases: [],
-    items: [
-      { id: 'solvencia-score', title: 'Verificar score de garantía real', content: ['Ingrese el RUT del postulante en la estación de cruce.', 'El sistema consulta bienes raíces, vehículos y estado laboral activo.', 'Obtiene un Score de Garantía Real en menos de 2 segundos.', 'Detecta inconsistencias con liquidaciones de sueldo declaradas.'] }
-    ]
-  },
-  {
-    id: 'compliance',
-    title: 'Onboarding y compliance',
-    short: 'Caso 5 · B2B Cumplimiento UAF',
-    description: 'Alta de un nuevo socio o proveedor. Debida diligencia Ley de Delitos Económicos.',
-    b2b: true,
-    cruce: { endpoint: '/v1/compliance', fuentes: ['Registro Civil', 'PEP', 'Interpol'] },
-    frases: [],
-    items: [
-      { id: 'compliance-kyc', title: 'Verificar debida diligencia (KYC/UAF)', content: ['Ingrese el RUT del socio o proveedor en la estación de cruce.', 'El sistema verifica serie de cédula y estado de supervivencia.', 'Comprueba condición de Persona Políticamente Expuesta (PEP) e Interpol.', 'Entrega un certificado de debida diligencia respaldado.'] }
     ]
   }
 ];
@@ -71,32 +45,178 @@ const FRASES_EMERGENCIA = [
   'No voy a dar datos ni firmar nada hasta conversar con mi familia.'
 ];
 
-const KPIS = [
-  { id: 'desarme', label: 'Tasa de desarme inmediato', value: '83%', meta: '> 80%', ok: true, desc: 'Consultas donde la frase detuvo la transacción en la primera llamada.' },
-  { id: 'folios', label: 'Efectividad de folios de reclamo', value: '87%', meta: '> 85%', ok: true, desc: 'Casos a SERNAC/SUBTEL/CMF con devolución o anulación.' },
-  { id: 'dano', label: 'Daño económico evitado', value: '$48.2M CLP', meta: 'Acumulado', ok: true, desc: 'Créditos caros, seguros fantasma y repactaciones detenidas.' },
-  { id: 'pii', label: 'Tasa zero-fuga de PII', value: '100%', meta: '100%', ok: true, desc: 'Cero registros de fuga de datos personales en logs de red.' }
-];
-
 const App = {
-  state: { role: ROL_ACTUAL, currentCategory: null, currentItem: null, voices: [] },
+  state: { currentCategory: null, currentItem: null, voices: [] },
   elements: {},
 
   init() {
+    Auth.init();
     App.cacheElements();
     App.bindEvents();
-    App.setRoleFromHash();
+    App.bindAuthEvents();
     App.setGreeting();
     App.updateEmergencyButton();
     App.renderCategories(CATEGORIAS);
     App.loadVoices();
     App.setupInstall();
+    App.applyAuthState();
   },
 
   cacheElements() {
-    const ids = ['homeView','categoryView','detailView','formView','searchInput','categoryList','zeroResults','emergencyBtn','backFromCategory','backFromDetail','backFromForm','categoryTitle','categoryDescription','categoryContent','detailArticle','speakBtn','stopSpeakBtn','orientationForm','formRut','rutError','submitForm','formStatus','greeting','installBtn','chatForm','chatInput','chatSend','chatMessages','chatStatus','mainChatForm','mainChatInput','mainChatSend','mainChatMessages','mainChatStatus'];
+    const ids = ['homeView','categoryView','detailView','formView','searchInput','categoryList','zeroResults','emergencyBtn','backFromCategory','backFromDetail','backFromForm','categoryTitle','categoryDescription','categoryContent','detailArticle','speakBtn','stopSpeakBtn','orientationForm','formRut','rutError','submitForm','formStatus','greeting','installBtn','logoutBtn','chatForm','chatInput','chatSend','chatMessages','chatStatus','mainChatForm','mainChatInput','mainChatSend','mainChatMessages','mainChatStatus','authGate','tabLogin','tabRegister','loginForm','registerForm','loginStatus','registerStatus','historyBtn','historyPanel','historyOverlay','historyClose','historyList','historyClear'];
     ids.forEach(id => App.elements[id] = document.getElementById(id));
-    App.elements.roleButtons = document.querySelectorAll('.role-group__btn');
+    App.elements.appHeader = document.querySelector('.app-header');
+    App.elements.appMain = document.getElementById('main');
+    App.elements.appFooter = document.querySelector('.app-footer');
+  },
+
+  bindAuthEvents() {
+    App.elements.tabLogin.addEventListener('click', () => App.switchAuthTab('login'));
+    App.elements.tabRegister.addEventListener('click', () => App.switchAuthTab('register'));
+    App.elements.loginForm.addEventListener('submit', App.handleLogin);
+    App.elements.registerForm.addEventListener('submit', App.handleRegister);
+    App.elements.logoutBtn.addEventListener('click', App.handleLogout);
+    App.elements.historyBtn.addEventListener('click', App.openHistory);
+    App.elements.historyClose.addEventListener('click', App.closeHistory);
+    App.elements.historyOverlay.addEventListener('click', App.closeHistory);
+    App.elements.historyClear.addEventListener('click', App.handleHistoryClear);
+  },
+
+  applyAuthState() {
+    const authed = Auth.isAuthenticated();
+    App.elements.authGate.hidden = authed;
+    App.elements.appHeader.hidden = !authed;
+    App.elements.appMain.hidden = !authed;
+    if (App.elements.appFooter) App.elements.appFooter.hidden = !authed;
+    App.elements.logoutBtn.hidden = !authed;
+    App.elements.emergencyBtn.hidden = !authed;
+    App.elements.historyBtn.hidden = !authed;
+
+    if (authed) {
+      const user = Auth.getCurrentUser();
+      Historial.init(user.email);
+      App.renderHistory();
+      App.setGreeting();
+      App.updateEmergencyButton();
+      App.renderCategories(CATEGORIAS);
+      App.showHome();
+    } else {
+      App.closeHistory();
+    }
+  },
+
+  openHistory() {
+    App.renderHistory();
+    App.elements.historyPanel.classList.add('history--open');
+    App.elements.historyPanel.setAttribute('aria-hidden', 'false');
+    App.elements.historyOverlay.hidden = false;
+    App.elements.historyBtn.setAttribute('aria-expanded', 'true');
+  },
+
+  closeHistory() {
+    App.elements.historyPanel.classList.remove('history--open');
+    App.elements.historyPanel.setAttribute('aria-hidden', 'true');
+    App.elements.historyOverlay.hidden = true;
+    App.elements.historyBtn.setAttribute('aria-expanded', 'false');
+  },
+
+  handleHistoryClear() {
+    Historial.clear();
+    App.renderHistory();
+  },
+
+  renderHistory() {
+    const list = App.elements.historyList;
+    App.clearChildren(list);
+    const items = Historial.getAll();
+    if (items.length === 0) {
+      const empty = document.createElement('p');
+      empty.className = 'history__empty';
+      empty.textContent = 'Aún no hay consultas registradas.';
+      list.appendChild(empty);
+      App.elements.historyClear.disabled = true;
+      return;
+    }
+    App.elements.historyClear.disabled = false;
+    items.forEach(it => {
+      const card = document.createElement('article');
+      card.className = 'history__item history__item--' + (it.ok ? 'ok' : 'warn');
+
+      const head = document.createElement('p');
+      head.className = 'history__item-caso';
+      head.textContent = it.caso;
+      card.appendChild(head);
+
+      const rut = document.createElement('p');
+      rut.className = 'history__item-rut';
+      rut.textContent = it.rut;
+      card.appendChild(rut);
+
+      const resumen = document.createElement('p');
+      resumen.className = 'history__item-resumen';
+      resumen.textContent = it.resumen;
+      card.appendChild(resumen);
+
+      const fecha = document.createElement('p');
+      fecha.className = 'history__item-fecha';
+      fecha.textContent = App.formatHistoryDate(it.fecha);
+      card.appendChild(fecha);
+
+      list.appendChild(card);
+    });
+  },
+
+  formatHistoryDate(iso) {
+    try {
+      const d = new Date(iso);
+      return d.toLocaleString('es-CL', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    } catch (e) {
+      return iso;
+    }
+  },
+
+  switchAuthTab(tab) {
+    const login = tab === 'login';
+    App.elements.tabLogin.classList.toggle('auth__tab--active', login);
+    App.elements.tabRegister.classList.toggle('auth__tab--active', !login);
+    App.elements.tabLogin.setAttribute('aria-selected', String(login));
+    App.elements.tabRegister.setAttribute('aria-selected', String(!login));
+    App.elements.loginForm.hidden = !login;
+    App.elements.registerForm.hidden = login;
+    App.elements.loginStatus.textContent = '';
+    App.elements.registerStatus.textContent = '';
+  },
+
+  handleLogin(e) {
+    e.preventDefault();
+    const fd = new FormData(App.elements.loginForm);
+    const res = Auth.login(fd.get('email'), fd.get('password'));
+    if (!res.ok) {
+      App.elements.loginStatus.textContent = res.error;
+      return;
+    }
+    App.elements.loginForm.reset();
+    App.elements.loginStatus.textContent = '';
+    App.applyAuthState();
+  },
+
+  handleRegister(e) {
+    e.preventDefault();
+    const fd = new FormData(App.elements.registerForm);
+    const res = Auth.register({ nombre: fd.get('nombre'), email: fd.get('email'), password: fd.get('password') });
+    if (!res.ok) {
+      App.elements.registerStatus.textContent = res.error;
+      return;
+    }
+    App.elements.registerForm.reset();
+    App.elements.registerStatus.textContent = '';
+    App.applyAuthState();
+  },
+
+  handleLogout() {
+    Auth.logout();
+    App.switchAuthTab('login');
+    App.applyAuthState();
   },
 
   bindEvents() {
@@ -109,7 +229,6 @@ const App = {
     App.elements.stopSpeakBtn.addEventListener('click', App.stopSpeaking);
     App.elements.orientationForm.addEventListener('submit', App.handleFormSubmit);
     App.elements.formRut.addEventListener('blur', App.handleRutBlur);
-    App.elements.roleButtons.forEach(b => b.addEventListener('click', App.handleRoleClick));
     App.bindChat(App.elements.chatForm, App.elements.chatInput, App.elements.chatSend, App.elements.chatMessages);
     App.bindChat(App.elements.mainChatForm, App.elements.mainChatInput, App.elements.mainChatSend, App.elements.mainChatMessages);
     if (window.speechSynthesis) window.speechSynthesis.onvoiceschanged = App.loadVoices;
@@ -119,46 +238,18 @@ const App = {
     form.addEventListener('submit', e => App.handleChatSubmit(e, { input, send, messages }));
   },
 
-  setRoleFromHash() {
-    const hash = window.location.hash.replace('#', '');
-    App.state.role = ['adulto_mayor','operador','admin'].includes(hash) ? hash : ROL_ACTUAL;
-    App.updateRoleButtons();
-  },
-
-  handleRoleClick(e) {
-    App.state.role = e.currentTarget.dataset.role;
-    window.location.hash = App.state.role;
-    App.updateRoleButtons();
-    App.setGreeting();
-    App.updateEmergencyButton();
-    if (App.state.currentCategory) App.openCategory(App.state.currentCategory.id);
-  },
-
-  updateRoleButtons() {
-    App.elements.roleButtons.forEach(b => {
-      const active = b.dataset.role === App.state.role;
-      b.classList.toggle('role-group__btn--active', active);
-      active ? b.setAttribute('aria-current','true') : b.removeAttribute('aria-current');
-    });
-  },
-
   setGreeting() {
     const h = new Date().getHours();
     let t = h < 12 ? 'Buenos días' : h < 20 ? 'Buenas tardes' : 'Buenas noches';
-    t += App.state.role === 'adulto_mayor' ? ', bienvenido a ServicIA' : App.state.role === 'operador' ? ', estación de acompañante activa' : ', panel de administración';
+    t += ', bienvenido a ServicIA';
     App.elements.greeting.textContent = t;
-    const sub = {
-      adulto_mayor: 'Seleccione un tema para recibir orientación paso a paso.',
-      operador: 'Capture el relato, ejecute el cruce de datos y entregue la frase de rechazo.',
-      admin: 'Supervise métricas, folios y el impacto de la plataforma.'
-    };
     const heroText = document.querySelector('.hero__text');
-    if (heroText) heroText.textContent = sub[App.state.role] || sub.adulto_mayor;
+    if (heroText) heroText.textContent = 'Seleccione un tema para recibir orientación paso a paso.';
   },
 
   updateEmergencyButton() {
-    App.elements.emergencyBtn.hidden = App.state.role === 'admin';
-    if (!App.elements.emergencyBtn.hidden) App.elements.emergencyBtn.textContent = App.state.role === 'adulto_mayor' ? '¿Qué digo ahora?' : 'Frase de ayuda';
+    App.elements.emergencyBtn.hidden = false;
+    App.elements.emergencyBtn.textContent = '¿Qué digo ahora?';
   },
 
   clearChildren(el) { while (el.firstChild) el.removeChild(el.firstChild); },
@@ -166,17 +257,6 @@ const App = {
   renderCategories(categories) {
     App.clearChildren(App.elements.categoryList);
     App.elements.zeroResults.hidden = categories.length > 0;
-
-    if (App.state.role === 'admin') {
-      const li = document.createElement('li');
-      const btn = document.createElement('button');
-      btn.className = 'category-card category-card--metrics';
-      btn.type = 'button';
-      btn.innerHTML = '<span>Panel de métricas</span><span class="category-card__desc">KPIs de éxito (meta 80%+)</span>';
-      btn.addEventListener('click', App.showKpiPanel);
-      li.appendChild(btn);
-      App.elements.categoryList.appendChild(li);
-    }
 
     categories.forEach(c => {
       const li = document.createElement('li');
@@ -190,14 +270,6 @@ const App = {
     });
   },
 
-  showKpiPanel() {
-    App.state.currentCategory = null;
-    App.elements.categoryTitle.textContent = 'Panel de métricas';
-    App.elements.categoryDescription.textContent = 'Indicadores clave para validar la meta del 80% de éxito.';
-    App.renderKpis();
-    App.showView('categoryView');
-  },
-
   handleSearch() {
     const q = Security.sanitizeText(App.elements.searchInput.value).toLowerCase();
     App.renderCategories(q ? CATEGORIAS.filter(c => c.title.toLowerCase().includes(q) || c.short.toLowerCase().includes(q) || c.description.toLowerCase().includes(q) || c.items.some(i => i.title.toLowerCase().includes(q))) : CATEGORIAS);
@@ -205,7 +277,7 @@ const App = {
 
   handleEmergency() {
     const phrase = FRASES_EMERGENCIA[Math.floor(Math.random() * FRASES_EMERGENCIA.length)];
-    if (window.speechSynthesis && App.state.role === 'adulto_mayor') App.speakText(phrase);
+    if (window.speechSynthesis) App.speakText(phrase);
     App.elements.emergencyBtn.textContent = phrase;
     setTimeout(() => App.updateEmergencyButton(), 4000);
   },
@@ -220,13 +292,12 @@ const App = {
 
     (c.frases || []).forEach(f => App.addRejectionBlock(f));
 
-    if (c.cruce && (App.state.role !== 'adulto_mayor' || c.b2b)) {
+    if (c.cruce) {
       App.addDataCheckStation(c);
     }
 
-    if (App.state.role === 'admin') App.addContentCard('Ver solicitudes ingresadas', App.showForm);
     c.items.forEach(i => App.addContentCard(i.title, () => App.openDetail(i.id)));
-    if (!c.b2b) App.addContentCard('Solicitar orientación personalizada', App.showForm);
+    App.addContentCard('Solicitar orientación personalizada', App.showForm);
     App.showView('categoryView');
   },
 
@@ -238,7 +309,7 @@ const App = {
     label.textContent = 'Lea esta frase en voz alta:';
     const quote = document.createElement('p');
     quote.className = 'rejection__quote';
-    quote.textContent = '« ' + frase + ' »';
+    quote.textContent = frase;
     const speak = document.createElement('button');
     speak.type = 'button';
     speak.className = 'rejection__speak';
@@ -256,7 +327,7 @@ const App = {
 
     const heading = document.createElement('h3');
     heading.className = 'datacheck__title';
-    heading.textContent = categoria.b2b ? 'Consulta DataCheck' : 'Cruce de datos del acompañante';
+    heading.textContent = 'Cruce de datos';
     station.appendChild(heading);
 
     const sources = document.createElement('p');
@@ -290,20 +361,18 @@ const App = {
     relatoLabel.className = 'field__label';
     const relatoId = 'dcRelato-' + categoria.id;
     relatoLabel.setAttribute('for', relatoId);
-    relatoLabel.textContent = categoria.b2b ? 'Observaciones (opcional)' : 'Relato del usuario';
+    relatoLabel.textContent = 'Relato';
     const relatoInput = document.createElement('textarea');
     relatoInput.className = 'field__textarea';
     relatoInput.id = relatoId;
     relatoInput.rows = 2;
     relatoInput.maxLength = 500;
-    relatoInput.placeholder = categoria.b2b ? 'Contexto de la verificación...' : 'Escriba lo que relata la persona...';
+    relatoInput.placeholder = 'Escriba lo que ocurrió...';
     relatoField.appendChild(relatoLabel);
     relatoField.appendChild(relatoInput);
     station.appendChild(relatoField);
 
     const privacy = document.createElement('p');
-    privacy.className = 'datacheck__privacy';
-    privacy.textContent = 'Fail-closed (Ley 21.719): el RUT y los datos se anonimizan en este dispositivo antes de consultar. No viajan datos sensibles.';
     station.appendChild(privacy);
 
     const runBtn = document.createElement('button');
@@ -334,7 +403,15 @@ const App = {
       runBtn.textContent = 'Consultando fuentes...';
       try {
         const r = await Security.simulateDataCheck(categoria.id, rawRut, relatoInput.value);
-        App.renderDataCheckResult(result, categoria, r);
+        const summary = App.renderDataCheckResult(result, categoria, r);
+        Historial.add({
+          caso: categoria.title,
+          casoId: categoria.id,
+          rut: r.sent.rut,
+          resumen: summary.resumen,
+          ok: summary.ok
+        });
+        App.renderHistory();
       } catch (err) {
         result.hidden = false;
         result.className = 'datacheck__result datacheck__result--error';
@@ -369,7 +446,7 @@ const App = {
     } else if (categoria.id === 'solvencia') {
       const score = (h.bienesRaices * 30) + (h.vehiculos * 15) + (h.laboralActivo ? 40 : 0);
       alertOk = score >= 50;
-      alertText = 'Score de Garantía Real: ' + Math.min(score, 100) + '/100 · Estado laboral ' + (h.laboralActivo ? 'activo' : 'sin registro');
+      alertText = 'Score de Garantía Real: ' + Math.min(score, 100) + '/100 - Estado laboral ' + (h.laboralActivo ? 'activo' : 'sin registro');
     } else if (categoria.id === 'compliance') {
       alertOk = !h.pep && !h.interpol && h.vigente;
       alertText = alertOk
@@ -387,7 +464,7 @@ const App = {
     const rows = [
       ['Bienes raíces (SII)', h.bienesRaices],
       ['Vehículos (Registro Civil)', h.vehiculos],
-      ['Estado laboral activo (AFC/AFP)', h.laboralActivo ? 'Sí' : 'No'],
+      ['Estado laboral activo (AFC y AFP)', h.laboralActivo ? 'Sí' : 'No'],
       ['Cédula vigente (Registro Civil)', h.vigente ? 'Sí' : 'No'],
       ['Persona Políticamente Expuesta', h.pep ? 'Sí' : 'No'],
       ['Alerta Interpol', h.interpol ? 'Sí' : 'No']
@@ -402,43 +479,15 @@ const App = {
 
     const meta = document.createElement('p');
     meta.className = 'datacheck__meta';
-    meta.textContent = 'Enviado (anonimizado): ' + r.sent.rut + ' · token ' + r.sent.token + ' · ' + r.latenciaMs + ' ms';
+    meta.textContent = 'Enviado (anonimizado): ' + r.sent.rut + ' - token ' + r.sent.token + ' - ' + r.latenciaMs + ' ms';
     container.appendChild(meta);
 
-    if (!categoria.b2b) {
-      const folio = document.createElement('p');
-      folio.className = 'datacheck__folio';
-      folio.textContent = 'Folio de reclamo generado: ' + r.folio;
-      container.appendChild(folio);
-    }
-  },
+    const folio = document.createElement('p');
+    folio.className = 'datacheck__folio';
+    folio.textContent = 'Folio de reclamo generado: ' + r.folio;
+    container.appendChild(folio);
 
-  renderKpis() {
-    App.clearChildren(App.elements.categoryContent);
-    const grid = document.createElement('div');
-    grid.className = 'kpi';
-    KPIS.forEach(k => {
-      const card = document.createElement('div');
-      card.className = 'kpi__card ' + (k.ok ? 'kpi__card--ok' : 'kpi__card--warn');
-      const val = document.createElement('p');
-      val.className = 'kpi__value';
-      val.textContent = k.value;
-      const lab = document.createElement('p');
-      lab.className = 'kpi__label';
-      lab.textContent = k.label;
-      const meta = document.createElement('p');
-      meta.className = 'kpi__meta';
-      meta.textContent = 'Meta: ' + k.meta;
-      const desc = document.createElement('p');
-      desc.className = 'kpi__desc';
-      desc.textContent = k.desc;
-      card.appendChild(val);
-      card.appendChild(lab);
-      card.appendChild(meta);
-      card.appendChild(desc);
-      grid.appendChild(card);
-    });
-    App.elements.categoryContent.appendChild(grid);
+    return { resumen: alertText, ok: alertOk };
   },
 
   addContentCard(text, onClick) {

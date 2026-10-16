@@ -668,7 +668,7 @@ const App = {
     },
     handleStreamEnd(d) {
       const s = App.Chat.activeStreams.get(d.streamId || 'default');
-      if (s?.bubble) { s.bubble.classList.remove('typing'); s.bubble.id = ''; App.Chat.activeStreams.delete(d.streamId || 'default'); }
+      if (s?.bubble) { s.bubble.classList.remove('chat__bubble--typing'); s.bubble.id = ''; App.Chat.activeStreams.delete(d.streamId || 'default'); }
       document.dispatchEvent(new CustomEvent('chat:streamEnd', { detail: d }));
     }
   }

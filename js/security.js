@@ -71,20 +71,15 @@ const Security = {
     });
   },
 
-  // Principio Fail-Closed (Ley 21.719): anonimiza RUTs, nombres y datos
-  // sensibles ANTES de que salgan del cliente hacia cualquier modelo externo.
   anonymizeRut: function (rut) {
     const cleaned = String(rut).replace(/\./g, '').replace(/-/g, '').toUpperCase().trim();
     if (cleaned.length < 3) {
       return '[RUT_INVALIDO]';
     }
-    // Conserva solo el dígito verificador para trazabilidad, enmascara el cuerpo.
     const check = cleaned.slice(-1);
     return 'RUT_****-' + check;
   },
 
-  // Hash determinístico no reversible (no criptográfico) para correlacionar
-  // consultas del mismo sujeto sin exponer el dato real.
   pseudonymize: function (value) {
     const str = String(value).toUpperCase().replace(/[\s.\-]/g, '');
     let hash = 0;
@@ -94,7 +89,6 @@ const Security = {
     return 'ANON-' + hash.toString(36).toUpperCase();
   },
 
-  // Expurga nombres, correos y teléfonos de texto libre antes de transmitir.
   redactText: function (text) {
     return String(text)
       .replace(/\b\d{1,2}\.?\d{3}\.?\d{3}-?[0-9kK]\b/g, '[RUT]')
@@ -103,25 +97,20 @@ const Security = {
       .trim();
   },
 
-  // Motor de cruce forense simulado. En producción golpea /v1/patrimonio,
-  // /v1/compliance, etc. Aquí deriva un resultado determinístico del RUT
-  // anonimizado para que la demo sea estable y repetible.
   simulateDataCheck: async function (caseId, rawRut, relato) {
     const anonRut = Security.anonymizeRut(rawRut);
     const token = Security.pseudonymize(rawRut);
     const redactedRelato = Security.redactText(relato || '');
-    // Semilla determinística a partir del token anonimizado.
     const seed = token.split('').reduce(function (a, c) { return a + c.charCodeAt(0); }, 0);
 
     return new Promise(function (resolve) {
       setTimeout(function () {
-        const tieneBienes = seed % 3 === 0; // ~1/3 registra bienes
+        const tieneBienes = seed % 3 === 0;
         const esPEP = seed % 7 === 0;
-        const vigente = seed % 11 !== 0; // supervivencia Registro Civil
+        const vigente = seed % 11 !== 0;
         resolve({
           ok: true,
           caseId: caseId,
-          // Lo que efectivamente "viaja": solo datos anonimizados.
           sent: { rut: anonRut, token: token, relato: redactedRelato },
           fuentes: ['SII', 'Registro Civil', 'CMF', 'AFC/AFP', 'SUBTEL', 'PEP', 'Interpol'],
           hallazgos: {

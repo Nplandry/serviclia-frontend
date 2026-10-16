@@ -1,9 +1,5 @@
 const ROL_ACTUAL = 'operador';
 
-// Los 5 Casos de Uso Canónicos de ServicIA. Cada caso incluye:
-// - pasos de orientación
-// - frase/s de rechazo en bloque verde para leer en voz alta
-// - si requiere cruce de datos (estación acompañante) y qué fuentes consulta
 const CATEGORIAS = [
   {
     id: 'embargo-falso',
@@ -75,7 +71,6 @@ const FRASES_EMERGENCIA = [
   'No voy a dar datos ni firmar nada hasta conversar con mi familia.'
 ];
 
-// KPIs del panel de administración (meta: 80%+ de éxito).
 const KPIS = [
   { id: 'desarme', label: 'Tasa de desarme inmediato', value: '83%', meta: '> 80%', ok: true, desc: 'Consultas donde la frase detuvo la transacción en la primera llamada.' },
   { id: 'folios', label: 'Efectividad de folios de reclamo', value: '87%', meta: '> 85%', ok: true, desc: 'Casos a SERNAC/SUBTEL/CMF con devolución o anulación.' },
@@ -172,7 +167,6 @@ const App = {
     App.clearChildren(App.elements.categoryList);
     App.elements.zeroResults.hidden = categories.length > 0;
 
-    // El administrador ve primero el panel de métricas (KPIs).
     if (App.state.role === 'admin') {
       const li = document.createElement('li');
       const btn = document.createElement('button');
@@ -224,10 +218,8 @@ const App = {
     App.elements.categoryDescription.textContent = c.description;
     App.clearChildren(App.elements.categoryContent);
 
-    // Frases de rechazo en bloque verde para lectura en voz alta.
     (c.frases || []).forEach(f => App.addRejectionBlock(f));
 
-    // Estación de cruce de datos: visible para acompañante y admin, o en casos B2B.
     if (c.cruce && (App.state.role !== 'adulto_mayor' || c.b2b)) {
       App.addDataCheckStation(c);
     }
@@ -238,7 +230,6 @@ const App = {
     App.showView('categoryView');
   },
 
-  // Bloque verde con la frase de rechazo, destacado y con botón de voz.
   addRejectionBlock(frase) {
     const block = document.createElement('div');
     block.className = 'rejection';
@@ -259,7 +250,6 @@ const App = {
     App.elements.categoryContent.appendChild(block);
   },
 
-  // Estación de cruce de datos (fail-closed). Anonimiza antes de "enviar".
   addDataCheckStation(categoria) {
     const station = document.createElement('div');
     station.className = 'datacheck';
@@ -367,7 +357,6 @@ const App = {
     container.hidden = false;
     const h = r.hallazgos;
 
-    // Alerta principal según el caso de uso.
     const alert = document.createElement('div');
     let alertText = '';
     let alertOk = true;
@@ -393,7 +382,6 @@ const App = {
     alert.textContent = alertText;
     container.appendChild(alert);
 
-    // Detalle de hallazgos.
     const list = document.createElement('ul');
     list.className = 'datacheck__findings';
     const rows = [
@@ -412,13 +400,11 @@ const App = {
     });
     container.appendChild(list);
 
-    // Prueba de anonimización (lo que efectivamente viajó).
     const meta = document.createElement('p');
     meta.className = 'datacheck__meta';
     meta.textContent = 'Enviado (anonimizado): ' + r.sent.rut + ' · token ' + r.sent.token + ' · ' + r.latenciaMs + ' ms';
     container.appendChild(meta);
 
-    // Folio para derivación institucional (casos B2C).
     if (!categoria.b2b) {
       const folio = document.createElement('p');
       folio.className = 'datacheck__folio';
@@ -676,5 +662,4 @@ const App = {
 
 document.addEventListener('DOMContentLoaded', () => {
   App.init();
-  // App.Chat.init({ url: 'wss://tu-api.com/chat', autoConnect: true, categoryContext: true });
 });

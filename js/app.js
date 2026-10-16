@@ -1,30 +1,86 @@
 const ROL_ACTUAL = 'operador';
 
+// Los 5 Casos de Uso Canónicos de ServicIA. Cada caso incluye:
+// - pasos de orientación
+// - frase/s de rechazo en bloque verde para leer en voz alta
+// - si requiere cruce de datos (estación acompañante) y qué fuentes consulta
 const CATEGORIAS = [
-  { id: 'creditos', title: 'Créditos', short: 'Créditos preaprobados', description: 'Ofrecen dinero fácil por teléfono o WhatsApp. Puede ser una estafa o un crédito caro.', items: [
-    { id: 'credito-preaprobado', title: 'Me ofrecieron un crédito preaprobado', content: ['No dé datos personales si no pidió el crédito.', 'Pida el nombre de la empresa, su RUT y el número de inscripción en la CMF.', 'Desconfíe si le piden pagar un seguro, comisión o gasto antes de recibir el dinero.', 'Puede revisar en el sitio de la Comisión para el Mercado Financiero si la empresa está autorizada.'] },
-    { id: 'credito-cobro-anticipado', title: 'Me pidieron pagar antes de recibir el crédito', content: ['Exigir dinero por adelantado es una señal de alerta.', 'No realice transferencias ni entregue claves.', 'Corte la comunicación y guarde evidencia: mensajes, números y pantallas.', 'Denuncie en SERNAC o en la Comisión para el Mercado Financiero.'] }
-  ]},
-  { id: 'seguros', title: 'Seguros', short: 'Seguros atados o agregados', description: 'Le venden un seguro junto con otro producto o se lo agregan sin explicarle bien.', items: [
-    { id: 'seguro-agregado', title: 'Me agregaron un seguro que no pedí', content: ['Revisa el contrato y los cargos en tu cuenta bancaria o tarjeta.', 'Solicita la póliza y el detalle de la cobertura por escrito.', 'Si no lo contrataste, exige la anulación y la devolución del dinero.', 'Puedes reclamar ante la Comisión para el Mercado Financiero o SERNAC.'] },
-    { id: 'seguro-credito', title: 'Me dijeron que el seguro es obligatorio para el crédito', content: ['Pregunte si puede contratar el seguro con otra aseguradora.', 'Pida que le expliquen el costo total del seguro durante toda la vida del crédito.', 'Compare precios y coberturas con al menos dos aseguradoras.', 'Si le presionan, no firme y pida revisar el contrato en su casa.'] }
-  ]},
-  { id: 'cobranzas', title: 'Cobranzas', short: 'Cobros no reconocidos', description: 'Llegan cobros de deudas que no recuerda o que no reconoce.', items: [
-    { id: 'cobro-no-reconocido', title: 'Me están cobrando una deuda que no reconozco', content: ['Exija por escrito el detalle de la deuda, el monto y quién es el acreedor.', 'No se deje presionar con amenazas. Las llamadas deben ser en horario hábil.', 'Pida la copia del contrato que origina la deuda.', 'Si no le dan información clara, acuda a SERNAC o a un consultorio jurídico gratuito.'] },
-    { id: 'cobro-terceros', title: 'Una empresa externa me llama para cobrarme', content: ['Pida el nombre de la cobranza y el RUT de la empresa.', 'No entregue datos de familiares ni vecinos.', 'Exija que toda la comunicación sea por escrito.', 'Guarde fecha, hora y número de cada llamada.'] }
-  ]},
-  { id: 'servicios', title: 'Servicios', short: 'Portabilidad involuntaria', description: 'Le cambiaron de compañía de teléfono, internet o luz sin que usted haya pedido el cambio.', items: [
-    { id: 'portabilidad-forzada', title: 'Me cambiaron de compañía sin mi permiso', content: ['Revise sus boletas y contratos recientes.', 'Comuníquese con la empresa a la que nunca pidió cambiarse y exija la reversión.', 'Solicite constancia escrita del cambio y quién lo autorizó.', 'Denuncie ante la Subsecretaría de Telecomunicaciones o SERNAC.'] },
-    { id: 'cambio-proveedor', title: 'Un vendedor me visitó y ahora tengo otra empresa', content: ['Tiene derecho a retracto: puede anular el contrato dentro de los 10 días hábiles siguientes.', 'La retractación debe ser gratuita y sin penalización.', 'Hágalo por escrito y guarde copia.', 'Si no respetan su retracto, reclame en SERNAC.'] }
-  ]}
+  {
+    id: 'embargo-falso',
+    title: 'Amenaza de embargo',
+    short: 'Caso 1 · Defensa patrimonial',
+    description: 'Llamada o carta que amenaza con embargar su casa o auto por una deuda antigua.',
+    cruce: { endpoint: '/v1/patrimonio', fuentes: ['SII (Propiedades)', 'Registro Civil (Vehículos)'] },
+    frases: ['Sé que no registro bienes embargables a mi nombre. Exijo notificación judicial formal antes de responder.'],
+    items: [
+      { id: 'embargo-amenaza', title: 'Me amenazan con embargar mis bienes', content: ['No entregue datos ni acepte pagar nada por teléfono.', 'Pida el nombre del tribunal, el número de causa y una notificación formal.', 'Un embargo real siempre llega por vía judicial, no por una llamada.', 'El acompañante puede verificar si usted registra bienes a su nombre con el cruce de datos.'] },
+      { id: 'embargo-carta', title: 'Me llegó una carta de "cobranza judicial"', content: ['Revise si la carta tiene número de rol y nombre de tribunal verificables.', 'Las cobranzas extrajudiciales no pueden simular documentos judiciales.', 'Guarde la carta como evidencia.', 'Denuncie la amenaza falsa en SERNAC.'] }
+    ]
+  },
+  {
+    id: 'seguros',
+    title: 'Seguros no consentidos',
+    short: 'Caso 2 · Auditoría financiera',
+    description: 'Descuento extraño en la pensión o cartola bajo concepto de seguros o asistencias.',
+    cruce: { endpoint: '/v1/polizas', fuentes: ['CMF (Depósito de pólizas)'] },
+    frases: ['No autoricé ni firmé este seguro. Exijo la prueba de aceptación y la restitución retroactiva de lo cobrado.'],
+    items: [
+      { id: 'seguro-agregado', title: 'Me agregaron un seguro que no pedí', content: ['Revise los cargos en su cartola bancaria o liquidación de pensión.', 'Solicite la póliza y la prueba de aceptación por escrito.', 'Si no la contrató, exija anulación y devolución con intereses.', 'El acompañante genera un folio de reclamo CMF/SERNAC.'] },
+      { id: 'seguro-credito', title: 'Me dijeron que el seguro es obligatorio', content: ['Pregunte si puede contratarlo con otra aseguradora.', 'Pida el costo total del seguro durante toda la vida del crédito.', 'Compare precios con al menos dos aseguradoras.', 'Si le presionan, no firme y revise el contrato en su casa.'] }
+    ]
+  },
+  {
+    id: 'portabilidad',
+    title: 'Cambio de plan engañoso',
+    short: 'Caso 3 · Telecomunicaciones',
+    description: 'Llamada para "actualizar su plan" que exige un código SMS de verificación.',
+    cruce: { endpoint: '/v1/subtel', fuentes: ['SUBTEL (Traspaso de operador)'] },
+    frases: ['No autorizo el cambio de compañía ni entregaré códigos SMS.'],
+    items: [
+      { id: 'portabilidad-sms', title: 'Me piden un código SMS para "mejorar mi plan"', content: ['Nunca entregue un código SMS que llega a su teléfono.', 'Ese código autoriza el traspaso de su número a otra compañía.', 'Corte la llamada y verifique directamente con su operador.', 'El acompañante revisa si hay una señal de traspaso en SUBTEL.'] },
+      { id: 'portabilidad-forzada', title: 'Me cambiaron de compañía sin mi permiso', content: ['Revise sus boletas y contratos recientes.', 'Exija a la nueva empresa la reversión del cambio.', 'Pida constancia escrita de quién autorizó el cambio.', 'Denuncie ante SUBTEL o SERNAC.'] }
+    ]
+  },
+  {
+    id: 'solvencia',
+    title: 'Evaluación de solvencia',
+    short: 'Caso 4 · B2B DataCheck API',
+    description: 'Un cliente postula a arriendo o crédito. Verifique bienes, vehículos y estado laboral.',
+    b2b: true,
+    cruce: { endpoint: '/v1/patrimonio', fuentes: ['SII', 'Registro Civil', 'AFC/AFP'] },
+    frases: [],
+    items: [
+      { id: 'solvencia-score', title: 'Verificar score de garantía real', content: ['Ingrese el RUT del postulante en la estación de cruce.', 'El sistema consulta bienes raíces, vehículos y estado laboral activo.', 'Obtiene un Score de Garantía Real en menos de 2 segundos.', 'Detecta inconsistencias con liquidaciones de sueldo declaradas.'] }
+    ]
+  },
+  {
+    id: 'compliance',
+    title: 'Onboarding y compliance',
+    short: 'Caso 5 · B2B Cumplimiento UAF',
+    description: 'Alta de un nuevo socio o proveedor. Debida diligencia Ley de Delitos Económicos.',
+    b2b: true,
+    cruce: { endpoint: '/v1/compliance', fuentes: ['Registro Civil', 'PEP', 'Interpol'] },
+    frases: [],
+    items: [
+      { id: 'compliance-kyc', title: 'Verificar debida diligencia (KYC/UAF)', content: ['Ingrese el RUT del socio o proveedor en la estación de cruce.', 'El sistema verifica serie de cédula y estado de supervivencia.', 'Comprueba condición de Persona Políticamente Expuesta (PEP) e Interpol.', 'Entrega un certificado de debida diligencia respaldado.'] }
+    ]
+  }
 ];
 
 const FRASES_EMERGENCIA = [
-  'Deme el nombre de la empresa y su RUT, por favor.',
+  'Sé que no registro bienes embargables a mi nombre. Exijo notificación judicial formal antes de responder.',
+  'No autoricé ni firmé este seguro. Exijo la prueba de aceptación y la restitución de lo cobrado.',
+  'No autorizo el cambio de compañía ni entregaré códigos SMS.',
   'Necesito que me envíen esto por escrito para revisarlo con calma.',
-  'No voy a dar datos ni firmar nada hasta conversar con mi familia.',
-  'Por favor, dígame cuál es el número de reclamo o atención al cliente.',
-  'Prefiero acudir personalmente a una oficina antes de continuar.'
+  'No voy a dar datos ni firmar nada hasta conversar con mi familia.'
+];
+
+// KPIs del panel de administración (meta: 80%+ de éxito).
+const KPIS = [
+  { id: 'desarme', label: 'Tasa de desarme inmediato', value: '83%', meta: '> 80%', ok: true, desc: 'Consultas donde la frase detuvo la transacción en la primera llamada.' },
+  { id: 'folios', label: 'Efectividad de folios de reclamo', value: '87%', meta: '> 85%', ok: true, desc: 'Casos a SERNAC/SUBTEL/CMF con devolución o anulación.' },
+  { id: 'dano', label: 'Daño económico evitado', value: '$48.2M CLP', meta: 'Acumulado', ok: true, desc: 'Créditos caros, seguros fantasma y repactaciones detenidas.' },
+  { id: 'pii', label: 'Tasa zero-fuga de PII', value: '100%', meta: '100%', ok: true, desc: 'Cero registros de fuga de datos personales en logs de red.' }
 ];
 
 const App = {
@@ -45,7 +101,7 @@ const App = {
   cacheElements() {
     const ids = ['homeView','categoryView','detailView','formView','searchInput','categoryList','zeroResults','emergencyBtn','backFromCategory','backFromDetail','backFromForm','categoryTitle','categoryDescription','categoryContent','detailArticle','speakBtn','stopSpeakBtn','orientationForm','formRut','rutError','submitForm','formStatus','greeting','installBtn','chatForm','chatInput','chatSend','chatMessages','chatStatus','mainChatForm','mainChatInput','mainChatSend','mainChatMessages','mainChatStatus'];
     ids.forEach(id => App.elements[id] = document.getElementById(id));
-    App.elements.roleButtons = document.querySelectorAll('.role-btn');
+    App.elements.roleButtons = document.querySelectorAll('.role-group__btn');
   },
 
   bindEvents() {
@@ -86,7 +142,7 @@ const App = {
   updateRoleButtons() {
     App.elements.roleButtons.forEach(b => {
       const active = b.dataset.role === App.state.role;
-      b.classList.toggle('active', active);
+      b.classList.toggle('role-group__btn--active', active);
       active ? b.setAttribute('aria-current','true') : b.removeAttribute('aria-current');
     });
   },
@@ -94,8 +150,15 @@ const App = {
   setGreeting() {
     const h = new Date().getHours();
     let t = h < 12 ? 'Buenos días' : h < 20 ? 'Buenas tardes' : 'Buenas noches';
-    t += App.state.role === 'adulto_mayor' ? ', bienvenido a ServicIA' : App.state.role === 'operador' ? ', modo acompañante activo' : ', panel de administración';
+    t += App.state.role === 'adulto_mayor' ? ', bienvenido a ServicIA' : App.state.role === 'operador' ? ', estación de acompañante activa' : ', panel de administración';
     App.elements.greeting.textContent = t;
+    const sub = {
+      adulto_mayor: 'Seleccione un tema para recibir orientación paso a paso.',
+      operador: 'Capture el relato, ejecute el cruce de datos y entregue la frase de rechazo.',
+      admin: 'Supervise métricas, folios y el impacto de la plataforma.'
+    };
+    const heroText = document.querySelector('.hero__text');
+    if (heroText) heroText.textContent = sub[App.state.role] || sub.adulto_mayor;
   },
 
   updateEmergencyButton() {
@@ -108,16 +171,37 @@ const App = {
   renderCategories(categories) {
     App.clearChildren(App.elements.categoryList);
     App.elements.zeroResults.hidden = categories.length > 0;
+
+    // El administrador ve primero el panel de métricas (KPIs).
+    if (App.state.role === 'admin') {
+      const li = document.createElement('li');
+      const btn = document.createElement('button');
+      btn.className = 'category-card category-card--metrics';
+      btn.type = 'button';
+      btn.innerHTML = '<span>Panel de métricas</span><span class="category-card__desc">KPIs de éxito (meta 80%+)</span>';
+      btn.addEventListener('click', App.showKpiPanel);
+      li.appendChild(btn);
+      App.elements.categoryList.appendChild(li);
+    }
+
     categories.forEach(c => {
       const li = document.createElement('li');
       const btn = document.createElement('button');
       btn.className = 'category-card';
       btn.type = 'button';
-      btn.innerHTML = `<span>${c.title}</span><span class="category-desc">${c.short}</span>`;
+      btn.innerHTML = `<span>${c.title}</span><span class="category-card__desc">${c.short}</span>`;
       btn.addEventListener('click', () => App.openCategory(c.id));
       li.appendChild(btn);
       App.elements.categoryList.appendChild(li);
     });
+  },
+
+  showKpiPanel() {
+    App.state.currentCategory = null;
+    App.elements.categoryTitle.textContent = 'Panel de métricas';
+    App.elements.categoryDescription.textContent = 'Indicadores clave para validar la meta del 80% de éxito.';
+    App.renderKpis();
+    App.showView('categoryView');
   },
 
   handleSearch() {
@@ -139,10 +223,236 @@ const App = {
     App.elements.categoryTitle.textContent = c.title;
     App.elements.categoryDescription.textContent = c.description;
     App.clearChildren(App.elements.categoryContent);
+
+    // Frases de rechazo en bloque verde para lectura en voz alta.
+    (c.frases || []).forEach(f => App.addRejectionBlock(f));
+
+    // Estación de cruce de datos: visible para acompañante y admin, o en casos B2B.
+    if (c.cruce && (App.state.role !== 'adulto_mayor' || c.b2b)) {
+      App.addDataCheckStation(c);
+    }
+
     if (App.state.role === 'admin') App.addContentCard('Ver solicitudes ingresadas', App.showForm);
     c.items.forEach(i => App.addContentCard(i.title, () => App.openDetail(i.id)));
-    App.addContentCard('Solicitar orientación personalizada', App.showForm);
+    if (!c.b2b) App.addContentCard('Solicitar orientación personalizada', App.showForm);
     App.showView('categoryView');
+  },
+
+  // Bloque verde con la frase de rechazo, destacado y con botón de voz.
+  addRejectionBlock(frase) {
+    const block = document.createElement('div');
+    block.className = 'rejection';
+    const label = document.createElement('p');
+    label.className = 'rejection__label';
+    label.textContent = 'Lea esta frase en voz alta:';
+    const quote = document.createElement('p');
+    quote.className = 'rejection__quote';
+    quote.textContent = '« ' + frase + ' »';
+    const speak = document.createElement('button');
+    speak.type = 'button';
+    speak.className = 'rejection__speak';
+    speak.textContent = 'Escuchar frase';
+    speak.addEventListener('click', () => App.speakText(frase));
+    block.appendChild(label);
+    block.appendChild(quote);
+    block.appendChild(speak);
+    App.elements.categoryContent.appendChild(block);
+  },
+
+  // Estación de cruce de datos (fail-closed). Anonimiza antes de "enviar".
+  addDataCheckStation(categoria) {
+    const station = document.createElement('div');
+    station.className = 'datacheck';
+
+    const heading = document.createElement('h3');
+    heading.className = 'datacheck__title';
+    heading.textContent = categoria.b2b ? 'Consulta DataCheck' : 'Cruce de datos del acompañante';
+    station.appendChild(heading);
+
+    const sources = document.createElement('p');
+    sources.className = 'datacheck__sources';
+    sources.textContent = 'Fuentes: ' + categoria.cruce.fuentes.join(', ');
+    station.appendChild(sources);
+
+    const rutField = document.createElement('div');
+    rutField.className = 'field';
+    const rutLabel = document.createElement('label');
+    rutLabel.className = 'field__label';
+    const rutId = 'dcRut-' + categoria.id;
+    rutLabel.setAttribute('for', rutId);
+    rutLabel.textContent = 'RUT a verificar';
+    const rutInput = document.createElement('input');
+    rutInput.className = 'field__input';
+    rutInput.id = rutId;
+    rutInput.type = 'text';
+    rutInput.placeholder = '12.345.678-9';
+    rutInput.maxLength = 12;
+    rutInput.addEventListener('blur', () => {
+      if (rutInput.value.trim()) rutInput.value = Security.formatRut(rutInput.value);
+    });
+    rutField.appendChild(rutLabel);
+    rutField.appendChild(rutInput);
+    station.appendChild(rutField);
+
+    const relatoField = document.createElement('div');
+    relatoField.className = 'field';
+    const relatoLabel = document.createElement('label');
+    relatoLabel.className = 'field__label';
+    const relatoId = 'dcRelato-' + categoria.id;
+    relatoLabel.setAttribute('for', relatoId);
+    relatoLabel.textContent = categoria.b2b ? 'Observaciones (opcional)' : 'Relato del usuario';
+    const relatoInput = document.createElement('textarea');
+    relatoInput.className = 'field__textarea';
+    relatoInput.id = relatoId;
+    relatoInput.rows = 2;
+    relatoInput.maxLength = 500;
+    relatoInput.placeholder = categoria.b2b ? 'Contexto de la verificación...' : 'Escriba lo que relata la persona...';
+    relatoField.appendChild(relatoLabel);
+    relatoField.appendChild(relatoInput);
+    station.appendChild(relatoField);
+
+    const privacy = document.createElement('p');
+    privacy.className = 'datacheck__privacy';
+    privacy.textContent = 'Fail-closed (Ley 21.719): el RUT y los datos se anonimizan en este dispositivo antes de consultar. No viajan datos sensibles.';
+    station.appendChild(privacy);
+
+    const runBtn = document.createElement('button');
+    runBtn.type = 'button';
+    runBtn.className = 'datacheck__run';
+    runBtn.textContent = 'Ejecutar cruce de datos';
+    station.appendChild(runBtn);
+
+    const result = document.createElement('div');
+    result.className = 'datacheck__result';
+    result.setAttribute('aria-live', 'polite');
+    result.hidden = true;
+    station.appendChild(result);
+
+    runBtn.addEventListener('click', async () => {
+      const rawRut = rutInput.value.trim();
+      if (!Security.validateRut(rawRut)) {
+        result.hidden = false;
+        result.className = 'datacheck__result datacheck__result--error';
+        App.clearChildren(result);
+        const p = document.createElement('p');
+        p.textContent = 'Ingrese un RUT válido para ejecutar el cruce.';
+        result.appendChild(p);
+        rutInput.focus();
+        return;
+      }
+      runBtn.disabled = true;
+      runBtn.textContent = 'Consultando fuentes...';
+      try {
+        const r = await Security.simulateDataCheck(categoria.id, rawRut, relatoInput.value);
+        App.renderDataCheckResult(result, categoria, r);
+      } catch (err) {
+        result.hidden = false;
+        result.className = 'datacheck__result datacheck__result--error';
+        App.clearChildren(result);
+        const p = document.createElement('p');
+        p.textContent = 'No se pudo completar el cruce. Intente nuevamente.';
+        result.appendChild(p);
+      } finally {
+        runBtn.disabled = false;
+        runBtn.textContent = 'Ejecutar cruce de datos';
+      }
+    });
+
+    App.elements.categoryContent.appendChild(station);
+  },
+
+  renderDataCheckResult(container, categoria, r) {
+    App.clearChildren(container);
+    container.className = 'datacheck__result';
+    container.hidden = false;
+    const h = r.hallazgos;
+
+    // Alerta principal según el caso de uso.
+    const alert = document.createElement('div');
+    let alertText = '';
+    let alertOk = true;
+    if (categoria.id === 'embargo-falso') {
+      const sinBienes = h.bienesRaices === 0 && h.vehiculos === 0;
+      alertOk = sinBienes;
+      alertText = sinBienes
+        ? 'Alerta de inexistencia de garantía: no registra bienes embargables. Use la frase de rechazo.'
+        : 'Registra bienes a su nombre. Verifique la legitimidad de la deuda antes de responder.';
+    } else if (categoria.id === 'solvencia') {
+      const score = (h.bienesRaices * 30) + (h.vehiculos * 15) + (h.laboralActivo ? 40 : 0);
+      alertOk = score >= 50;
+      alertText = 'Score de Garantía Real: ' + Math.min(score, 100) + '/100 · Estado laboral ' + (h.laboralActivo ? 'activo' : 'sin registro');
+    } else if (categoria.id === 'compliance') {
+      alertOk = !h.pep && !h.interpol && h.vigente;
+      alertText = alertOk
+        ? 'Debida diligencia aprobada: sin alertas PEP ni Interpol, cédula vigente.'
+        : 'Requiere revisión: ' + [h.pep ? 'PEP' : '', h.interpol ? 'Interpol' : '', !h.vigente ? 'cédula no vigente' : ''].filter(Boolean).join(', ') + '.';
+    } else {
+      alertText = 'Cruce completado. Revise los hallazgos y genere el folio de reclamo.';
+    }
+    alert.className = 'datacheck__alert ' + (alertOk ? 'datacheck__alert--ok' : 'datacheck__alert--warn');
+    alert.textContent = alertText;
+    container.appendChild(alert);
+
+    // Detalle de hallazgos.
+    const list = document.createElement('ul');
+    list.className = 'datacheck__findings';
+    const rows = [
+      ['Bienes raíces (SII)', h.bienesRaices],
+      ['Vehículos (Registro Civil)', h.vehiculos],
+      ['Estado laboral activo (AFC/AFP)', h.laboralActivo ? 'Sí' : 'No'],
+      ['Cédula vigente (Registro Civil)', h.vigente ? 'Sí' : 'No'],
+      ['Persona Políticamente Expuesta', h.pep ? 'Sí' : 'No'],
+      ['Alerta Interpol', h.interpol ? 'Sí' : 'No']
+    ];
+    rows.forEach(([k, v]) => {
+      const li = document.createElement('li');
+      li.className = 'datacheck__finding';
+      li.textContent = k + ': ' + v;
+      list.appendChild(li);
+    });
+    container.appendChild(list);
+
+    // Prueba de anonimización (lo que efectivamente viajó).
+    const meta = document.createElement('p');
+    meta.className = 'datacheck__meta';
+    meta.textContent = 'Enviado (anonimizado): ' + r.sent.rut + ' · token ' + r.sent.token + ' · ' + r.latenciaMs + ' ms';
+    container.appendChild(meta);
+
+    // Folio para derivación institucional (casos B2C).
+    if (!categoria.b2b) {
+      const folio = document.createElement('p');
+      folio.className = 'datacheck__folio';
+      folio.textContent = 'Folio de reclamo generado: ' + r.folio;
+      container.appendChild(folio);
+    }
+  },
+
+  renderKpis() {
+    App.clearChildren(App.elements.categoryContent);
+    const grid = document.createElement('div');
+    grid.className = 'kpi';
+    KPIS.forEach(k => {
+      const card = document.createElement('div');
+      card.className = 'kpi__card ' + (k.ok ? 'kpi__card--ok' : 'kpi__card--warn');
+      const val = document.createElement('p');
+      val.className = 'kpi__value';
+      val.textContent = k.value;
+      const lab = document.createElement('p');
+      lab.className = 'kpi__label';
+      lab.textContent = k.label;
+      const meta = document.createElement('p');
+      meta.className = 'kpi__meta';
+      meta.textContent = 'Meta: ' + k.meta;
+      const desc = document.createElement('p');
+      desc.className = 'kpi__desc';
+      desc.textContent = k.desc;
+      card.appendChild(val);
+      card.appendChild(lab);
+      card.appendChild(meta);
+      card.appendChild(desc);
+      grid.appendChild(card);
+    });
+    App.elements.categoryContent.appendChild(grid);
   },
 
   addContentCard(text, onClick) {
@@ -159,7 +469,7 @@ const App = {
     if (!item) return;
     App.state.currentItem = item;
     const article = document.createElement('article');
-    article.innerHTML = `<h2>${item.title}</h2><ol>${item.content.map(s => `<li>${s}</li>`).join('')}</ol>`;
+    article.innerHTML = `<h2 class="detail-article__title">${item.title}</h2><ol class="detail-article__list">${item.content.map(s => `<li class="detail-article__item">${s}</li>`).join('')}</ol>`;
     App.clearChildren(App.elements.detailArticle);
     App.elements.detailArticle.appendChild(article);
     App.showView('detailView');
@@ -277,20 +587,20 @@ const App = {
 
   addChatMessage(text, sender, messages) {
     const b = document.createElement('div');
-    b.className = `chat-bubble ${sender}`;
+    b.className = `chat__bubble chat__bubble--${sender}`;
     b.textContent = text;
-    messages.classList.add('has-messages');
+    messages.classList.add('chat__messages--has-messages');
     messages.appendChild(b);
     messages.scrollTop = messages.scrollHeight;
   },
 
   async streamTextToBubble(text, messages) {
     const b = document.createElement('div');
-    b.className = 'chat-bubble bot typing';
-    messages.classList.add('has-messages');
+    b.className = 'chat__bubble chat__bubble--bot chat__bubble--typing';
+    messages.classList.add('chat__messages--has-messages');
     messages.appendChild(b);
     for (const ch of text) { b.textContent += ch; messages.scrollTop = messages.scrollHeight; await App.delay(35); }
-    b.classList.remove('typing');
+    b.classList.remove('chat__bubble--typing');
   },
 
   delay(ms) { return new Promise(r => setTimeout(r, ms)); },
@@ -345,9 +655,9 @@ const App = {
     },
     handleStreamStart(d) {
       const id = d.streamId || 'default';
-      const b = document.createElement('div'); b.className = 'chat-bubble bot typing'; b.id = `stream-${id}`; b.textContent = '';
+      const b = document.createElement('div'); b.className = 'chat__bubble chat__bubble--bot chat__bubble--typing'; b.id = `stream-${id}`; b.textContent = '';
       const c = document.getElementById(d.containerId || 'mainChatMessages');
-      if (c) { c.classList.add('has-messages'); c.appendChild(b); c.scrollTop = c.scrollHeight; }
+      if (c) { c.classList.add('chat__messages--has-messages'); c.appendChild(b); c.scrollTop = c.scrollHeight; }
       App.Chat.activeStreams.set(id, { bubble: b, container: c });
       document.dispatchEvent(new CustomEvent('chat:streamStart', { detail: d }));
     },

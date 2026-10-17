@@ -16,7 +16,7 @@ const App = {
   },
 
   cacheElements() {
-    const ids = ['homeView','categoryView','detailView','formView','searchInput','categoryList','zeroResults','backFromCategory','backFromDetail','backFromForm','categoryTitle','categoryDescription','categoryContent','detailArticle','speakBtn','stopSpeakBtn','orientationForm','formRut','rutError','submitForm','formStatus','greeting','installBtn','logoutBtn','chatForm','chatInput','chatSend','chatMessages','chatStatus','mainChatForm','mainChatInput','mainChatSend','mainChatMessages','mainChatStatus','authGate','tabLogin','tabRegister','loginForm','registerForm','loginStatus','registerStatus','historyBtn','historyPanel','historyOverlay','historyClose','historyList','historyClear'];
+    const ids = ['homeView','categoryView','detailView','formView','searchInput','categoryList','zeroResults','backFromCategory','backFromDetail','backFromForm','categoryTitle','categoryDescription','categoryContent','detailArticle','speakBtn','stopSpeakBtn','orientationForm','formRut','rutError','submitForm','formStatus','greeting','installBtn','logoutBtn','chatForm','chatInput','chatSend','chatMessages','chatStatus','mainChatForm','mainChatInput','mainChatSend','mainChatMessages','mainChatStatus','authGate','tabLogin','tabRegister','loginForm','registerForm','loginStatus','registerStatus','historyBtn','historyPanel','historyOverlay','historyClose','historyList','historyClear','carruselList'];
     ids.forEach(id => App.elements[id] = document.getElementById(id));
     App.elements.appHeader = document.querySelector('.app-header');
     App.elements.appMain = document.getElementById('main');
@@ -49,6 +49,7 @@ const App = {
       Historial.init(user.email);
       App.renderHistory();
       App.setGreeting();
+      App.renderRecomendados();
       App.renderCategories(CATEGORIAS);
       App.showHome();
     } else {
@@ -198,6 +199,39 @@ const App = {
   },
 
   clearChildren(el) { while (el.firstChild) el.removeChild(el.firstChild); },
+
+  renderRecomendados() {
+    const list = App.elements.carruselList;
+    App.clearChildren(list);
+    
+    RECOMENDADOS.forEach(rec => {
+      const card = document.createElement('button');
+      card.className = 'recomendado';
+      card.type = 'button';
+      card.addEventListener('click', () => {
+        const cat = CATEGORIAS.find(c => c.id === rec.categoria);
+        if (cat) App.openCategory(cat.id);
+      });
+
+      const icono = document.createElement('span');
+      icono.className = 'recomendado__icono';
+      icono.setAttribute('aria-hidden', 'true');
+      icono.textContent = rec.icono;
+      card.appendChild(icono);
+
+      const titulo = document.createElement('p');
+      titulo.className = 'recomendado__titulo';
+      titulo.textContent = rec.titulo;
+      card.appendChild(titulo);
+
+      const desc = document.createElement('p');
+      desc.className = 'recomendado__desc';
+      desc.textContent = rec.descripcion;
+      card.appendChild(desc);
+
+      list.appendChild(card);
+    });
+  },
 
   renderCategories(categories) {
     App.clearChildren(App.elements.categoryList);
@@ -606,6 +640,7 @@ const App = {
     App.state.currentCategory = null;
     App.state.currentItem = null;
     App.elements.searchInput.value = '';
+    App.renderRecomendados();
     App.renderCategories(CATEGORIAS);
     App.showView('homeView');
   },

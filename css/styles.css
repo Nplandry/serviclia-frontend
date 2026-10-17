@@ -1790,3 +1790,107 @@ body {
   margin-top: 0;
   padding: 0;
 }
+
+/* Carrusel de recomendados */
+.recomendados {
+  margin: var(--space-md) 0;
+}
+
+.recomendados__title {
+  margin: 0 0 var(--space-sm);
+  font-size: var(--font-size-lg);
+  color: var(--color-primary-dark);
+}
+
+.recomendados__carrusel {
+  position: relative;
+  overflow: hidden;
+}
+
+.recomendados__list {
+  display: flex;
+  gap: var(--space-sm);
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  padding-bottom: var(--space-xs);
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border) transparent;
+}
+
+.recomendados__list::-webkit-scrollbar {
+  height: 4px;
+}
+
+.recomendados__list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.recomendados__list::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 2px;
+}
+
+.recomendado {
+  flex: 0 0 calc(50% - var(--space-xs) / 2);
+  min-width: 160px;
+  padding: var(--space-sm);
+  background-color: #ffffff;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.recomendado:hover,
+.recomendado:focus {
+  border-color: var(--color-primary);
+  background-color: var(--color-secondary);
+  outline: none;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(15, 76, 129, 0.1);
+}
+
+.recomendado__icono {
+  display: block;
+  font-size: 2rem;
+  margin-bottom: var(--space-xs);
+  text-align: center;
+}
+
+.recomendado__titulo {
+  margin: 0 0 var(--space-xs);
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  color: var(--color-primary-dark);
+  line-height: 1.3;
+}
+
+.recomendado__desc {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--color-muted);
+  line-height: 1.3;
+}
+
+@media (min-width: 40rem) {
+  .recomendado {
+    flex: 0 0 calc(33.333% - var(--space-sm) * 0.67);
+    min-width: 180px;
+  }
+
+  .recomendado__titulo {
+    font-size: var(--font-size-base);
+  }
+
+  .recomendado__desc {
+    font-size: 0.8rem;
+  }
+}
+
+@media (min-width: 64rem) {
+  .recomendado {
+    flex: 0 0 calc(25% - var(--space-sm) * 0.75);
+    min-width: 200px;
+  }
+}

@@ -71,3 +71,63 @@ const FRASES_EMERGENCIA = [
   'Necesito que me envíen esto por escrito para revisarlo con calma.',
   'No voy a dar datos ni firmar nada hasta conversar con mi familia.'
 ];
+
+// Recomendados: casos sugeridos para curioseo y exploración
+const RECOMENDADOS = [
+  {
+    id: 'rec-1',
+    titulo: 'Verificar si soy afiliado a una AFP',
+    categoria: 'embergo-falso',
+    icono: '💼',
+    descripcion: 'Confirma tu estado previsional y datos registrados'
+  },
+  {
+    id: 'rec-2',
+    titulo: 'Derechos si pierdo mi trabajo',
+    categoria: 'embargo-falso',
+    icono: '📋',
+    descripcion: 'Conoce protecciones legales y beneficios'
+  },
+  {
+    id: 'rec-3',
+    titulo: 'Comprar o vender una propiedad',
+    categoria: 'portabilidad',
+    icono: '🏠',
+    descripcion: 'Pasos legales y documentación necesaria'
+  },
+  {
+    id: 'rec-4',
+    titulo: 'Protegerme de estafas inmobiliarias',
+    categoria: 'seguros',
+    icono: '🔍',
+    descripcion: 'Señales de alerta y cómo verificar transacciones'
+  },
+  {
+    id: 'rec-5',
+    titulo: 'Solicitar un crédito de forma segura',
+    categoria: 'seguros',
+    icono: '💰',
+    descripcion: 'Qué revisar antes de firmar contratos'
+  },
+  {
+    id: 'rec-6',
+    titulo: 'Actualizar datos en el Registro Civil',
+    categoria: 'embargo-falso',
+    icono: '🆔',
+    descripcion: 'Pasos para correcciones y trámites'
+  },
+  {
+    id: 'rec-7',
+    titulo: 'Reclamar por servicios de telecomunicaciones',
+    categoria: 'portabilidad',
+    icono: '📱',
+    descripcion: 'Derechos ante cobros injustificados'
+  },
+  {
+    id: 'rec-8',
+    titulo: 'Herencia y trámites sucesorios',
+    categoria: 'embargo-falso',
+    icono: '📜',
+    descripcion: 'Guía sobre derechos y obligaciones legales'
+  }
+];

@@ -78,56 +78,56 @@ const RECOMENDADOS = [
     id: 'rec-1',
     titulo: 'Verificar si soy afiliado a una AFP',
     categoria: 'embergo-falso',
-    icono: '💼',
+    icono: 'briefcase',
     descripcion: 'Confirma tu estado previsional y datos registrados'
   },
   {
     id: 'rec-2',
     titulo: 'Derechos si pierdo mi trabajo',
     categoria: 'embargo-falso',
-    icono: '📋',
+    icono: 'document',
     descripcion: 'Conoce protecciones legales y beneficios'
   },
   {
     id: 'rec-3',
     titulo: 'Comprar o vender una propiedad',
     categoria: 'portabilidad',
-    icono: '🏠',
+    icono: 'home',
     descripcion: 'Pasos legales y documentación necesaria'
   },
   {
     id: 'rec-4',
     titulo: 'Protegerme de estafas inmobiliarias',
     categoria: 'seguros',
-    icono: '🔍',
+    icono: 'search',
     descripcion: 'Señales de alerta y cómo verificar transacciones'
   },
   {
     id: 'rec-5',
     titulo: 'Solicitar un crédito de forma segura',
     categoria: 'seguros',
-    icono: '💰',
+    icono: 'money',
     descripcion: 'Qué revisar antes de firmar contratos'
   },
   {
     id: 'rec-6',
     titulo: 'Actualizar datos en el Registro Civil',
     categoria: 'embargo-falso',
-    icono: '🆔',
+    icono: 'id-card',
     descripcion: 'Pasos para correcciones y trámites'
   },
   {
     id: 'rec-7',
     titulo: 'Reclamar por servicios de telecomunicaciones',
     categoria: 'portabilidad',
-    icono: '📱',
+    icono: 'phone',
     descripcion: 'Derechos ante cobros injustificados'
   },
   {
     id: 'rec-8',
     titulo: 'Herencia y trámites sucesorios',
     categoria: 'embargo-falso',
-    icono: '📜',
+    icono: 'document-sealed',
     descripcion: 'Guía sobre derechos y obligaciones legales'
   }
 ];

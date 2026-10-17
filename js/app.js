@@ -1,50 +1,4 @@
-const CATEGORIAS = [
-  {
-    id: 'embargo-falso',
-    title: 'Amenaza de embargo',
-    short: 'Caso 1 - Defensa patrimonial',
-    description: 'Llamada o carta que amenaza con embargar su casa o auto por una deuda antigua.',
-    cruce: { endpoint: '/v1/patrimonio', fuentes: ['SII (Propiedades)', 'Registro Civil (Vehículos)'] },
-    frases: ['Sé que no registro bienes embargables a mi nombre. Exijo notificación judicial formal antes de responder.'],
-    items: [
-      { id: 'embargo-amenaza', title: 'Me amenazan con embargar mis bienes', content: ['No entregue datos ni acepte pagar nada por teléfono.', 'Pida el nombre del tribunal, el número de causa y una notificación formal.', 'Un embargo real siempre llega por vía judicial, no por una llamada.', 'El acompañante puede verificar si usted registra bienes a su nombre con el cruce de datos.'] },
-      { id: 'embargo-carta', title: 'Me llegó una carta de "cobranza judicial"', content: ['Revise si la carta tiene número de rol y nombre de tribunal verificables.', 'Las cobranzas extrajudiciales no pueden simular documentos judiciales.', 'Guarde la carta como evidencia.', 'Denuncie la amenaza falsa en SERNAC.'] }
-    ]
-  },
-  {
-    id: 'seguros',
-    title: 'Seguros no consentidos',
-    short: 'Caso 2 - Auditoría financiera',
-    description: 'Descuento extraño en la pensión o cartola bajo concepto de seguros o asistencias.',
-    cruce: { endpoint: '/v1/polizas', fuentes: ['CMF'] },
-    frases: ['No autoricé ni firmé este seguro. Exijo la prueba de aceptación y la restitución retroactiva de lo cobrado.'],
-    items: [
-      { id: 'seguro-agregado', title: 'Me agregaron un seguro que no pedí', content: ['Revise los cargos en su cartola bancaria o liquidación de pensión.', 'Solicite la póliza y la prueba de aceptación por escrito.', 'Si no la contrató, exija anulación y devolución con intereses.', 'El acompañante genera un folio de reclamo CMF/SERNAC.'] },
-      { id: 'seguro-credito', title: 'Me dijeron que el seguro es obligatorio', content: ['Pregunte si puede contratarlo con otra aseguradora.', 'Pida el costo total del seguro durante toda la vida del crédito.', 'Compare precios con al menos dos aseguradoras.', 'Si le presionan, no firme y revise el contrato en su casa.'] }
-    ]
-  },
-  {
-    id: 'portabilidad',
-    title: 'Cambio de plan engañoso',
-    short: 'Caso 3 - Telecomunicaciones',
-    description: 'Llamada para "actualizar su plan" que exige un código SMS de verificación.',
-    cruce: { endpoint: '/v1/subtel', fuentes: ['SUBTEL (Traspaso de operador)'] },
-    frases: ['No autorizo el cambio de compañía ni entregaré códigos SMS.'],
-    items: [
-      { id: 'portabilidad-sms', title: 'Me piden un código SMS para "mejorar mi plan"', content: ['Nunca entregue un código SMS que llega a su teléfono.', 'Ese código autoriza el traspaso de su número a otra compañía.', 'Corte la llamada y verifique directamente con su operador.', 'El acompañante revisa si hay una señal de traspaso en SUBTEL.'] },
-      { id: 'portabilidad-forzada', title: 'Me cambiaron de compañía sin mi permiso', content: ['Revise sus boletas y contratos recientes.', 'Exija a la nueva empresa la reversión del cambio.', 'Pida constancia escrita de quién autorizó el cambio.', 'Denuncie ante SUBTEL o SERNAC.'] }
-    ]
-  }
-];
-
-const FRASES_EMERGENCIA = [
-  'Sé que no registro bienes embargables a mi nombre. Exijo notificación judicial formal antes de responder.',
-  'No autoricé ni firmé este seguro. Exijo la prueba de aceptación y la restitución de lo cobrado.',
-  'No autorizo el cambio de compañía ni entregaré códigos SMS.',
-  'Necesito que me envíen esto por escrito para revisarlo con calma.',
-  'No voy a dar datos ni firmar nada hasta conversar con mi familia.'
-];
-
+// App principal: estado, renderizado, eventos y router por visibilidad
 const App = {
   state: { currentCategory: null, currentItem: null, voices: [] },
   elements: {},
@@ -288,60 +242,108 @@ const App = {
     App.state.currentCategory = c;
     App.elements.categoryTitle.textContent = c.title;
     App.elements.categoryDescription.textContent = c.description;
-    App.clearChildren(App.elements.categoryContent);
 
-    (c.frases || []).forEach(f => App.addRejectionBlock(f));
+    const content = App.elements.categoryContent;
+    App.clearChildren(content);
+    content.className = 'wizard';
 
-    if (c.cruce) {
-      App.addDataCheckStation(c);
-    }
+    const diagStep = App.buildDiagnosticoStep(c);
+    const mainCol = document.createElement('div');
+    mainCol.className = 'wizard__main';
+    mainCol.appendChild(App.buildPreliminarStep(c));
+    mainCol.appendChild(App.buildEntradaStep(c, diagStep));
 
-    c.items.forEach(i => App.addContentCard(i.title, () => App.openDetail(i.id)));
-    App.addContentCard('Solicitar orientación personalizada', App.showForm);
+    const diagCol = document.createElement('div');
+    diagCol.className = 'wizard__diag';
+    diagCol.appendChild(diagStep);
+    diagCol.appendChild(App.buildOrientacionStep());
+
+    content.appendChild(mainCol);
+    content.appendChild(diagCol);
     App.showView('categoryView');
   },
 
-  addRejectionBlock(frase) {
-    const block = document.createElement('div');
-    block.className = 'rejection';
-    const label = document.createElement('p');
-    label.className = 'rejection__label';
-    label.textContent = 'Lea esta frase en voz alta:';
-    const quote = document.createElement('p');
-    quote.className = 'rejection__quote';
-    quote.textContent = frase;
-    const speak = document.createElement('button');
-    speak.type = 'button';
-    speak.className = 'rejection__speak';
-    speak.textContent = 'Escuchar frase';
-    speak.addEventListener('click', () => App.speakText(frase));
-    block.appendChild(label);
-    block.appendChild(quote);
-    block.appendChild(speak);
-    App.elements.categoryContent.appendChild(block);
+  buildStepHeader(num, title) {
+    const head = document.createElement('div');
+    head.className = 'step__head';
+    const badge = document.createElement('span');
+    badge.className = 'step__badge';
+    badge.setAttribute('aria-hidden', 'true');
+    badge.textContent = num;
+    const h = document.createElement('h3');
+    h.className = 'step__title';
+    h.textContent = title;
+    head.appendChild(badge);
+    head.appendChild(h);
+    return head;
   },
 
-  addDataCheckStation(categoria) {
-    const station = document.createElement('div');
-    station.className = 'datacheck';
+  buildPreliminarStep(c) {
+    const step = document.createElement('section');
+    step.className = 'step';
+    step.setAttribute('aria-label', 'Paso 1: Información preliminar');
+    step.appendChild(App.buildStepHeader(1, 'Información preliminar'));
 
-    const heading = document.createElement('h3');
-    heading.className = 'datacheck__title';
-    heading.textContent = 'Cruce de datos';
-    station.appendChild(heading);
+    const resumen = document.createElement('p');
+    resumen.className = 'step__lead';
+    resumen.textContent = c.preliminar.resumen;
+    step.appendChild(resumen);
 
-    const sources = document.createElement('p');
-    sources.className = 'datacheck__sources';
-    sources.textContent = 'Fuentes: ' + categoria.cruce.fuentes.join(', ');
-    station.appendChild(sources);
+    const sub = document.createElement('p');
+    sub.className = 'step__subtitle';
+    sub.textContent = 'Riesgos a considerar:';
+    step.appendChild(sub);
+
+    const ul = document.createElement('ul');
+    ul.className = 'step__list';
+    c.preliminar.riesgos.forEach(r => {
+      const li = document.createElement('li');
+      li.textContent = r;
+      ul.appendChild(li);
+    });
+    step.appendChild(ul);
+    return step;
+  },
+
+  buildEntradaStep(c, diagStep) {
+    const step = document.createElement('section');
+    step.className = 'step';
+    step.setAttribute('aria-label', 'Paso 2: Entrada de datos');
+    step.appendChild(App.buildStepHeader(2, 'Entrada de datos'));
+
+    const intro = document.createElement('p');
+    intro.className = 'step__lead';
+    intro.textContent = 'Complete estos datos para encontrar la respuesta más adecuada a su caso.';
+    step.appendChild(intro);
+
+    const caseField = document.createElement('fieldset');
+    caseField.className = 'step__cases';
+    const legend = document.createElement('legend');
+    legend.className = 'field__label';
+    legend.textContent = '¿Qué situación se acerca más a su caso?';
+    caseField.appendChild(legend);
+    c.items.forEach(item => {
+      const opt = document.createElement('label');
+      opt.className = 'step__case';
+      const radio = document.createElement('input');
+      radio.type = 'radio';
+      radio.name = 'dcCase-' + c.id;
+      radio.value = item.id;
+      const txt = document.createElement('span');
+      txt.textContent = item.title;
+      opt.appendChild(radio);
+      opt.appendChild(txt);
+      caseField.appendChild(opt);
+    });
+    step.appendChild(caseField);
 
     const rutField = document.createElement('div');
     rutField.className = 'field';
     const rutLabel = document.createElement('label');
     rutLabel.className = 'field__label';
-    const rutId = 'dcRut-' + categoria.id;
+    const rutId = 'dcRut-' + c.id;
     rutLabel.setAttribute('for', rutId);
-    rutLabel.textContent = 'RUT a verificar';
+    rutLabel.textContent = 'Su RUT';
     const rutInput = document.createElement('input');
     rutInput.className = 'field__input';
     rutInput.id = rutId;
@@ -353,79 +355,190 @@ const App = {
     });
     rutField.appendChild(rutLabel);
     rutField.appendChild(rutInput);
-    station.appendChild(rutField);
+    step.appendChild(rutField);
 
     const relatoField = document.createElement('div');
     relatoField.className = 'field';
     const relatoLabel = document.createElement('label');
     relatoLabel.className = 'field__label';
-    const relatoId = 'dcRelato-' + categoria.id;
+    const relatoId = 'dcRelato-' + c.id;
     relatoLabel.setAttribute('for', relatoId);
-    relatoLabel.textContent = 'Relato';
+    relatoLabel.textContent = 'Lo que usted sabe sobre el caso';
     const relatoInput = document.createElement('textarea');
     relatoInput.className = 'field__textarea';
     relatoInput.id = relatoId;
-    relatoInput.rows = 2;
+    relatoInput.rows = 3;
     relatoInput.maxLength = 500;
-    relatoInput.placeholder = 'Escriba lo que ocurrió...';
+    relatoInput.placeholder = 'Ej: me llamaron ayer diciendo que debo una deuda de...';
     relatoField.appendChild(relatoLabel);
     relatoField.appendChild(relatoInput);
-    station.appendChild(relatoField);
+    step.appendChild(relatoField);
 
-    const privacy = document.createElement('p');
-    station.appendChild(privacy);
+    const sources = document.createElement('p');
+    sources.className = 'datacheck__sources';
+    sources.textContent = 'Se consultará: ' + c.cruce.fuentes.join(', ');
+    step.appendChild(sources);
+
+    const err = document.createElement('p');
+    err.className = 'error-text';
+    err.setAttribute('role', 'alert');
+    err.hidden = true;
+    step.appendChild(err);
 
     const runBtn = document.createElement('button');
     runBtn.type = 'button';
     runBtn.className = 'datacheck__run';
-    runBtn.textContent = 'Ejecutar cruce de datos';
-    station.appendChild(runBtn);
-
-    const result = document.createElement('div');
-    result.className = 'datacheck__result';
-    result.setAttribute('aria-live', 'polite');
-    result.hidden = true;
-    station.appendChild(result);
+    runBtn.textContent = 'Ejecutar Auditoría';
+    step.appendChild(runBtn);
 
     runBtn.addEventListener('click', async () => {
+      err.hidden = true;
       const rawRut = rutInput.value.trim();
+      const selected = caseField.querySelector('input[type="radio"]:checked');
+      if (!selected) {
+        err.textContent = 'Seleccione la situación que más se acerca a su caso.';
+        err.hidden = false;
+        return;
+      }
       if (!Security.validateRut(rawRut)) {
-        result.hidden = false;
-        result.className = 'datacheck__result datacheck__result--error';
-        App.clearChildren(result);
-        const p = document.createElement('p');
-        p.textContent = 'Ingrese un RUT válido para ejecutar el cruce.';
-        result.appendChild(p);
+        err.textContent = 'Ingrese un RUT válido para analizar su caso.';
+        err.hidden = false;
         rutInput.focus();
         return;
       }
       runBtn.disabled = true;
-      runBtn.textContent = 'Consultando fuentes...';
+      runBtn.textContent = 'Ejecutando auditoría...';
       try {
-        const r = await Security.simulateDataCheck(categoria.id, rawRut, relatoInput.value);
-        const summary = App.renderDataCheckResult(result, categoria, r);
+        const item = c.items.find(i => i.id === selected.value);
+        const r = await API.executeDataCheck(c.id, rawRut, relatoInput.value);
+        const summary = App.renderDiagnostico(diagStep, c, item, r);
         Historial.add({
-          caso: categoria.title,
-          casoId: categoria.id,
+          caso: c.title,
+          casoId: c.id,
           rut: r.sent.rut,
           resumen: summary.resumen,
           ok: summary.ok
         });
         App.renderHistory();
-      } catch (err) {
-        result.hidden = false;
-        result.className = 'datacheck__result datacheck__result--error';
-        App.clearChildren(result);
-        const p = document.createElement('p');
-        p.textContent = 'No se pudo completar el cruce. Intente nuevamente.';
-        result.appendChild(p);
+      } catch (e) {
+        err.textContent = 'No se pudo completar el análisis. Intente nuevamente.';
+        err.hidden = false;
       } finally {
         runBtn.disabled = false;
-        runBtn.textContent = 'Ejecutar cruce de datos';
+        runBtn.textContent = 'Ejecutar Auditoría';
       }
     });
 
-    App.elements.categoryContent.appendChild(station);
+    return step;
+  },
+
+  buildOrientacionStep() {
+    const step = document.createElement('section');
+    step.className = 'step step--orientacion step--pending';
+    step.setAttribute('aria-label', 'Paso 4: Solicitar orientación personalizada');
+    step.appendChild(App.buildStepHeader(4, 'Si es necesario: Solicitar orientación personalizada'));
+
+    const lead = document.createElement('p');
+    lead.className = 'step__lead';
+    lead.textContent = 'Si su caso necesita atención de un orientador, complete el formulario y lo contactaremos.';
+    step.appendChild(lead);
+
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'datacheck__run';
+    btn.textContent = 'Solicitar orientación personalizada';
+    btn.disabled = true;
+    btn.addEventListener('click', App.showForm);
+    step.appendChild(btn);
+    return step;
+  },
+
+  buildDiagnosticoStep(c) {
+    const step = document.createElement('section');
+    step.className = 'step step--diag step--pending';
+    step.setAttribute('aria-label', 'Paso 3: Diagnóstico y respuesta');
+    step.setAttribute('aria-live', 'polite');
+    step.appendChild(App.buildStepHeader(3, 'Diagnóstico y respuesta'));
+
+    const placeholder = document.createElement('div');
+    placeholder.className = 'step__placeholder';
+    const icon = document.createElement('span');
+    icon.className = 'step__placeholder-icon';
+    icon.setAttribute('aria-hidden', 'true');
+    icon.innerHTML = '<svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><line x1="16.5" y1="16.5" x2="21" y2="21"></line></svg>';
+    const msg = document.createElement('p');
+    msg.className = 'step__placeholder-text';
+    msg.textContent = 'Complete los datos a la izquierda y presione "Ejecutar Auditoría" para desplegar la respuesta en los 4 bloques oficiales.';
+    placeholder.appendChild(icon);
+    placeholder.appendChild(msg);
+    step.appendChild(placeholder);
+    return step;
+  },
+
+  buildDiagBlock(titleText, contentEl) {
+    const block = document.createElement('div');
+    block.className = 'step__block';
+    const title = document.createElement('p');
+    title.className = 'step__subtitle';
+    title.textContent = titleText;
+    block.appendChild(title);
+    block.appendChild(contentEl);
+    return block;
+  },
+
+  renderDiagnostico(step, c, item, r) {
+    App.clearChildren(step);
+    step.classList.remove('step--pending');
+    step.appendChild(App.buildStepHeader(3, 'Diagnóstico y respuesta'));
+
+    const caso = document.createElement('p');
+    caso.className = 'step__case-title';
+    caso.textContent = item.title;
+    step.appendChild(caso);
+
+    const diagBox = document.createElement('div');
+    const summary = App.renderDataCheckResult(diagBox, c, r);
+    step.appendChild(App.buildDiagBlock('Diagnóstico del cruce de datos:', diagBox));
+
+    const quote = document.createElement('p');
+    quote.className = 'step__quote';
+    quote.textContent = '“' + item.queDecir + '”';
+    step.appendChild(App.buildDiagBlock('Qué decir ante este caso:', quote));
+
+    const ol = document.createElement('ol');
+    ol.className = 'step__list';
+    item.content.forEach(s => {
+      const li = document.createElement('li');
+      li.textContent = s;
+      ol.appendChild(li);
+    });
+    step.appendChild(App.buildDiagBlock('Cómo abordarlo paso a paso:', ol));
+
+    const ul = document.createElement('ul');
+    ul.className = 'step__list step__escalation';
+    c.escalamiento.forEach(e => {
+      const li = document.createElement('li');
+      const a = document.createElement('a');
+      a.href = e.url;
+      a.target = '_blank';
+      a.rel = 'noopener noreferrer';
+      a.textContent = e.nombre;
+      li.appendChild(a);
+      li.appendChild(document.createTextNode(' — ' + e.detalle));
+      ul.appendChild(li);
+    });
+    step.appendChild(App.buildDiagBlock('Si la situación continúa, escale aquí:', ul));
+
+    const orient = step.parentElement ? step.parentElement.querySelector('.step--orientacion') : null;
+    if (orient) {
+      orient.classList.remove('step--pending');
+      const orientBtn = orient.querySelector('button');
+      if (orientBtn) orientBtn.disabled = false;
+    }
+
+    step.hidden = false;
+    step.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    return summary;
   },
 
   renderDataCheckResult(container, categoria, r) {
@@ -441,7 +554,7 @@ const App = {
       const sinBienes = h.bienesRaices === 0 && h.vehiculos === 0;
       alertOk = sinBienes;
       alertText = sinBienes
-        ? 'Alerta de inexistencia de garantía: no registra bienes embargables. Use la frase de rechazo.'
+        ? 'Alerta de inexistencia de garantía: no registra bienes embargables.'
         : 'Registra bienes a su nombre. Verifique la legitimidad de la deuda antes de responder.';
     } else if (categoria.id === 'solvencia') {
       const score = (h.bienesRaices * 30) + (h.vehiculos * 15) + (h.laboralActivo ? 40 : 0);
@@ -553,7 +666,7 @@ const App = {
     App.elements.formStatus.style.color = 'var(--color-success)';
     App.elements.formStatus.textContent = 'Analizando...';
     try {
-      const r = await Security.simulateApiCall('/api/orientacion', p);
+      const r = await API.submitOrientation('/api/orientacion', p);
       App.elements.formStatus.textContent = `${r.message} Ticket: ${r.ticket}`;
       App.elements.orientationForm.reset();
     } catch {

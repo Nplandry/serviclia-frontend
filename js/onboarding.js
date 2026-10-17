@@ -59,6 +59,19 @@ const Onboarding = {
       ]
     },
     {
+      id: 'proposito',
+      type: 'choice',
+      campo: 'proposito',
+      titulo: '¿Para qué vas a usar ServicIA?',
+      texto: 'Nos ayuda a adaptar la orientación a tus necesidades.',
+      opciones: [
+        { value: 'autoinformarse', label: 'Para auto-informarme sobre mis derechos' },
+        { value: 'asesorar', label: 'Para asesorar a familiares o amigos' },
+        { value: 'investigar', label: 'Para investigar información sobre finanzas, créditos o bienes raíces' },
+        { value: 'trabajo', label: 'Para capacitarme y ayudar en mi trabajo' }
+      ]
+    },
+    {
       id: 'fin',
       type: 'summary',
       titulo: 'Todo listo',
@@ -240,7 +253,8 @@ const Onboarding = {
       ['Nombre', Onboarding.datos.nombre],
       ['Edad', Onboarding.datos.edad],
       ['Correo', Onboarding.datos.email],
-      ['Preocupación', Onboarding.labelFor('preocupacion', Onboarding.datos.preocupacion)]
+      ['Preocupación principal', Onboarding.labelFor('preocupacion', Onboarding.datos.preocupacion)],
+      ['Propósito de uso', Onboarding.labelFor('proposito', Onboarding.datos.proposito)]
     ];
     campos.forEach(([k, v]) => {
       const dt = document.createElement('dt');

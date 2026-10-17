@@ -624,6 +624,7 @@ body {
 .datacheck__run {
   min-height: var(--touch-min);
   padding: var(--space-sm) var(--space-md);
+  margin-top: 10px;
   font-size: var(--font-size-base);
   font-weight: 700;
   color: #ffffff;

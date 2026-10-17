@@ -9,7 +9,6 @@ const App = {
     App.bindEvents();
     App.bindAuthEvents();
     App.setGreeting();
-    App.updateEmergencyButton();
     App.renderCategories(CATEGORIAS);
     App.loadVoices();
     App.setupInstall();
@@ -17,7 +16,7 @@ const App = {
   },
 
   cacheElements() {
-    const ids = ['homeView','categoryView','detailView','formView','searchInput','categoryList','zeroResults','emergencyBtn','backFromCategory','backFromDetail','backFromForm','categoryTitle','categoryDescription','categoryContent','detailArticle','speakBtn','stopSpeakBtn','orientationForm','formRut','rutError','submitForm','formStatus','greeting','installBtn','logoutBtn','chatForm','chatInput','chatSend','chatMessages','chatStatus','mainChatForm','mainChatInput','mainChatSend','mainChatMessages','mainChatStatus','authGate','tabLogin','tabRegister','loginForm','registerForm','loginStatus','registerStatus','historyBtn','historyPanel','historyOverlay','historyClose','historyList','historyClear'];
+    const ids = ['homeView','categoryView','detailView','formView','searchInput','categoryList','zeroResults','backFromCategory','backFromDetail','backFromForm','categoryTitle','categoryDescription','categoryContent','detailArticle','speakBtn','stopSpeakBtn','orientationForm','formRut','rutError','submitForm','formStatus','greeting','installBtn','logoutBtn','chatForm','chatInput','chatSend','chatMessages','chatStatus','mainChatForm','mainChatInput','mainChatSend','mainChatMessages','mainChatStatus','authGate','tabLogin','tabRegister','loginForm','registerForm','loginStatus','registerStatus','historyBtn','historyPanel','historyOverlay','historyClose','historyList','historyClear'];
     ids.forEach(id => App.elements[id] = document.getElementById(id));
     App.elements.appHeader = document.querySelector('.app-header');
     App.elements.appMain = document.getElementById('main');
@@ -43,7 +42,6 @@ const App = {
     App.elements.appMain.hidden = !authed;
     if (App.elements.appFooter) App.elements.appFooter.hidden = !authed;
     App.elements.logoutBtn.hidden = !authed;
-    App.elements.emergencyBtn.hidden = !authed;
     App.elements.historyBtn.hidden = !authed;
 
     if (authed) {
@@ -51,7 +49,6 @@ const App = {
       Historial.init(user.email);
       App.renderHistory();
       App.setGreeting();
-      App.updateEmergencyButton();
       App.renderCategories(CATEGORIAS);
       App.showHome();
     } else {
@@ -175,7 +172,6 @@ const App = {
 
   bindEvents() {
     App.elements.searchInput.addEventListener('input', App.handleSearch);
-    App.elements.emergencyBtn.addEventListener('click', App.handleEmergency);
     App.elements.backFromCategory.addEventListener('click', App.showHome);
     App.elements.backFromDetail.addEventListener('click', App.showCategory);
     App.elements.backFromForm.addEventListener('click', App.showHome);
@@ -201,11 +197,6 @@ const App = {
     if (heroText) heroText.textContent = 'Seleccione un tema para recibir orientación paso a paso.';
   },
 
-  updateEmergencyButton() {
-    App.elements.emergencyBtn.hidden = false;
-    App.elements.emergencyBtn.textContent = '¿Qué digo ahora?';
-  },
-
   clearChildren(el) { while (el.firstChild) el.removeChild(el.firstChild); },
 
   renderCategories(categories) {
@@ -227,13 +218,6 @@ const App = {
   handleSearch() {
     const q = Security.sanitizeText(App.elements.searchInput.value).toLowerCase();
     App.renderCategories(q ? CATEGORIAS.filter(c => c.title.toLowerCase().includes(q) || c.short.toLowerCase().includes(q) || c.description.toLowerCase().includes(q) || c.items.some(i => i.title.toLowerCase().includes(q))) : CATEGORIAS);
-  },
-
-  handleEmergency() {
-    const phrase = FRASES_EMERGENCIA[Math.floor(Math.random() * FRASES_EMERGENCIA.length)];
-    if (window.speechSynthesis) App.speakText(phrase);
-    App.elements.emergencyBtn.textContent = phrase;
-    setTimeout(() => App.updateEmergencyButton(), 4000);
   },
 
   openCategory(id) {
@@ -373,11 +357,6 @@ const App = {
     relatoField.appendChild(relatoLabel);
     relatoField.appendChild(relatoInput);
     step.appendChild(relatoField);
-
-    const sources = document.createElement('p');
-    sources.className = 'datacheck__sources';
-    sources.textContent = 'Se consultará: ' + c.cruce.fuentes.join(', ');
-    step.appendChild(sources);
 
     const err = document.createElement('p');
     err.className = 'error-text';

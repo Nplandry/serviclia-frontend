@@ -141,6 +141,7 @@ const Auth = {
           nombre: String(data.nombre).trim(),
           edad: data.edad || null,
           preocupacion: data.preocupacion || null,
+          proposito: data.proposito || null,
           onboardedAt: new Date().toISOString()
         };
         Auth.usuarios.push(nuevo);

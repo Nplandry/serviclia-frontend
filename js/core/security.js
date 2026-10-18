@@ -1,4 +1,3 @@
-// Seguridad: validación RUT, sanitización, anonimización
 const Security = {
   escapeHtml: function (text) {
     const map = {

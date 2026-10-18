@@ -1,6 +1,5 @@
-// API: punto único de entrada para llamadas backend (simuladas ahora, reales después)
 const API = {
-  // Formulario de orientación personalizada
+
   submitOrientation: async function (endpoint, payload) {
     return new Promise(function (resolve) {
       setTimeout(function () {
@@ -15,7 +14,6 @@ const API = {
     });
   },
 
-  // Cruce de datos (patrimonio, pólizas, etc)
   executeDataCheck: async function (caseId, rawRut, relato) {
     const anonRut = Security.anonymizeRut(rawRut);
     const token = Security.pseudonymize(rawRut);
@@ -27,7 +25,7 @@ const API = {
         const tieneBienes = seed % 3 === 0;
         const esPEP = seed % 7 === 0;
         const vigente = seed % 11 !== 0;
-        
+
         resolve({
           ok: true,
           caseId: caseId,
@@ -40,7 +38,7 @@ const API = {
             interpol: false,
             vigente: vigente,
             laboralActivo: seed % 4 !== 0,
-            // Nuevos datos
+
             afiliacionAFP: seed % 5 !== 0,
             afpNombre: ['Cuprum', 'Provida', 'Habitat', 'Integra', 'Capital'][seed % 5],
             fondoAFP: ['A', 'B', 'C', 'D', 'E'][seed % 5],

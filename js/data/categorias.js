@@ -1,6 +1,3 @@
-// Contenido de categorías de orientación
-// Cada categoría incluye: información preliminar, riesgos, casos específicos, frases protección y escalamiento
-
 const CATEGORIAS = [
   {
     id: 'embargo-falso',
@@ -72,7 +69,6 @@ const FRASES_EMERGENCIA = [
   'No voy a dar datos ni firmar nada hasta conversar con mi familia.'
 ];
 
-// Recomendados: casos sugeridos para curioseo y exploración
 const RECOMENDADOS = [
   {
     id: 'rec-1',

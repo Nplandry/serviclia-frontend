@@ -1,4 +1,3 @@
-// Autenticación: login, registro, gestión de sesión
 const Auth = {
   STORAGE_KEY: 'servicia.session',
   USERS_KEY: 'servicia.users',

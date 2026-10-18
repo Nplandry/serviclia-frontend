@@ -1,4 +1,3 @@
-// Historial de consultas: persistencia por usuario
 const Historial = {
   STORAGE_PREFIX: 'servicia.history.',
   MAX_ITEMS: 50,
@@ -34,11 +33,24 @@ const Historial = {
   },
 
   add(entry) {
+
+    let rutSeguro = entry.rut || '';
+    const pareceRutCompleto = /\d{2}\.?\d{3}\.?\d{3}-?[0-9kK]/.test(rutSeguro);
+    if (pareceRutCompleto && typeof Security !== 'undefined' && Security.anonymizeRut) {
+      rutSeguro = Security.anonymizeRut(rutSeguro);
+      if (typeof Compliance !== 'undefined') {
+        Compliance.logSecurityIncident({
+          tipo: 'minimizacion_aplicada',
+          descripcion: 'Se anonimizó un RUT que llegó en claro al historial.',
+          severidad: 'baja'
+        });
+      }
+    }
     const item = {
       id: 'q-' + Date.now() + '-' + Math.floor(Math.random() * 1000),
       caso: entry.caso || '',
       casoId: entry.casoId || '',
-      rut: entry.rut || '',
+      rut: rutSeguro,
       resumen: entry.resumen || '',
       ok: entry.ok !== false,
       fecha: new Date().toISOString()

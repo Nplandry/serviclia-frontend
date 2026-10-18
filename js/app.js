@@ -1,4 +1,3 @@
-// App principal: estado, renderizado, eventos y router por visibilidad
 const App = {
   state: { currentCategory: null, currentItem: null, voices: [] },
   elements: {},
@@ -13,6 +12,7 @@ const App = {
     App.loadVoices();
     App.setupInstall();
     App.applyAuthState();
+    if (typeof Compliance !== 'undefined') Compliance.initCookieBanner();
   },
 
   cacheElements() {
@@ -203,7 +203,7 @@ const App = {
   renderRecomendados() {
     const list = App.elements.carruselList;
     App.clearChildren(list);
-    
+
     const iconSVG = {
       'briefcase': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"></path></svg>',
       'document': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><polyline points="13 2 13 9 20 9"></polyline></svg>',
@@ -403,6 +403,12 @@ const App = {
     relatoField.appendChild(relatoInput);
     step.appendChild(relatoField);
 
+    let consentBlock = null;
+    if (c.id === 'embargo-falso' && typeof Compliance !== 'undefined') {
+      consentBlock = Compliance.buildConsentBlock(c);
+      step.appendChild(consentBlock.node);
+    }
+
     const err = document.createElement('p');
     err.className = 'error-text';
     err.setAttribute('role', 'alert');
@@ -430,10 +436,33 @@ const App = {
         rutInput.focus();
         return;
       }
+
+      let consentResult = null;
+      if (consentBlock) {
+        consentResult = consentBlock.validate();
+        if (!consentResult.ok) {
+          err.textContent = consentResult.error;
+          err.hidden = false;
+          return;
+        }
+      }
+
       runBtn.disabled = true;
       runBtn.textContent = 'Ejecutando auditoría...';
       try {
         const item = c.items.find(i => i.id === selected.value);
+
+        if (consentResult && typeof Compliance !== 'undefined') {
+          const user = (typeof Auth !== 'undefined' && Auth.getCurrentUser) ? Auth.getCurrentUser() : null;
+          Compliance.grantConsent({
+            owner: user ? user.email : 'anon',
+            casoId: c.id,
+            finalidades: consentResult.finalidades,
+            titularidad: consentResult.titularidad,
+            tercero: consentResult.tercero
+          });
+        }
+
         const r = await API.executeDataCheck(c.id, rawRut, relatoInput.value);
         const summary = App.renderDiagnostico(diagStep, c, item, r);
         Historial.add({
@@ -445,6 +474,13 @@ const App = {
         });
         App.renderHistory();
       } catch (e) {
+        if (typeof Compliance !== 'undefined') {
+          Compliance.logSecurityIncident({
+            tipo: 'error_auditoria',
+            descripcion: 'Fallo durante el cruce de datos del caso ' + c.id,
+            severidad: 'media'
+          });
+        }
         err.textContent = 'No se pudo completar el análisis. Intente nuevamente.';
         err.hidden = false;
       } finally {
@@ -548,7 +584,7 @@ const App = {
       a.rel = 'noopener noreferrer';
       a.textContent = e.nombre;
       li.appendChild(a);
-      li.appendChild(document.createTextNode(' — ' + e.detalle));
+      li.appendChild(document.createTextNode(' ' + e.detalle));
       ul.appendChild(li);
     });
     step.appendChild(App.buildDiagBlock('Si la situación continúa, escale aquí:', ul));
@@ -571,7 +607,6 @@ const App = {
     container.hidden = false;
     const h = r.hallazgos;
 
-    // Icon map helper
     const iconMap = {
       'default': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>',
       'money': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"></circle><path d="M4 12h16M12 4c-4.418 0-8 1.79-8 4v4c0 2.21 3.582 4 8 4s8-1.79 8-4v-4c0-2.21-3.582-4-8-4z"></path></svg>',
@@ -592,7 +627,6 @@ const App = {
       return svg;
     };
 
-    // Alert principal
     const alert = document.createElement('div');
     let alertText = '';
     let alertOk = true;
@@ -618,7 +652,6 @@ const App = {
     alert.textContent = alertText;
     container.appendChild(alert);
 
-    // Hallazgos básicos en grid de tarjetas
     const list = document.createElement('ul');
     list.className = 'datacheck__findings';
     const rows = [
@@ -637,45 +670,41 @@ const App = {
     });
     container.appendChild(list);
 
-    // Helper para crear tarjetas con iconos
     const helper = (title, detail, variant = '', icon = 'default') => {
       const card = document.createElement('div');
       const classes = 'datacheck__info-block' + (variant ? ' datacheck__info-block--' + variant : '');
       card.className = classes;
-      
+
       const iconDiv = document.createElement('div');
       iconDiv.className = 'datacheck__info-icon';
       iconDiv.innerHTML = iconMap[icon] || iconMap['default'];
       card.appendChild(iconDiv);
-      
+
       const content = document.createElement('div');
       content.className = 'datacheck__info-block-content';
-      
+
       const lbl = document.createElement('p');
       lbl.className = 'datacheck__info-label';
       lbl.textContent = title;
       content.appendChild(lbl);
-      
+
       const det = document.createElement('p');
       det.className = 'datacheck__info-detail';
       det.textContent = detail;
       content.appendChild(det);
-      
+
       card.appendChild(content);
       container.appendChild(card);
     };
 
-    // AFP y Previsión
     if (h.afiliacionAFP) {
       helper('Afiliación a AFP', 'AFP: ' + h.afpNombre + ' - Fondo: ' + h.fondoAFP + ' - Estado: ' + h.estadoPrevisional + ' (desde ' + h.ultimoIngreso + '). Antigüedad laboral: ' + h.antiguedadLaboral, '', 'briefcase');
     }
 
-    // Deudas tributarias
     if (h.deudaTributaria > 0) {
       helper('Deuda tributaria registrada', 'Monto pendiente: $' + h.deudaTributaria.toLocaleString() + '. Se recomienda contactar al SII para plan de pago.', 'alert', 'alert');
     }
 
-    // Multas y deuda coactiva
     if (h.multas > 0 || h.deudaCoactiva > 0) {
       const detalles = [];
       if (h.multas > 0) detalles.push('Multas: $' + h.multas.toLocaleString());
@@ -683,37 +712,30 @@ const App = {
       helper('Multas y deuda coactiva', detalles.join(' | ') + '. Consulte con SII sobre opciones de pago.', 'alert', 'alert');
     }
 
-    // Cartera vencida
     if (h.carteraVencida) {
       helper('Cartera vencida detectada', 'Hay cuentas vencidas en registro crediticio. Verifique con DICOM y considere regularizar deudas.', 'alert', 'alert');
     }
 
-    // Cheques protestados
     if (h.protestosCheques > 0) {
       helper('Cheques protestados', h.protestosCheques + ' cheque(s) en protesto. Esto afecta su historial bancario. Contacte a los acreedores para regularizar.', 'alert', 'document');
     }
 
-    // Antecedentes CREAF (limpio)
     if (!h.creafAntecedentes) {
       helper('Antecedentes CREAF', 'Sin registro negativo. Su historial crediticio es limpio ante instituciones financieras.', 'good', 'check');
     }
 
-    // Instituciones financieras
     if (h.institucionesFinancieras > 0) {
       helper('Relaciones con instituciones financieras', h.institucionesFinancieras + ' institución(es) registrada(s). Verifique que todos los créditos o tarjetas sean autorizados.', '', 'credit');
     }
 
-    // Bienes raíces detallado
     if (h.bienesRaices > 0) {
       helper('Propiedad(es) registrada(s)', h.bienesRaices + ' bien(es) inmueble(s) en SII. Verifique hipotecas, cargas y situación legal de cada propiedad.', '', 'home');
     }
 
-    // Vehículos detallado
     if (h.vehiculos > 0) {
       helper('Vehículo(s) registrado(s)', h.vehiculos + ' vehículo(s) en Registro Civil. Permiso de circulación ' + (h.boletaVigencia ? 'vigente' : 'vencido') + '. Verifique multas y revisión técnica.', '', 'car');
     }
 
-    // Identidad validada
     if (h.vigente && h.derechoChileAtiende) {
       helper('Identidad validada', 'Cédula vigente y validada. Tiene acceso a servicios digitales (ChileAtiende, Pago de Impuestos, etc.).', 'good', 'check');
     }

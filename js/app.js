@@ -571,6 +571,28 @@ const App = {
     container.hidden = false;
     const h = r.hallazgos;
 
+    // Icon map helper
+    const iconMap = {
+      'default': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>',
+      'money': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"></circle><path d="M4 12h16M12 4c-4.418 0-8 1.79-8 4v4c0 2.21 3.582 4 8 4s8-1.79 8-4v-4c0-2.21-3.582-4-8-4z"></path></svg>',
+      'home': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>',
+      'car': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 17h2c.55 0 1-.45 1-1v-3c0-.55-.45-1-1-1h-.99M5 17H3c-.55 0-1-.45-1-1v-3c0-.55.45-1 1-1h.99M6 5h12l1 6H5l1-6z"></path><circle cx="9" cy="17" r="2"></circle><circle cx="15" cy="17" r="2"></circle></svg>',
+      'briefcase': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"></path></svg>',
+      'alert': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3.05h16.94a2 2 0 0 0 1.71-3.05L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>',
+      'check': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>',
+      'credit': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>',
+      'document': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="13" x2="8" y2="13"></line><line x1="12" y1="17" x2="8" y2="17"></line></svg>',
+      'idcard': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="2" y1="10" x2="22" y2="10"></line></svg>',
+    };
+
+    const getIcon = (key) => {
+      const svg = document.createElement('div');
+      svg.className = 'datacheck__info-icon';
+      svg.innerHTML = iconMap[key] || iconMap['default'];
+      return svg;
+    };
+
+    // Alert principal
     const alert = document.createElement('div');
     let alertText = '';
     let alertOk = true;
@@ -590,39 +612,111 @@ const App = {
         ? 'Debida diligencia aprobada: sin alertas PEP ni Interpol, cédula vigente.'
         : 'Requiere revisión: ' + [h.pep ? 'PEP' : '', h.interpol ? 'Interpol' : '', !h.vigente ? 'cédula no vigente' : ''].filter(Boolean).join(', ') + '.';
     } else {
-      alertText = 'Cruce completado. Revise los hallazgos y genere el folio de reclamo.';
+      alertText = 'Cruce completado. Información registrada y validada.';
     }
     alert.className = 'datacheck__alert ' + (alertOk ? 'datacheck__alert--ok' : 'datacheck__alert--warn');
     alert.textContent = alertText;
     container.appendChild(alert);
 
+    // Hallazgos básicos en grid de tarjetas
     const list = document.createElement('ul');
     list.className = 'datacheck__findings';
     const rows = [
-      ['Bienes raíces (SII)', h.bienesRaices],
-      ['Vehículos (Registro Civil)', h.vehiculos],
-      ['Estado laboral activo (AFC y AFP)', h.laboralActivo ? 'Sí' : 'No'],
-      ['Cédula vigente (Registro Civil)', h.vigente ? 'Sí' : 'No'],
-      ['Persona Políticamente Expuesta', h.pep ? 'Sí' : 'No'],
-      ['Alerta Interpol', h.interpol ? 'Sí' : 'No']
+      ['Bienes raíces (SII)', h.bienesRaices, 'home'],
+      ['Vehículos (Registro Civil)', h.vehiculos, 'car'],
+      ['Estado laboral activo (AFC y AFP)', h.laboralActivo ? 'Sí' : 'No', 'briefcase'],
+      ['Cédula vigente (Registro Civil)', h.vigente ? 'Sí' : 'No', 'idcard'],
+      ['Persona Políticamente Expuesta', h.pep ? 'Sí' : 'No', 'alert'],
+      ['Alerta Interpol', h.interpol ? 'Sí' : 'No', 'alert']
     ];
-    rows.forEach(([k, v]) => {
+    rows.forEach(([k, v, icon]) => {
       const li = document.createElement('li');
       li.className = 'datacheck__finding';
-      li.textContent = k + ': ' + v;
+      li.innerHTML = '<span class="datacheck__finding-icon">' + (iconMap[icon] || iconMap['default']) + '</span><div class="datacheck__finding-content"><span class="datacheck__finding-label">' + k + '</span><strong class="datacheck__finding-value">' + v + '</strong></div>';
       list.appendChild(li);
     });
     container.appendChild(list);
 
-    const meta = document.createElement('p');
-    meta.className = 'datacheck__meta';
-    meta.textContent = 'Enviado (anonimizado): ' + r.sent.rut + ' - token ' + r.sent.token + ' - ' + r.latenciaMs + ' ms';
-    container.appendChild(meta);
+    // Helper para crear tarjetas con iconos
+    const helper = (title, detail, variant = '', icon = 'default') => {
+      const card = document.createElement('div');
+      const classes = 'datacheck__info-block' + (variant ? ' datacheck__info-block--' + variant : '');
+      card.className = classes;
+      
+      const iconDiv = document.createElement('div');
+      iconDiv.className = 'datacheck__info-icon';
+      iconDiv.innerHTML = iconMap[icon] || iconMap['default'];
+      card.appendChild(iconDiv);
+      
+      const content = document.createElement('div');
+      content.className = 'datacheck__info-block-content';
+      
+      const lbl = document.createElement('p');
+      lbl.className = 'datacheck__info-label';
+      lbl.textContent = title;
+      content.appendChild(lbl);
+      
+      const det = document.createElement('p');
+      det.className = 'datacheck__info-detail';
+      det.textContent = detail;
+      content.appendChild(det);
+      
+      card.appendChild(content);
+      container.appendChild(card);
+    };
 
-    const folio = document.createElement('p');
-    folio.className = 'datacheck__folio';
-    folio.textContent = 'Folio de reclamo generado: ' + r.folio;
-    container.appendChild(folio);
+    // AFP y Previsión
+    if (h.afiliacionAFP) {
+      helper('Afiliación a AFP', 'AFP: ' + h.afpNombre + ' - Fondo: ' + h.fondoAFP + ' - Estado: ' + h.estadoPrevisional + ' (desde ' + h.ultimoIngreso + '). Antigüedad laboral: ' + h.antiguedadLaboral, '', 'briefcase');
+    }
+
+    // Deudas tributarias
+    if (h.deudaTributaria > 0) {
+      helper('Deuda tributaria registrada', 'Monto pendiente: $' + h.deudaTributaria.toLocaleString() + '. Se recomienda contactar al SII para plan de pago.', 'alert', 'alert');
+    }
+
+    // Multas y deuda coactiva
+    if (h.multas > 0 || h.deudaCoactiva > 0) {
+      const detalles = [];
+      if (h.multas > 0) detalles.push('Multas: $' + h.multas.toLocaleString());
+      if (h.deudaCoactiva > 0) detalles.push('Deuda coactiva: $' + h.deudaCoactiva.toLocaleString());
+      helper('Multas y deuda coactiva', detalles.join(' | ') + '. Consulte con SII sobre opciones de pago.', 'alert', 'alert');
+    }
+
+    // Cartera vencida
+    if (h.carteraVencida) {
+      helper('Cartera vencida detectada', 'Hay cuentas vencidas en registro crediticio. Verifique con DICOM y considere regularizar deudas.', 'alert', 'alert');
+    }
+
+    // Cheques protestados
+    if (h.protestosCheques > 0) {
+      helper('Cheques protestados', h.protestosCheques + ' cheque(s) en protesto. Esto afecta su historial bancario. Contacte a los acreedores para regularizar.', 'alert', 'document');
+    }
+
+    // Antecedentes CREAF (limpio)
+    if (!h.creafAntecedentes) {
+      helper('Antecedentes CREAF', 'Sin registro negativo. Su historial crediticio es limpio ante instituciones financieras.', 'good', 'check');
+    }
+
+    // Instituciones financieras
+    if (h.institucionesFinancieras > 0) {
+      helper('Relaciones con instituciones financieras', h.institucionesFinancieras + ' institución(es) registrada(s). Verifique que todos los créditos o tarjetas sean autorizados.', '', 'credit');
+    }
+
+    // Bienes raíces detallado
+    if (h.bienesRaices > 0) {
+      helper('Propiedad(es) registrada(s)', h.bienesRaices + ' bien(es) inmueble(s) en SII. Verifique hipotecas, cargas y situación legal de cada propiedad.', '', 'home');
+    }
+
+    // Vehículos detallado
+    if (h.vehiculos > 0) {
+      helper('Vehículo(s) registrado(s)', h.vehiculos + ' vehículo(s) en Registro Civil. Permiso de circulación ' + (h.boletaVigencia ? 'vigente' : 'vencido') + '. Verifique multas y revisión técnica.', '', 'car');
+    }
+
+    // Identidad validada
+    if (h.vigente && h.derechoChileAtiende) {
+      helper('Identidad validada', 'Cédula vigente y validada. Tiene acceso a servicios digitales (ChileAtiende, Pago de Impuestos, etc.).', 'good', 'check');
+    }
 
     return { resumen: alertText, ok: alertOk };
   },

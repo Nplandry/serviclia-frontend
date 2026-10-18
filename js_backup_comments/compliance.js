@@ -17,7 +17,7 @@
 
 const Compliance = {
   VERSION: '1.0',
-  LEY: 'Ley 21.719 (Protección de Datos Personales, Chile)',
+  LEY: 'Ley 21.719 Protección de Datos Personales',
   CONSENT_KEY: 'servicia.consent.',
   COOKIE_KEY: 'servicia.cookies.consent',
   INCIDENT_KEY: 'servicia.security.incidents',

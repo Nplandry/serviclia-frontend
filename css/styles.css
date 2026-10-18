@@ -1909,11 +1909,6 @@ body {
   border-left-color: var(--color-success);
 }
 
-.datacheck__info-block--alert {
-  border-left-color: var(--color-accent);
-  background-color: var(--color-warn-soft);
-}
-
 .datacheck__info-label {
   margin: 0 0 var(--space-xs);
   font-size: var(--font-size-base);
@@ -2056,8 +2051,7 @@ body {
 }
 
 .datacheck__info-block--alert .datacheck__info-icon {
-  background-color: rgba(255, 40, 0, 0.29);
-  color: var(--color-accent);
+  color: var(--color-emergency-dark);
 }
 
 .datacheck__info-block--good {

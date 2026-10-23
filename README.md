@@ -50,11 +50,3 @@ La aplicación tiene múltiples vistas que se muestran/ocultan:
 6. `js/modules/history.js` - Historial de consultas
 7. `js/app.js` - Inicialización de la app
 8. `sw.js` - Service Worker (offline)
-
-## Descripción de Módulos
-
-- **auth** - Gestión de login/registro de usuarios
-- **security** - Validaciones y seguridad
-- **compliance** - Normativas y reglas de negocio
-- **api** - Comunicación con backend
-- **history** - Historial de consultas guardadas

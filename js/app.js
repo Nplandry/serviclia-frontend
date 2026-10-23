@@ -403,6 +403,136 @@ const App = {
     relatoField.appendChild(relatoInput);
     step.appendChild(relatoField);
 
+    // Sección de documentos adjuntos
+    const docsField = document.createElement('div');
+    docsField.className = 'field';
+    
+    const docsLabel = document.createElement('label');
+    docsLabel.className = 'field__label';
+    docsLabel.textContent = 'Documentos adjuntos (opcional)';
+    docsField.appendChild(docsLabel);
+
+    const docsHelp = document.createElement('p');
+    docsHelp.className = 'field__help';
+    docsHelp.textContent = 'Adjunte documentos que respalden su caso (PDF, imágenes, etc.)';
+    docsField.appendChild(docsHelp);
+
+    // Zona drag & drop
+    const dropZone = document.createElement('div');
+    dropZone.className = 'docs__drop-zone';
+    dropZone.setAttribute('role', 'region');
+    dropZone.setAttribute('aria-label', 'Zona para soltar documentos');
+
+    const dropIcon = document.createElement('div');
+    dropIcon.className = 'docs__drop-icon';
+    dropIcon.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>';
+    dropZone.appendChild(dropIcon);
+
+    const dropText = document.createElement('p');
+    dropText.className = 'docs__drop-text';
+    dropText.textContent = 'Arrastra archivos aquí o ';
+    const dropLink = document.createElement('span');
+    dropLink.className = 'docs__drop-link';
+    dropLink.textContent = 'selecciona';
+    dropText.appendChild(dropLink);
+    dropZone.appendChild(dropText);
+
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.multiple = true;
+    fileInput.className = 'u-visually-hidden';
+    fileInput.id = 'dcDocs-' + c.id;
+    fileInput.accept = '.pdf,.jpg,.jpeg,.png,.doc,.docx,.txt';
+    dropZone.appendChild(fileInput);
+
+    docsField.appendChild(dropZone);
+
+    // Lista de archivos adjuntos
+    const docsList = document.createElement('ul');
+    docsList.className = 'docs__list';
+    docsList.setAttribute('aria-label', 'Archivos adjuntos');
+    docsField.appendChild(docsList);
+
+    // Estado de carga
+    const docsStatus = document.createElement('p');
+    docsStatus.className = 'docs__status';
+    docsStatus.hidden = true;
+    docsField.appendChild(docsStatus);
+
+    step.appendChild(docsField);
+
+    // Listeners para documentos
+    const attachedFiles = [];
+
+    const renderDocsList = () => {
+      App.clearChildren(docsList);
+      if (attachedFiles.length === 0) {
+        docsList.hidden = true;
+        return;
+      }
+      docsList.hidden = false;
+      attachedFiles.forEach((file, idx) => {
+        const li = document.createElement('li');
+        li.className = 'docs__item';
+        li.innerHTML = `<span class="docs__item-name">${file.name}</span><span class="docs__item-size">${(file.size / 1024).toFixed(1)} KB</span>`;
+        const removeBtn = document.createElement('button');
+        removeBtn.type = 'button';
+        removeBtn.className = 'docs__item-remove';
+        removeBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>';
+        removeBtn.addEventListener('click', () => {
+          attachedFiles.splice(idx, 1);
+          renderDocsList();
+        });
+        li.appendChild(removeBtn);
+        docsList.appendChild(li);
+      });
+    };
+
+    const handleFiles = (files) => {
+      const maxSize = 10 * 1024 * 1024; // 10MB
+      const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'text/plain', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+      
+      Array.from(files).forEach(file => {
+        if (!allowedTypes.includes(file.type)) {
+          docsStatus.textContent = `Tipo de archivo no permitido: ${file.type}. Use PDF, imágenes, TXT o DOC.`;
+          docsStatus.hidden = false;
+          setTimeout(() => docsStatus.hidden = true, 5000);
+          return;
+        }
+        if (file.size > maxSize) {
+          docsStatus.textContent = `Archivo "${file.name}" es muy grande (máximo 10MB).`;
+          docsStatus.hidden = false;
+          setTimeout(() => docsStatus.hidden = true, 5000);
+          return;
+        }
+        if (!attachedFiles.find(f => f.name === file.name)) {
+          attachedFiles.push(file);
+        }
+      });
+      renderDocsList();
+      fileInput.value = '';
+    };
+
+    fileInput.addEventListener('change', (e) => handleFiles(e.target.files));
+
+    // Drag & Drop
+    dropZone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropZone.classList.add('docs__drop-zone--active');
+    });
+
+    dropZone.addEventListener('dragleave', () => {
+      dropZone.classList.remove('docs__drop-zone--active');
+    });
+
+    dropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropZone.classList.remove('docs__drop-zone--active');
+      handleFiles(e.dataTransfer.files);
+    });
+
+    dropLink.addEventListener('click', () => fileInput.click());
+
     let consentBlock = null;
     if (c.id === 'embargo-falso' && typeof Compliance !== 'undefined') {
       consentBlock = Compliance.buildConsentBlock(c);
@@ -463,14 +593,23 @@ const App = {
           });
         }
 
-        const r = await API.executeDataCheck(c.id, rawRut, relatoInput.value);
+        // Preparar datos de auditoría con documentos adjuntos
+        const auditData = {
+          casoId: c.id,
+          rut: rawRut,
+          relato: relatoInput.value,
+          archivos: attachedFiles.map(f => ({ nombre: f.name, tamaño: f.size, tipo: f.type }))
+        };
+
+        const r = await API.executeDataCheck(c.id, rawRut, relatoInput.value, auditData);
         const summary = App.renderDiagnostico(diagStep, c, item, r);
         Historial.add({
           caso: c.title,
           casoId: c.id,
           rut: r.sent.rut,
           resumen: summary.resumen,
-          ok: summary.ok
+          ok: summary.ok,
+          archivos: attachedFiles.length
         });
         App.renderHistory();
       } catch (e) {

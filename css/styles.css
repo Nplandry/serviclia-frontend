@@ -2092,12 +2092,152 @@ body {
   overflow-wrap: anywhere;
 }
 
+.field__help {
+  margin: 0 0 var(--space-sm);
+  font-size: 0.85rem;
+  color: var(--color-muted);
+}
+
+/* Documentos: Drag & Drop */
+.docs__drop-zone {
+  border: 2px dashed var(--color-border);
+  border-radius: var(--radius);
+  padding: var(--space-lg);
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background-color: #f9fafb;
+}
+
+.docs__drop-zone:hover {
+  border-color: var(--color-primary);
+  background-color: var(--color-secondary);
+}
+
+.docs__drop-zone--active {
+  border-color: var(--color-accent);
+  background-color: rgba(196, 92, 0, 0.05);
+  box-shadow: 0 0 0 3px rgba(196, 92, 0, 0.1);
+}
+
+.docs__drop-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  margin: 0 auto var(--space-sm);
+  background-color: rgba(15, 76, 129, 0.1);
+  border-radius: 50%;
+  color: var(--color-primary);
+}
+
+.docs__drop-icon svg {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.docs__drop-text {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--color-muted);
+}
+
+.docs__drop-link {
+  color: var(--color-primary);
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.docs__drop-link:hover {
+  text-decoration: none;
+}
+
+/* Lista de archivos adjuntos */
+.docs__list {
+  list-style: none;
+  margin: var(--space-md) 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.docs__item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm);
+  background-color: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: var(--radius-sm);
+  font-size: 0.9rem;
+}
+
+.docs__item-name {
+  flex: 1;
+  min-width: 0;
+  font-weight: 500;
+  color: var(--color-text);
+  word-break: break-word;
+}
+
+.docs__item-size {
+  font-size: 0.8rem;
+  color: var(--color-muted);
+  white-space: nowrap;
+  margin-left: auto;
+  padding-left: var(--space-sm);
+}
+
+.docs__item-remove {
+  background: none;
+  border: none;
+  padding: 0;
+  width: 1.5rem;
+  height: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #d32f2f;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: color 0.2s ease;
+  border-radius: var(--radius-sm);
+}
+
+.docs__item-remove:hover {
+  background-color: rgba(211, 47, 47, 0.1);
+  color: #b71c1c;
+}
+
+.docs__item-remove svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+.docs__status {
+  margin: var(--space-sm) 0 0;
+  padding: var(--space-sm);
+  background-color: #fff6f0;
+  color: #7a5200;
+  border-left: 3px solid var(--color-accent);
+  border-radius: var(--radius-sm);
+  font-size: 0.9rem;
+}
+
 @media (min-width: 40rem) {
-  .datacheck {
-    padding: var(--space-lg);
+  .docs__drop-zone {
+    padding: var(--space-xl);
   }
 
-  .datacheck__info-block {
+  .docs__item {
+    gap: var(--space-md);
+  }
+}
+
+
     padding: var(--space-md);
   }
 }

@@ -6,15 +6,15 @@
 
 | Ruta | Archivo | Función |
 |------|---------|----------|
-| `/` | `index.html` | Página principal - Pantalla de inicio con chat y categorías |
-| `/onboarding/` | `onboarding/index.html` | Pantalla de bienvenida e introducción (futuro) |
+| `/` | `index.html` | Página principal o HomePage |
+| `/onboarding/` | `onboarding/index.html` | Pantalla de bienvenida e introducción|
 
 ### Carpetas y Módulos
 
 | Carpeta | Función |
 |---------|----------|
 | `js/` | Código JavaScript principal |
-| `js/core/` | Funciones centrales (auth, security) |
+| `js/core/` | Funciones centrales |
 | `js/data/` | Datos de categorías y contenido |
 | `js/services/` | Llamadas a APIs externas |
 | `js/modules/` | Módulos de funcionalidad (historial) |

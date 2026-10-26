@@ -1,4 +1,4 @@
-# ServicIA - PWA de Orientación Legal-Financiera
+# ServicIA PWA 
 
 ## Estructura de Rutas
 

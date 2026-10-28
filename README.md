@@ -40,7 +40,7 @@ La aplicación tiene múltiples vistas que se muestran/ocultan:
 - **detailView** - Artículo completo con opción de lectura en voz alta
 - **formView** - Formulario para solicitar orientación personalizada
 
-### Scripts Cargados (en orden)
+### Scripts Cargados 
 
 1. `js/data/categorias.js` - Datos de contenido
 2. `js/core/security.js` - Funciones de seguridad

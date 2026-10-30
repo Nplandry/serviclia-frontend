@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="es-CL">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Panel de uso del convenio institucional de ServicIA">
+  <meta name="theme-color" content="#0f4c81">
+  <meta name="robots" content="noindex">
+  <title>Panel institución - ServicIA</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='48' fill='%230f4c81'/%3E%3Ctext x='50' y='65' font-size='45' text-anchor='middle' fill='white' font-family='Arial'%3ES%3C/text%3E%3C/svg%3E">
+  <link rel="stylesheet" href="../css/styles.css">
+  <link rel="stylesheet" href="panel.css">
+</head>
+<body>
+  <header class="app-header">
+    <div class="brand">
+      <span class="brand__mark">S</span>
+      <h1 class="brand__title">ServicIA · Panel institución</h1>
+    </div>
+    <p id="panelInst" class="brand__subtitle"></p>
+  </header>
+
+  <main class="panel">
+    <section id="panelLogin" class="panel__login">
+      <h2 class="section-heading">Ingrese el código de su convenio</h2>
+      <form id="panelLoginForm" class="panel__login-form" novalidate>
+        <label class="field__label" for="panelCodigo">Código de convenio</label>
+        <div class="convenio__row">
+          <input id="panelCodigo" class="field__input convenio__input" type="text" maxlength="20" autocomplete="off" placeholder="CAJA-DEMO">
+          <button class="convenio__btn" type="submit">Ver panel</button>
+        </div>
+        <p id="panelLoginError" class="error-text" role="alert" hidden></p>
+      </form>
+      <p class="help-text">Versión de demostración. En producción el acceso será con usuario y contraseña de la institución.</p>
+    </section>
+
+    <section id="panelView" hidden>
+      <p id="panelEjemplo" class="panel__ejemplo" hidden>Mostrando datos de ejemplo generados para la demostración.</p>
+
+      <div class="panel__toolbar">
+        <label class="field__label" for="panelPeriodo">Mes</label>
+        <select id="panelPeriodo" class="field__input panel__select"></select>
+        <button id="panelCsv" class="convenio__btn" type="button">Descargar CSV</button>
+        <button id="panelPrint" class="convenio__btn panel__btn--ghost" type="button">Imprimir reporte</button>
+      </div>
+
+      <div id="panelKpis" class="panel__kpis"></div>
+
+      <section class="panel__card">
+        <h2 class="panel__card-title">Cupo de consultas judiciales</h2>
+        <div class="panel__meter" role="progressbar" aria-valuemin="0" aria-valuemax="100" id="panelMeter">
+          <span id="panelMeterFill" class="panel__meter-fill"></span>
+        </div>
+        <p id="panelCupoText" class="panel__muted"></p>
+      </section>
+
+      <section class="panel__card">
+        <h2 class="panel__card-title">Consultas por tipo de caso</h2>
+        <table class="panel__table">
+          <thead>
+            <tr><th scope="col">Caso</th><th scope="col">Consultas</th><th scope="col">Alertas</th><th scope="col">% con alerta</th></tr>
+          </thead>
+          <tbody id="panelCasos"></tbody>
+        </table>
+      </section>
+
+      <section class="panel__card">
+        <h2 class="panel__card-title">Tendencia últimos 6 meses</h2>
+        <div id="panelTrend" class="panel__trend" role="img"></div>
+      </section>
+
+      <section class="panel__card panel__card--muted">
+        <h2 class="panel__card-title">Privacidad</h2>
+        <p class="panel__muted">El panel muestra solo conteos agregados. No incluye RUT, nombres, patentes ni resultados individuales de los usuarios.</p>
+      </section>
+
+      <div class="panel__footer-actions">
+        <button id="panelEjemploBtn" class="convenio__btn panel__btn--ghost" type="button">Cargar datos de ejemplo</button>
+        <button id="panelBorrar" class="convenio__btn panel__btn--ghost" type="button">Borrar datos del convenio</button>
+        <button id="panelSalir" class="convenio__btn panel__btn--ghost" type="button">Cambiar de institución</button>
+        <a class="panel__link" href="../">Volver a ServicIA</a>
+      </div>
+    </section>
+  </main>
+
+  <script src="../js/data/categorias.js"></script>
+  <script src="../js/core/security.js"></script>
+  <script src="../js/modules/convenios.js"></script>
+  <script src="panel.js"></script>
+</body>
+</html>

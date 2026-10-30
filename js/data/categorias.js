@@ -1,10 +1,34 @@
 const CATEGORIAS = [
   {
+    id: 'auto-usado',
+    title: 'Compra de auto usado',
+    short: 'Caso 0 - ¿El vendedor es el dueño?',
+    description: 'Va a comprar un auto usado y quiere confirmar que quien lo vende es el dueño inscrito.',
+    cruce: { servicios: ['patentes', 'rutificador'] },
+    entrada: { rutLabel: 'RUT del vendedor', patente: true },
+    preliminar: {
+      resumen: 'Antes de pagar, confirme que quien vende es el dueño inscrito. La estafa más común es cobrar por un auto ajeno: un aviso copiado o un auto arrendado que se ofrece como propio.',
+      riesgos: ['Pagarle a alguien que no es el dueño del auto.', 'Transferir una "reserva" por un auto que no existe.', 'No poder inscribir el auto a su nombre después de pagar.']
+    },
+    escalamiento: [
+      { nombre: 'Registro Civil', url: 'https://www.registrocivil.cl', detalle: 'Pida el certificado de anotaciones vigentes del vehículo.' },
+      { nombre: 'SERNAC', url: 'https://www.sernac.cl', detalle: 'Reclame si compró en una automotora.' },
+      { nombre: 'PDI', url: 'https://www.pdichile.cl', detalle: 'Denuncie si sospecha que es una estafa.' }
+    ],
+    items: [
+      { id: 'auto-particular', title: 'Compro a un particular', queDecir: 'Antes de pagar necesito ver el padrón a su nombre y firmar la compraventa en notaría o en el Registro Civil.', content: ['Pida el padrón y compare el nombre con la cédula del vendedor.', 'Nunca pague por adelantado ni transfiera a una cuenta de un tercero.', 'Firme la compraventa en notaría o Registro Civil, no en la calle.', 'El acompañante confirma si el RUT del vendedor coincide con el dueño inscrito.'] },
+      { id: 'auto-online', title: 'Lo vi en Marketplace o un sitio de avisos', queDecir: 'Quiero ver el auto en persona y revisar el padrón antes de transferir cualquier monto.', content: ['Desconfíe de precios muy bajos o urgencia para pagar.', 'Pida la patente y verifíquela antes de reunirse.', 'Reúnase en un lugar público y con el vendedor en persona.', 'No envíe "reservas" ni abonos por transferencia.'] }
+    ],
+    ofertas: [
+      { caso: 'auto-usado', servicio: 'seguro', titulo: 'Cotizar seguro automotriz', detalle: 'Compare aseguradoras antes de salir manejando.' }
+    ]
+  },
+  {
     id: 'embargo-falso',
     title: 'Amenaza de embargo',
     short: 'Caso 1 - Defensa patrimonial',
     description: 'Llamada o carta que amenaza con embargar su casa o auto por una deuda antigua.',
-    cruce: { endpoint: '/v1/patrimonio', fuentes: ['SII (Propiedades)', 'Registro Civil (Vehículos)'] },
+    cruce: { servicios: ['rutificador', 'pjud'] },
     preliminar: {
       resumen: 'Es una llamada o carta que exige pagar una deuda antigua amenazando con quitarle su casa o auto. En Chile un embargo real solo lo ordena un tribunal y siempre se notifica por escrito, nunca por teléfono.',
       riesgos: ['Pagar una deuda que ya prescribió o que no existe.', 'Entregar datos personales o bancarios a desconocidos.', 'Firmar acuerdos de pago bajo presión.', 'Perder dinero en "gestiones" falsas.']
@@ -15,8 +39,11 @@ const CATEGORIAS = [
       { nombre: 'PDI', url: 'https://www.pdichile.cl', detalle: 'Denuncie si sospecha que es una estafa.' }
     ],
     items: [
-      { id: 'embargo-amenaza', title: 'Me amenazan con embargar mis bienes', queDecir: 'No registro bienes embargables a mi nombre. Exijo notificación judicial formal antes de responder.', content: ['No entregue datos ni acepte pagar nada por teléfono.', 'Pida el nombre del tribunal, el número de causa y una notificación formal.', 'Un embargo real siempre llega por vía judicial, no por una llamada.', 'El acompañante puede verificar si usted registra bienes a su nombre con el cruce de datos.'] },
+      { id: 'embargo-amenaza', title: 'Me amenazan con embargar mis bienes', queDecir: 'No tengo conocimiento de ninguna causa judicial en mi contra. Exijo el número de rol y el tribunal antes de responder.', content: ['No entregue datos ni acepte pagar nada por teléfono.', 'Pida el nombre del tribunal, el número de causa y una notificación formal.', 'Un embargo real siempre llega por vía judicial, no por una llamada.', 'El acompañante busca si existe una causa judicial a su nombre en el Poder Judicial.'] },
       { id: 'embargo-carta', title: 'Me llegó una carta de "cobranza judicial"', queDecir: 'No reconozco esta deuda. Exijo el número de causa y el nombre del tribunal para verificarla directamente.', content: ['Revise si la carta tiene número de rol y nombre de tribunal verificables.', 'Las cobranzas extrajudiciales no pueden simular documentos judiciales.', 'Guarde la carta como evidencia.', 'Denuncie la amenaza falsa en SERNAC.'] }
+    ],
+    ofertas: [
+      { caso: 'adulto-mayor', servicio: 'teleasistencia', titulo: 'Teleasistencia para adultos mayores', detalle: 'Botón de ayuda 24/7 ante llamadas sospechosas.' }
     ]
   },
   {
@@ -24,7 +51,7 @@ const CATEGORIAS = [
     title: 'Seguros no consentidos',
     short: 'Caso 2 - Auditoría financiera',
     description: 'Descuento extraño en la pensión o cartola bajo concepto de seguros o asistencias.',
-    cruce: { endpoint: '/v1/polizas', fuentes: ['CMF'] },
+    cruce: { servicios: [] },
     preliminar: {
       resumen: 'Son descuentos por seguros o asistencias que usted nunca contrató, cobrados en su pensión o cuenta bancaria. La ley exige su consentimiento expreso y la empresa debe tener la prueba de aceptación.',
       riesgos: ['Descuentos mensuales que se acumulan por años.', 'Cobros que aumentan sin aviso.', 'Perder el derecho a reclamar si pasa mucho tiempo.', 'Renovaciones automáticas no autorizadas.']
@@ -44,7 +71,7 @@ const CATEGORIAS = [
     title: 'Cambio de plan engañoso',
     short: 'Caso 3 - Telecomunicaciones',
     description: 'Llamada para "actualizar su plan" que exige un código SMS de verificación.',
-    cruce: { endpoint: '/v1/subtel', fuentes: ['SUBTEL (Traspaso de operador)'] },
+    cruce: { servicios: ['rutificador', 'telefonia'] },
     preliminar: {
       resumen: 'Es una llamada que ofrece "mejorar su plan" y le pide un código que llegó por SMS. Ese código autoriza el traspaso de su número a otra compañía sin que usted se dé cuenta.',
       riesgos: ['Perder su número de teléfono.', 'Quedar sin señal durante días.', 'Planes más caros contratados sin permiso.', 'Uso de sus códigos para suplantar su identidad.']
@@ -55,14 +82,14 @@ const CATEGORIAS = [
       { nombre: 'ChileAtiende', url: 'https://www.chileatiende.gob.cl', detalle: 'Orientación para trámites y reclamos.' }
     ],
     items: [
-      { id: 'portabilidad-sms', title: 'Me piden un código SMS para "mejorar mi plan"', queDecir: 'No autorizo el cambio de compañía ni entregaré códigos SMS.', content: ['Nunca entregue un código SMS que llega a su teléfono.', 'Ese código autoriza el traspaso de su número a otra compañía.', 'Corte la llamada y verifique directamente con su operador.', 'El acompañante revisa si hay una señal de traspaso en SUBTEL.'] },
+      { id: 'portabilidad-sms', title: 'Me piden un código SMS para "mejorar mi plan"', queDecir: 'No autorizo el cambio de compañía ni entregaré códigos SMS.', content: ['Nunca entregue un código SMS que llega a su teléfono.', 'Ese código autoriza el traspaso de su número a otra compañía.', 'Corte la llamada y verifique directamente con su operador.', 'El acompañante valida que su número esté activo y que el RUT corresponda a su nombre.'] },
       { id: 'portabilidad-forzada', title: 'Me cambiaron de compañía sin mi permiso', queDecir: 'Exijo la reversión inmediata del cambio y una constancia escrita de quién lo autorizó.', content: ['Revise sus boletas y contratos recientes.', 'Exija a la nueva empresa la reversión del cambio.', 'Pida constancia escrita de quién autorizó el cambio.', 'Denuncie ante SUBTEL o SERNAC.'] }
     ]
   }
 ];
 
 const FRASES_EMERGENCIA = [
-  'Sé que no registro bienes embargables a mi nombre. Exijo notificación judicial formal antes de responder.',
+  'No tengo conocimiento de ninguna causa judicial en mi contra. Exijo el número de rol y el tribunal.',
   'No autoricé ni firmé este seguro. Exijo la prueba de aceptación y la restitución de lo cobrado.',
   'No autorizo el cambio de compañía ni entregaré códigos SMS.',
   'Necesito que me envíen esto por escrito para revisarlo con calma.',
@@ -70,6 +97,13 @@ const FRASES_EMERGENCIA = [
 ];
 
 const RECOMENDADOS = [
+  {
+    id: 'rec-0',
+    titulo: '¿El vendedor del auto es el dueño?',
+    categoria: 'auto-usado',
+    icono: 'search',
+    descripcion: 'Confirme con la patente que el vendedor es el dueño'
+  },
   {
     id: 'rec-1',
     titulo: 'Verificar si soy afiliado a una AFP',

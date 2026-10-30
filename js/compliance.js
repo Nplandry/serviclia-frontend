@@ -14,8 +14,8 @@ const Compliance = {
     },
     {
       id: 'cruce_patrimonial',
-      label: 'Buscar y cruzar mis datos patrimoniales y de antecedentes',
-      detalle: 'Consultar fuentes como SII, Registro Civil, CMF, AFP y registros de deuda para diagnosticar la amenaza de embargo.',
+      label: 'Buscar mis causas judiciales y datos de identidad',
+      detalle: 'Consultar a través de Boostr el nombre asociado a mi RUT y las causas judiciales públicas del Poder Judicial.',
       obligatoria: true
     },
     {
@@ -181,7 +181,7 @@ const Compliance = {
     notice.className = 'consent__notice';
     notice.innerHTML =
       '<p class="consent__notice-title">Protección de sus datos ' + Compliance.LEY + '</p>'
-      + '<p class="consent__notice-text">Para auditar su caso necesitamos tratar datos personales (RUT, patrimonio y antecedentes). '
+      + '<p class="consent__notice-text">Para auditar su caso necesitamos tratar datos personales (RUT, nombre y causas judiciales). '
       + 'La base legal es su <strong>consentimiento</strong>, que es libre, informado, específico y <strong>revocable</strong>.</p>';
     wrap.appendChild(notice);
 

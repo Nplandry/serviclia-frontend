@@ -1,4 +1,4 @@
-const CACHE_NAME = 'servicia-v4';
+const CACHE_NAME = 'servicia-v7';
 const ASSETS = [
   './',
   './index.html',
@@ -11,6 +11,21 @@ const ASSETS = [
   './js/auth.js',
   './js/history.js',
   './js/onboarding.js',
+  './js/data/categorias.js',
+  './js/core/security.js',
+  './js/core/auth.js',
+  './js/services/api.js',
+  './js/modules/history.js',
+  './js/modules/convenios.js',
+  './js/modules/referidos.js',
+  './js/modules/planes.js',
+  './js/modules/demo.js',
+  './demo/',
+  './demo/index.html',
+  './panel/',
+  './panel/index.html',
+  './panel/panel.js',
+  './panel/panel.css',
   './manifest.json'
 ];
 

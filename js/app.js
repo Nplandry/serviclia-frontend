@@ -13,10 +13,11 @@ const App = {
     App.setupInstall();
     App.applyAuthState();
     if (typeof Compliance !== 'undefined') Compliance.initCookieBanner();
+    if (typeof Demo !== 'undefined') Demo.init();
   },
 
   cacheElements() {
-    const ids = ['homeView','categoryView','detailView','formView','searchInput','categoryList','zeroResults','backFromCategory','backFromDetail','backFromForm','categoryTitle','categoryDescription','categoryContent','detailArticle','speakBtn','stopSpeakBtn','orientationForm','formRut','rutError','submitForm','formStatus','greeting','installBtn','logoutBtn','chatForm','chatInput','chatSend','chatMessages','chatStatus','mainChatForm','mainChatInput','mainChatSend','mainChatMessages','mainChatStatus','authGate','tabLogin','tabRegister','loginForm','registerForm','loginStatus','registerStatus','historyBtn','historyPanel','historyOverlay','historyClose','historyList','historyClear','carruselList'];
+    const ids = ['homeView','categoryView','detailView','formView','searchInput','categoryList','zeroResults','backFromCategory','backFromDetail','backFromForm','categoryTitle','categoryDescription','categoryContent','detailArticle','speakBtn','stopSpeakBtn','orientationForm','formRut','rutError','submitForm','formStatus','greeting','installBtn','logoutBtn','chatForm','chatInput','chatSend','chatMessages','chatStatus','mainChatForm','mainChatInput','mainChatSend','mainChatMessages','mainChatStatus','authGate','tabLogin','tabRegister','loginForm','registerForm','loginStatus','registerStatus','historyBtn','historyPanel','historyOverlay','historyClose','historyList','historyClear','carruselList','convenioBrand'];
     ids.forEach(id => App.elements[id] = document.getElementById(id));
     App.elements.appHeader = document.querySelector('.app-header');
     App.elements.appMain = document.getElementById('main');
@@ -55,6 +56,17 @@ const App = {
     } else {
       App.closeHistory();
     }
+    App.applyBranding();
+    App.renderMiPlan();
+  },
+
+  // Franja con la institución en convenio. Se mantienen los colores de ServicIA.
+  applyBranding() {
+    const el = App.elements.convenioBrand;
+    const conv = Auth.isAuthenticated() ? Convenios.delUsuario(Auth.getCurrentUser().email) : null;
+    if (!el) return;
+    el.hidden = !conv;
+    el.textContent = conv ? 'Beneficio gratuito de ' + conv.nombre : '';
   },
 
   openHistory() {
@@ -155,17 +167,24 @@ const App = {
   handleRegister(e) {
     e.preventDefault();
     const fd = new FormData(App.elements.registerForm);
+    const codigo = String(fd.get('convenio') || '').trim();
+    if (codigo && !Convenios.buscar(codigo)) {
+      App.elements.registerStatus.textContent = 'El código de convenio no es válido. Déjelo en blanco si no tiene uno.';
+      return;
+    }
     const res = Auth.register({ nombre: fd.get('nombre'), email: fd.get('email'), password: fd.get('password') });
     if (!res.ok) {
       App.elements.registerStatus.textContent = res.error;
       return;
     }
+    if (codigo) Convenios.activar(res.user.email, codigo);
     App.elements.registerForm.reset();
     App.elements.registerStatus.textContent = '';
     App.applyAuthState();
   },
 
   handleLogout() {
+    if (typeof Demo !== 'undefined') Demo.stop();
     Auth.logout();
     App.switchAuthTab('login');
     App.applyAuthState();
@@ -372,7 +391,7 @@ const App = {
     rutLabel.className = 'field__label';
     const rutId = 'dcRut-' + c.id;
     rutLabel.setAttribute('for', rutId);
-    rutLabel.textContent = 'Su RUT';
+    rutLabel.textContent = (c.entrada && c.entrada.rutLabel) || 'Su RUT';
     const rutInput = document.createElement('input');
     rutInput.className = 'field__input';
     rutInput.id = rutId;
@@ -385,6 +404,52 @@ const App = {
     rutField.appendChild(rutLabel);
     rutField.appendChild(rutInput);
     step.appendChild(rutField);
+
+    const servicios = (c.cruce && c.cruce.servicios) || [];
+
+    let patenteInput = null;
+    if (c.entrada && c.entrada.patente) {
+      const patField = document.createElement('div');
+      patField.className = 'field';
+      const patLabel = document.createElement('label');
+      patLabel.className = 'field__label';
+      const patId = 'dcPatente-' + c.id;
+      patLabel.setAttribute('for', patId);
+      patLabel.textContent = 'Patente del vehículo';
+      patenteInput = document.createElement('input');
+      patenteInput.className = 'field__input';
+      patenteInput.id = patId;
+      patenteInput.type = 'text';
+      patenteInput.placeholder = 'BBBB12';
+      patenteInput.maxLength = 8;
+      patenteInput.autocapitalize = 'characters';
+      patenteInput.addEventListener('blur', () => {
+        patenteInput.value = API.normalizarPatente(patenteInput.value);
+      });
+      patField.appendChild(patLabel);
+      patField.appendChild(patenteInput);
+      step.insertBefore(patField, rutField);
+    }
+
+    let phoneInput = null;
+    if (servicios.indexOf('telefonia') !== -1) {
+      const phoneField = document.createElement('div');
+      phoneField.className = 'field';
+      const phoneLabel = document.createElement('label');
+      phoneLabel.className = 'field__label';
+      const phoneId = 'dcPhone-' + c.id;
+      phoneLabel.setAttribute('for', phoneId);
+      phoneLabel.textContent = 'Su número de celular';
+      phoneInput = document.createElement('input');
+      phoneInput.className = 'field__input';
+      phoneInput.id = phoneId;
+      phoneInput.type = 'tel';
+      phoneInput.placeholder = '+56 9 1234 5678';
+      phoneInput.maxLength = 16;
+      phoneField.appendChild(phoneLabel);
+      phoneField.appendChild(phoneInput);
+      step.appendChild(phoneField);
+    }
 
     const relatoField = document.createElement('div');
     relatoField.className = 'field';
@@ -409,7 +474,7 @@ const App = {
     
     const docsLabel = document.createElement('label');
     docsLabel.className = 'field__label';
-    docsLabel.textContent = 'Documentos adjuntos (opcional)';
+    docsLabel.textContent = 'Documentos adjuntos';
     docsField.appendChild(docsLabel);
 
     const docsHelp = document.createElement('p');
@@ -539,6 +604,9 @@ const App = {
       step.appendChild(consentBlock.node);
     }
 
+    const pagoBox = App.buildPagoBox(c, servicios);
+    if (pagoBox) step.appendChild(pagoBox.node);
+
     const err = document.createElement('p');
     err.className = 'error-text';
     err.setAttribute('role', 'alert');
@@ -564,6 +632,28 @@ const App = {
         err.textContent = 'Ingrese un RUT válido para analizar su caso.';
         err.hidden = false;
         rutInput.focus();
+        return;
+      }
+      if (phoneInput && !/^(\+?56)?9\d{8}$/.test(phoneInput.value.replace(/[\s-]/g, ''))) {
+        err.textContent = 'Ingrese un celular chileno válido (9 dígitos, comienza con 9).';
+        err.hidden = false;
+        phoneInput.focus();
+        return;
+      }
+
+      if (patenteInput && !API.validarPatente(patenteInput.value)) {
+        err.textContent = 'Ingrese una patente chilena válida (ej: BBBB12 o AA1234).';
+        err.hidden = false;
+        patenteInput.focus();
+        return;
+      }
+
+      const owner = App.currentOwner();
+      const pago = App.resolverPago(owner, c, servicios);
+      if (!pago.permitido) {
+        err.textContent = pago.error;
+        err.hidden = false;
+        if (pagoBox) pagoBox.focus();
         return;
       }
 
@@ -601,8 +691,25 @@ const App = {
           archivos: attachedFiles.map(f => ({ nombre: f.name, tamaño: f.size, tipo: f.type }))
         };
 
-        const r = await API.executeDataCheck(c.id, rawRut, relatoInput.value, auditData);
+        const r = await API.executeDataCheck(c.id, rawRut, relatoInput.value, servicios, {
+          telefono: phoneInput ? phoneInput.value : '',
+          patente: patenteInput ? patenteInput.value : ''
+        });
+        r.pagador = App.textoPagador(pago);
         const summary = App.renderDiagnostico(diagStep, c, item, r);
+        if (pago.pagador === 'convenio') {
+          Convenios.registrarUso(pago.convenio.codigo, {
+            casoId: c.id,
+            costoCLP: pago.judicial,
+            alerta: !summary.ok,
+            owner: owner
+          });
+        } else if (pago.pagador === 'plan' || pago.pagador === 'credito') {
+          Planes.consumir(owner, pago.cob, pago.judicial);
+          if (!summary.ok) Planes.avisar(owner, c.title, summary.resumen);
+        }
+        if (pagoBox) pagoBox.refresh();
+        App.renderMiPlan();
         Historial.add({
           caso: c.title,
           casoId: c.id,
@@ -629,6 +736,359 @@ const App = {
     });
 
     return step;
+  },
+
+  currentOwner() {
+    const user = (typeof Auth !== 'undefined' && Auth.getCurrentUser) ? Auth.getCurrentUser() : null;
+    return user ? user.email : 'anon';
+  },
+
+  el(tag, cls, text) {
+    const n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text !== undefined) n.textContent = text;
+    return n;
+  },
+
+  clp(n) {
+    return '$' + Math.round(n || 0).toLocaleString('es-CL');
+  },
+
+  // Decide quién paga la consulta, en este orden: convenio institucional,
+  // Plan Familiar o crédito comprado, y si no, la persona debe comprar.
+  // Solo las causas judiciales tienen costo de cupo; orientación, teléfono
+  // y casos sin producto de venta son gratis.
+  resolverPago(owner, c, servicios) {
+    const judicial = servicios.indexOf('pjud') !== -1 ? API.COSTOS.pjud : 0;
+    const conv = Convenios.delUsuario(owner);
+    let errConvenio = null;
+    if (conv) {
+      const a = Convenios.autorizar(owner, judicial);
+      if (a.permitido) return { permitido: true, pagador: 'convenio', convenio: conv, judicial: judicial };
+      errConvenio = a.error;
+    }
+    const cob = Planes.cobertura(owner, c.id, judicial);
+    if (cob.cubierto) return { permitido: true, pagador: cob.fuente, cob: cob, convenio: conv, judicial: judicial };
+    const productoId = Planes.productoDeCaso(c.id);
+    if (!productoId) return { permitido: true, pagador: 'gratis', convenio: conv, judicial: judicial };
+    const prod = Planes.PRODUCTOS[productoId];
+    return {
+      permitido: false,
+      productoId: productoId,
+      convenio: conv,
+      judicial: judicial,
+      error: (errConvenio ? errConvenio + ' ' : '') + 'Para continuar, compre la consulta por ' + App.clp(prod.precio)
+        + ', contrate el Plan Familiar o ingrese un código de convenio.'
+    };
+  },
+
+  textoPagador(pago) {
+    if (pago.pagador === 'convenio') return pago.convenio.nombre;
+    if (pago.pagador === 'plan') return 'su Plan Familiar';
+    if (pago.pagador === 'credito') return 'una consulta comprada';
+    return null;
+  },
+
+  // Formulario de pago simulado. onPagar(tarjeta) devuelve { ok, error }.
+  buildCheckout(titulo, monto, onPagar, onCancelar) {
+    const box = App.el('div', 'checkout');
+    box.appendChild(App.el('p', 'checkout__title', titulo + ': ' + App.clp(monto)));
+    const id = 'checkoutCard-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
+    const lbl = App.el('label', 'field__label', 'Número de tarjeta');
+    lbl.setAttribute('for', id);
+    const input = App.el('input', 'field__input checkout__card');
+    input.id = id;
+    input.type = 'text';
+    input.inputMode = 'numeric';
+    input.autocomplete = 'cc-number';
+    input.maxLength = 23;
+    input.placeholder = '4242 4242 4242 4242';
+    box.appendChild(lbl);
+    box.appendChild(input);
+    box.appendChild(App.el('p', 'help-text', 'Pago de demostración: no se cobra nada. Use la tarjeta de prueba 4242 4242 4242 4242.'));
+    const msg = App.el('p', 'error-text');
+    msg.setAttribute('role', 'alert');
+    msg.hidden = true;
+    const row = App.el('div', 'convenio__row');
+    const pay = App.el('button', 'convenio__btn', 'Pagar ' + App.clp(monto));
+    pay.type = 'button';
+    pay.addEventListener('click', () => {
+      const res = onPagar(input.value);
+      if (!res.ok) {
+        msg.textContent = res.error;
+        msg.hidden = false;
+        input.focus();
+      }
+    });
+    const cancel = App.el('button', 'convenio__btn panel__btn--ghost checkout__cancel', 'Cancelar');
+    cancel.type = 'button';
+    cancel.addEventListener('click', onCancelar);
+    row.appendChild(pay);
+    row.appendChild(cancel);
+    box.appendChild(row);
+    box.appendChild(msg);
+    setTimeout(() => input.focus(), 0);
+    return box;
+  },
+
+  // Caja que muestra quién paga la consulta y permite comprarla, contratar
+  // el Plan Familiar o activar un código de convenio.
+  // Devuelve null para casos gratuitos sin producto de venta.
+  buildPagoBox(c, servicios) {
+    if (!Planes.productoDeCaso(c.id)) return null;
+    const box = App.el('div', 'convenio pago');
+    let focusTarget = null;
+    let modo = null;
+
+    const render = () => {
+      App.clearChildren(box);
+      focusTarget = null;
+      const owner = App.currentOwner();
+      const pago = App.resolverPago(owner, c, servicios);
+      box.classList.toggle('convenio--activo', pago.permitido);
+
+      if (pago.permitido) {
+        let txt;
+        if (pago.pagador === 'convenio') {
+          txt = 'Consulta gratis para usted: la paga ' + pago.convenio.nombre + '.'
+            + (pago.judicial ? ' Quedan ' + Convenios.disponible(pago.convenio.codigo) + ' consultas este mes.' : '');
+        } else {
+          txt = pago.cob.detalle;
+        }
+        box.appendChild(App.el('p', 'convenio__text', txt));
+        return;
+      }
+
+      const prod = Planes.PRODUCTOS[pago.productoId];
+      if (pago.convenio) {
+        box.appendChild(App.el('p', 'convenio__text', pago.convenio.nombre + ' ya usó todas las consultas de este mes.'));
+      }
+      box.appendChild(App.el('p', 'convenio__text', 'Esta consulta cuesta ' + App.clp(prod.precio) + '.'));
+
+      if (modo === 'unidad') {
+        box.appendChild(App.buildCheckout(prod.nombre, prod.precio, tarjeta => {
+          const res = Planes.comprar(App.currentOwner(), pago.productoId, tarjeta);
+          if (res.ok) { modo = null; render(); App.renderMiPlan(); }
+          return res;
+        }, () => { modo = null; render(); }));
+        return;
+      }
+      if (modo === 'plan') {
+        box.appendChild(App.buildCheckout(Planes.FAMILIAR.nombre + ' (mensual)', Planes.FAMILIAR.precio, tarjeta => {
+          const res = Planes.suscribir(App.currentOwner(), tarjeta);
+          if (res.ok) { modo = null; render(); App.renderMiPlan(); }
+          return res;
+        }, () => { modo = null; render(); }));
+        return;
+      }
+
+      const opciones = App.el('div', 'pago__opciones');
+      const unidad = App.el('button', 'pago__opcion');
+      unidad.type = 'button';
+      unidad.appendChild(App.el('span', 'pago__opcion-titulo', 'Comprar esta consulta'));
+      unidad.appendChild(App.el('span', 'pago__opcion-precio', App.clp(prod.precio) + ' una vez'));
+      unidad.addEventListener('click', () => { modo = 'unidad'; render(); });
+      const plan = App.el('button', 'pago__opcion pago__opcion--destacada');
+      plan.type = 'button';
+      plan.appendChild(App.el('span', 'pago__opcion-titulo', Planes.FAMILIAR.nombre));
+      plan.appendChild(App.el('span', 'pago__opcion-precio', App.clp(Planes.FAMILIAR.precio) + ' al mes'));
+      plan.appendChild(App.el('span', 'pago__opcion-detalle', Planes.FAMILIAR.incluye.slice(0, 3).join(' · ')));
+      plan.addEventListener('click', () => { modo = 'plan'; render(); });
+      opciones.appendChild(unidad);
+      opciones.appendChild(plan);
+      box.appendChild(opciones);
+      focusTarget = unidad;
+
+      const det = App.el('details', 'pago__convenio');
+      det.appendChild(App.el('summary', null, '¿Tiene un código de su caja, municipio o banco?'));
+      const row = App.el('div', 'convenio__row');
+      const codeInput = App.el('input', 'field__input convenio__input');
+      codeInput.type = 'text';
+      codeInput.placeholder = 'Código de convenio';
+      codeInput.maxLength = 20;
+      codeInput.id = 'convenioCode-' + c.id;
+      const lbl = App.el('label', 'u-visually-hidden', 'Código de convenio');
+      lbl.setAttribute('for', codeInput.id);
+      const btn = App.el('button', 'convenio__btn', 'Activar');
+      btn.type = 'button';
+      const msg = App.el('p', 'error-text');
+      msg.setAttribute('role', 'alert');
+      msg.hidden = true;
+      btn.addEventListener('click', () => {
+        const res = Convenios.activar(App.currentOwner(), codeInput.value);
+        if (!res.ok) {
+          msg.textContent = res.error;
+          msg.hidden = false;
+          return;
+        }
+        render();
+        App.applyBranding();
+        App.renderMiPlan();
+      });
+      row.appendChild(lbl);
+      row.appendChild(codeInput);
+      row.appendChild(btn);
+      det.appendChild(row);
+      det.appendChild(msg);
+      box.appendChild(det);
+    };
+
+    render();
+    return {
+      node: box,
+      refresh: render,
+      focus: () => { if (focusTarget) focusTarget.focus(); }
+    };
+  },
+
+  // Tarjeta "Mi plan" en el inicio para personas sin convenio.
+  renderMiPlan() {
+    const wrap = document.getElementById('miPlan');
+    if (!wrap) return;
+    App.clearChildren(wrap);
+    wrap.classList.remove('mi-plan--activo');
+    const owner = App.currentOwner();
+    if (!Auth.isAuthenticated() || Convenios.delUsuario(owner)) {
+      wrap.hidden = true;
+      return;
+    }
+    wrap.hidden = false;
+    const data = Planes.get(owner);
+    const sus = Planes.suscripcion(owner);
+
+    if (!sus) {
+      wrap.appendChild(App.el('h2', 'mi-plan__title', 'Proteja a sus padres con el ' + Planes.FAMILIAR.nombre));
+      const ul = App.el('ul', 'mi-plan__list');
+      Planes.FAMILIAR.incluye.forEach(t => ul.appendChild(App.el('li', null, t)));
+      wrap.appendChild(ul);
+      const creditos = Object.keys(data.creditos).filter(k => data.creditos[k] > 0);
+      if (creditos.length) {
+        wrap.appendChild(App.el('p', 'mi-plan__muted', 'Consultas compradas: '
+          + creditos.map(k => data.creditos[k] + ' ' + Planes.PRODUCTOS[k].nombre.toLowerCase()).join(', ') + '.'));
+      }
+      const btn = App.el('button', 'convenio__btn', 'Contratar por ' + App.clp(Planes.FAMILIAR.precio) + ' al mes');
+      btn.type = 'button';
+      btn.id = 'miPlanContratar';
+      btn.addEventListener('click', () => {
+        btn.replaceWith(App.buildCheckout(Planes.FAMILIAR.nombre + ' (mensual)', Planes.FAMILIAR.precio,
+          tarjeta => {
+            const res = Planes.suscribir(owner, tarjeta);
+            if (res.ok) App.renderMiPlan();
+            return res;
+          }, () => App.renderMiPlan()));
+      });
+      wrap.appendChild(btn);
+      return;
+    }
+
+    wrap.classList.add('mi-plan--activo');
+    wrap.appendChild(App.el('h2', 'mi-plan__title', Planes.FAMILIAR.nombre + ' activo'));
+    wrap.appendChild(App.el('p', 'mi-plan__muted', Planes.judicialesDisponibles(owner) + ' de ' + Planes.FAMILIAR.judicialesMes
+      + ' consultas judiciales disponibles este mes. Auto, teléfono y orientación sin límite. Tarjeta ' + sus.tarjeta + '.'));
+
+    wrap.appendChild(App.el('h3', 'mi-plan__subtitle', 'Familiares vinculados (' + data.familiares.length + ' de ' + Planes.FAMILIAR.maxFamiliares + ')'));
+    const fam = App.el('ul', 'mi-plan__list');
+    data.familiares.forEach((f, i) => {
+      const li = App.el('li', null, f.nombre + ' · ' + f.telefono + ' ');
+      const rm = App.el('button', 'mi-plan__remove', 'Quitar');
+      rm.type = 'button';
+      rm.setAttribute('aria-label', 'Quitar a ' + f.nombre);
+      rm.addEventListener('click', () => { Planes.quitarFamiliar(owner, i); App.renderMiPlan(); });
+      li.appendChild(rm);
+      fam.appendChild(li);
+    });
+    wrap.appendChild(fam);
+
+    if (data.familiares.length < Planes.FAMILIAR.maxFamiliares) {
+      const form = App.el('form', 'mi-plan__form');
+      form.noValidate = true;
+      const n = App.el('input', 'field__input');
+      n.name = 'nombre';
+      n.placeholder = 'Nombre del familiar';
+      n.maxLength = 60;
+      n.setAttribute('aria-label', 'Nombre del familiar');
+      const t = App.el('input', 'field__input');
+      t.name = 'telefono';
+      t.type = 'tel';
+      t.placeholder = '+56 9 1234 5678';
+      t.maxLength = 16;
+      t.setAttribute('aria-label', 'Celular del familiar');
+      const b = App.el('button', 'convenio__btn', 'Vincular');
+      b.type = 'submit';
+      const msg = App.el('p', 'error-text');
+      msg.setAttribute('role', 'alert');
+      msg.hidden = true;
+      form.appendChild(n);
+      form.appendChild(t);
+      form.appendChild(b);
+      form.appendChild(msg);
+      form.addEventListener('submit', e => {
+        e.preventDefault();
+        const res = Planes.agregarFamiliar(owner, n.value, t.value);
+        if (!res.ok) {
+          msg.textContent = res.error;
+          msg.hidden = false;
+          return;
+        }
+        App.renderMiPlan();
+      });
+      wrap.appendChild(form);
+    }
+
+    wrap.appendChild(App.el('h3', 'mi-plan__subtitle', 'Avisos enviados a la familia'));
+    if (!data.avisos.length) {
+      wrap.appendChild(App.el('p', 'mi-plan__muted', 'Aún no hay avisos. Cuando una consulta detecte un riesgo, avisaremos a los familiares vinculados.'));
+    } else {
+      const av = App.el('ul', 'mi-plan__list');
+      data.avisos.slice(0, 5).forEach(a => av.appendChild(App.el('li', null, App.formatHistoryDate(a.fecha) + ' · ' + a.caso + ': ' + a.resumen)));
+      wrap.appendChild(av);
+    }
+
+    const cancel = App.el('button', 'mi-plan__remove', 'Cancelar plan');
+    cancel.type = 'button';
+    cancel.addEventListener('click', () => {
+      if (!window.confirm('¿Cancelar el Plan Familiar?')) return;
+      Planes.cancelar(owner);
+      wrap.classList.remove('mi-plan--activo');
+      App.renderMiPlan();
+    });
+    wrap.appendChild(cancel);
+  },
+
+  // Ofertas pagadas de ServiChile después del diagnóstico gratuito.
+  buildOfertasBlock(c) {
+    const ofertas = c.ofertas || [];
+    if (!ofertas.length || typeof Referidos === 'undefined') return null;
+    const wrap = document.createElement('div');
+    wrap.className = 'ofertas';
+    const conv = Convenios.delUsuario(App.currentOwner());
+
+    ofertas.forEach(o => {
+      const a = document.createElement('a');
+      a.className = 'oferta';
+      a.target = '_blank';
+      a.rel = 'noopener';
+      const cid = Referidos.nuevoClickId();
+      a.href = Referidos.construirLink(o, c.id, cid, conv);
+      const t = document.createElement('span');
+      t.className = 'oferta__titulo';
+      t.textContent = o.titulo;
+      const d = document.createElement('span');
+      d.className = 'oferta__detalle';
+      d.textContent = o.detalle;
+      a.appendChild(t);
+      a.appendChild(d);
+      a.addEventListener('click', () => {
+        Referidos.registrarClick({ cid: cid, caso: o.caso, servicio: o.servicio, src: c.id, conv: conv ? conv.codigo : null });
+      });
+      wrap.appendChild(a);
+    });
+
+    const nota = document.createElement('p');
+    nota.className = 'ofertas__nota';
+    nota.textContent = 'Servicios de terceros a través de ServiChile. ServicIA puede recibir una comisión si los contrata. Su orientación sigue siendo gratuita.';
+    wrap.appendChild(nota);
+    return wrap;
   },
 
   buildOrientacionStep() {
@@ -728,6 +1188,9 @@ const App = {
     });
     step.appendChild(App.buildDiagBlock('Si la situación continúa, escale aquí:', ul));
 
+    const ofertas = App.buildOfertasBlock(c);
+    if (ofertas) step.appendChild(App.buildDiagBlock('Siguiente paso recomendado:', ofertas));
+
     const orient = step.parentElement ? step.parentElement.querySelector('.step--orientacion') : null;
     if (orient) {
       orient.classList.remove('step--pending');
@@ -744,7 +1207,7 @@ const App = {
     App.clearChildren(container);
     container.className = 'datacheck__result';
     container.hidden = false;
-    const h = r.hallazgos;
+    const res = r.resultados || {};
 
     const iconMap = {
       'default': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>',
@@ -766,117 +1229,110 @@ const App = {
       return svg;
     };
 
-    const alert = document.createElement('div');
-    let alertText = '';
-    let alertOk = true;
-    if (categoria.id === 'embargo-falso') {
-      const sinBienes = h.bienesRaices === 0 && h.vehiculos === 0;
-      alertOk = sinBienes;
-      alertText = sinBienes
-        ? 'Alerta de inexistencia de garantía: no registra bienes embargables.'
-        : 'Registra bienes a su nombre. Verifique la legitimidad de la deuda antes de responder.';
-    } else if (categoria.id === 'solvencia') {
-      const score = (h.bienesRaices * 30) + (h.vehiculos * 15) + (h.laboralActivo ? 40 : 0);
-      alertOk = score >= 50;
-      alertText = 'Score de Garantía Real: ' + Math.min(score, 100) + '/100 - Estado laboral ' + (h.laboralActivo ? 'activo' : 'sin registro');
-    } else if (categoria.id === 'compliance') {
-      alertOk = !h.pep && !h.interpol && h.vigente;
-      alertText = alertOk
-        ? 'Debida diligencia aprobada: sin alertas PEP ni Interpol, cédula vigente.'
-        : 'Requiere revisión: ' + [h.pep ? 'PEP' : '', h.interpol ? 'Interpol' : '', !h.vigente ? 'cédula no vigente' : ''].filter(Boolean).join(', ') + '.';
-    } else {
-      alertText = 'Cruce completado. Información registrada y validada.';
-    }
-    alert.className = 'datacheck__alert ' + (alertOk ? 'datacheck__alert--ok' : 'datacheck__alert--warn');
-    alert.textContent = alertText;
-    container.appendChild(alert);
-
-    const list = document.createElement('ul');
-    list.className = 'datacheck__findings';
-    const rows = [
-      ['Bienes raíces (SII)', h.bienesRaices, 'home'],
-      ['Vehículos (Registro Civil)', h.vehiculos, 'car'],
-      ['Estado laboral activo (AFC y AFP)', h.laboralActivo ? 'Sí' : 'No', 'briefcase'],
-      ['Cédula vigente (Registro Civil)', h.vigente ? 'Sí' : 'No', 'idcard'],
-      ['Persona Políticamente Expuesta', h.pep ? 'Sí' : 'No', 'alert'],
-      ['Alerta Interpol', h.interpol ? 'Sí' : 'No', 'alert']
-    ];
-    rows.forEach(([k, v, icon]) => {
-      const li = document.createElement('li');
-      li.className = 'datacheck__finding';
-      li.innerHTML = '<span class="datacheck__finding-icon">' + (iconMap[icon] || iconMap['default']) + '</span><div class="datacheck__finding-content"><span class="datacheck__finding-label">' + k + '</span><strong class="datacheck__finding-value">' + v + '</strong></div>';
-      list.appendChild(li);
-    });
-    container.appendChild(list);
-
     const helper = (title, detail, variant = '', icon = 'default') => {
       const card = document.createElement('div');
-      const classes = 'datacheck__info-block' + (variant ? ' datacheck__info-block--' + variant : '');
-      card.className = classes;
-
-      const iconDiv = document.createElement('div');
-      iconDiv.className = 'datacheck__info-icon';
-      iconDiv.innerHTML = iconMap[icon] || iconMap['default'];
-      card.appendChild(iconDiv);
-
+      card.className = 'datacheck__info-block' + (variant ? ' datacheck__info-block--' + variant : '');
+      card.appendChild(getIcon(icon));
       const content = document.createElement('div');
       content.className = 'datacheck__info-block-content';
-
       const lbl = document.createElement('p');
       lbl.className = 'datacheck__info-label';
       lbl.textContent = title;
       content.appendChild(lbl);
-
       const det = document.createElement('p');
       det.className = 'datacheck__info-detail';
       det.textContent = detail;
       content.appendChild(det);
-
       card.appendChild(content);
       container.appendChild(card);
     };
 
-    if (h.afiliacionAFP) {
-      helper('Afiliación a AFP', 'AFP: ' + h.afpNombre + ' - Fondo: ' + h.fondoAFP + ' - Estado: ' + h.estadoPrevisional + ' (desde ' + h.ultimoIngreso + '). Antigüedad laboral: ' + h.antiguedadLaboral, '', 'briefcase');
+    if (r.demo && r.fuentes.length) {
+      const demo = document.createElement('p');
+      demo.className = 'datacheck__demo';
+      demo.textContent = 'Modo demo: resultados simulados con la estructura de Boostr.';
+      container.appendChild(demo);
     }
 
-    if (h.deudaTributaria > 0) {
-      helper('Deuda tributaria registrada', 'Monto pendiente: $' + h.deudaTributaria.toLocaleString() + '. Se recomienda contactar al SII para plan de pago.', 'alert', 'alert');
+    let alertText;
+    let alertOk = true;
+    const causas = res.pjud ? res.pjud.causas : [];
+    const activas = causas.filter(x => x.estado !== 'Archivada');
+
+    if (categoria.id === 'embargo-falso') {
+      if (activas.length === 0) {
+        alertText = 'No hay causas judiciales en tramitación a su nombre. Un embargo real requiere una causa en tribunal.';
+      } else {
+        alertOk = false;
+        alertText = 'Registra ' + activas.length + ' causa(s) en tramitación. Compare el rol y el tribunal con lo que le dijeron.';
+      }
+    } else if (categoria.id === 'auto-usado') {
+      const v = res.patentes;
+      if (!v || !v.encontrado) {
+        alertOk = false;
+        alertText = 'No pague todavía: la patente no aparece registrada.';
+      } else if (!v.duenoCoincide) {
+        alertOk = false;
+        alertText = 'No pague todavía: el vendedor no es el dueño inscrito del auto.';
+      } else {
+        alertText = 'El vendedor es el dueño inscrito del auto.';
+      }
+    } else if (categoria.id === 'portabilidad') {
+      alertOk = !!(res.telefonia && res.telefonia.valido);
+      alertText = alertOk
+        ? 'Su número está validado. Nunca entregue códigos SMS a quien lo llame.'
+        : 'No pudimos validar su número. Contacte a su compañía ahora para revisar si fue traspasado.';
+    } else if (!r.fuentes.length) {
+      alertText = 'Este caso no requiere consulta de datos. Siga la orientación paso a paso.';
+    } else {
+      alertText = 'Consulta completada.';
     }
 
-    if (h.multas > 0 || h.deudaCoactiva > 0) {
-      const detalles = [];
-      if (h.multas > 0) detalles.push('Multas: $' + h.multas.toLocaleString());
-      if (h.deudaCoactiva > 0) detalles.push('Deuda coactiva: $' + h.deudaCoactiva.toLocaleString());
-      helper('Multas y deuda coactiva', detalles.join(' | ') + '. Consulte con SII sobre opciones de pago.', 'alert', 'alert');
+    const alert = document.createElement('div');
+    alert.className = 'datacheck__alert ' + (alertOk ? 'datacheck__alert--ok' : 'datacheck__alert--warn');
+    alert.textContent = alertText;
+    container.appendChild(alert);
+
+    if (res.rutificador) {
+      const rf = res.rutificador;
+      if (rf.encontrado) {
+        helper('Identidad (Rutificador)', 'RUT ' + rf.rut + ' a nombre de ' + rf.nombre + '. Si el nombre no es el suyo, revise el RUT ingresado.', 'good', 'idcard');
+      } else {
+        helper('Identidad (Rutificador)', 'El RUT no tiene nombre registrado en el SII. Ocurre con personas que no han iniciado actividades.', '', 'idcard');
+      }
     }
 
-    if (h.carteraVencida) {
-      helper('Cartera vencida detectada', 'Hay cuentas vencidas en registro crediticio. Verifique con DICOM y considere regularizar deudas.', 'alert', 'alert');
+    if (res.pjud) {
+      if (causas.length === 0) {
+        helper('Causas judiciales (Poder Judicial)', 'Sin causas civiles, penales ni de cortes a su nombre. No incluye tribunales de familia ni causas reservadas.', 'good', 'check');
+      } else {
+        causas.forEach(x => {
+          helper('Causa ' + x.rol + ' (' + x.competencia + ')',
+            x.tribunal + '. ' + x.caratulado + '. Ingreso: ' + x.fechaIngreso + '. Estado: ' + x.estado + '.',
+            x.estado === 'Archivada' ? '' : 'alert', 'document');
+        });
+      }
     }
 
-    if (h.protestosCheques > 0) {
-      helper('Cheques protestados', h.protestosCheques + ' cheque(s) en protesto. Esto afecta su historial bancario. Contacte a los acreedores para regularizar.', 'alert', 'document');
+    if (res.patentes && res.patentes.encontrado) {
+      const v = res.patentes;
+      helper('Dueño inscrito de la patente ' + v.patente, v.duenoCoincide
+        ? 'Coincide con el RUT del vendedor. Firme la compraventa en notaría o en el Registro Civil.'
+        : 'No coincide con el RUT del vendedor. Pida el padrón a su nombre y no pague hasta aclararlo.',
+        v.duenoCoincide ? 'good' : 'alert', v.duenoCoincide ? 'check' : 'alert');
     }
 
-    if (!h.creafAntecedentes) {
-      helper('Antecedentes CREAF', 'Sin registro negativo. Su historial crediticio es limpio ante instituciones financieras.', 'good', 'check');
+    if (res.telefonia) {
+      helper('Número de celular (Telefonía)', res.telefonia.numero + ': ' + (res.telefonia.valido ? 'número válido y activo.' : 'no se pudo validar.'),
+        res.telefonia.valido ? 'good' : 'alert', 'check');
     }
 
-    if (h.institucionesFinancieras > 0) {
-      helper('Relaciones con instituciones financieras', h.institucionesFinancieras + ' institución(es) registrada(s). Verifique que todos los créditos o tarjetas sean autorizados.', '', 'credit');
-    }
-
-    if (h.bienesRaices > 0) {
-      helper('Propiedad(es) registrada(s)', h.bienesRaices + ' bien(es) inmueble(s) en SII. Verifique hipotecas, cargas y situación legal de cada propiedad.', '', 'home');
-    }
-
-    if (h.vehiculos > 0) {
-      helper('Vehículo(s) registrado(s)', h.vehiculos + ' vehículo(s) en Registro Civil. Permiso de circulación ' + (h.boletaVigencia ? 'vigente' : 'vencido') + '. Verifique multas y revisión técnica.', '', 'car');
-    }
-
-    if (h.vigente && h.derechoChileAtiende) {
-      helper('Identidad validada', 'Cédula vigente y validada. Tiene acceso a servicios digitales (ChileAtiende, Pago de Impuestos, etc.).', 'good', 'check');
+    if (r.fuentes.length) {
+      const meta = document.createElement('p');
+      meta.className = 'datacheck__meta';
+      meta.textContent = 'Fuentes: ' + r.fuentes.join(', ') + '. Folio ' + r.folio + '.'
+        + (r.pagador ? ' Consulta pagada por ' + r.pagador + '.' : '');
+      container.appendChild(meta);
     }
 
     return { resumen: alertText, ok: alertOk };

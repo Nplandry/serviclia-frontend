@@ -2407,3 +2407,362 @@ body {
   background: #fff;
   color: var(--color-primary);
 }
+
+/* Convenio institucional */
+.convenio {
+  margin: var(--space-md) 0;
+  padding: var(--space-md);
+  border: 1px solid var(--color-border);
+  border-radius: 0.5rem;
+  background: var(--color-secondary);
+}
+
+.convenio--activo {
+  border-color: var(--color-success);
+  background: var(--color-success-soft);
+  color: var(--color-success-ink);
+}
+
+.convenio__text {
+  margin: 0 0 var(--space-sm);
+}
+
+.convenio--activo .convenio__text {
+  margin: 0;
+  font-weight: 600;
+}
+
+.convenio__row {
+  display: flex;
+  gap: var(--space-xs);
+}
+
+.convenio__input {
+  flex: 1;
+  text-transform: uppercase;
+}
+
+.convenio__btn {
+  padding: var(--space-sm) var(--space-md);
+  border: none;
+  border-radius: 0.5rem;
+  background: var(--color-primary);
+  color: #ffffff;
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.convenio__btn:focus-visible {
+  outline: 3px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+/* Ofertas de ServiChile tras el diagnóstico */
+.ofertas {
+  display: grid;
+  gap: var(--space-sm);
+}
+
+.oferta {
+  display: block;
+  padding: var(--space-md);
+  border: 2px solid var(--color-primary);
+  border-radius: 0.5rem;
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.oferta:hover,
+.oferta:focus-visible {
+  background: var(--color-secondary);
+}
+
+.oferta__titulo {
+  display: block;
+  color: var(--color-primary);
+  font-weight: 700;
+}
+
+.oferta__titulo::after {
+  content: ' →';
+}
+
+.oferta__detalle {
+  display: block;
+  color: var(--color-muted);
+}
+
+.ofertas__nota {
+  margin: 0;
+  color: var(--color-muted);
+  font-size: 0.875rem;
+}
+
+.datacheck__demo {
+  margin: 0 0 var(--space-sm);
+  color: var(--color-muted);
+  font-size: 0.875rem;
+  font-style: italic;
+}
+
+/* Marca de la institución en convenio */
+.convenio-brand {
+  display: inline-block;
+  margin: var(--space-xs) 0 0;
+  padding: 0.25rem var(--space-sm);
+  border-radius: 1rem;
+  background: #ffffff;
+  color: var(--color-primary);
+  font-weight: 700;
+}
+
+.convenio-brand[hidden] {
+  display: none;
+}
+
+/* Modo presentación */
+.demo-bar {
+  position: fixed;
+  right: var(--space-md);
+  bottom: var(--space-md);
+  z-index: 1100;
+  max-width: 22rem;
+  padding: var(--space-md);
+  border-radius: 0.75rem;
+  background: #1a1a1a;
+  color: #ffffff;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+.demo-bar__head {
+  margin: 0;
+  color: #cfcfcf;
+  font-size: 0.875rem;
+}
+
+.demo-bar__title {
+  margin: 0.25rem 0;
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+}
+
+.demo-bar__text {
+  margin: 0 0 var(--space-sm);
+}
+
+.demo-bar__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+}
+
+.demo-bar__btn {
+  padding: var(--space-xs) var(--space-sm);
+  border: 2px solid #ffffff;
+  border-radius: 0.5rem;
+  background: #ffffff;
+  color: #1a1a1a;
+  font-size: 1rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.demo-bar__btn--ghost {
+  background: transparent;
+  color: #ffffff;
+}
+
+.demo-bar__btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.demo-pulse {
+  animation: demo-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes demo-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(196, 92, 0, 0.6); }
+  50% { box-shadow: 0 0 0 10px rgba(196, 92, 0, 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .demo-pulse {
+    animation: none;
+    outline: 3px solid var(--color-accent);
+  }
+}
+
+@media print {
+  .demo-bar {
+    display: none;
+  }
+}
+
+/* Pago por unidad y Plan Familiar */
+.pago__opciones {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  gap: var(--space-sm);
+  margin-bottom: var(--space-sm);
+}
+
+.pago__opcion {
+  display: grid;
+  gap: 0.25rem;
+  padding: var(--space-md);
+  border: 2px solid var(--color-primary);
+  border-radius: 0.5rem;
+  background: #ffffff;
+  color: var(--color-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.pago__opcion--destacada {
+  background: var(--color-primary);
+  color: #ffffff;
+}
+
+.pago__opcion:focus-visible {
+  outline: 3px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.pago__opcion-titulo {
+  font-weight: 700;
+}
+
+.pago__opcion-precio {
+  font-size: var(--font-size-lg);
+}
+
+.pago__opcion-detalle {
+  font-size: 0.875rem;
+}
+
+.pago__convenio summary {
+  cursor: pointer;
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+.pago__convenio .convenio__row {
+  margin-top: var(--space-xs);
+}
+
+.checkout {
+  display: grid;
+  gap: var(--space-xs);
+}
+
+.checkout__title {
+  margin: 0;
+  font-weight: 700;
+}
+
+.checkout__cancel,
+.panel__btn--ghost {
+  background: transparent;
+  color: var(--color-primary);
+  border: 2px solid var(--color-primary);
+}
+
+/* Mi plan en el inicio */
+.mi-plan {
+  margin: 0 0 var(--space-md);
+  padding: var(--space-md);
+  border: 2px solid var(--color-primary);
+  border-radius: 0.5rem;
+}
+
+.mi-plan[hidden] {
+  display: none;
+}
+
+.mi-plan--activo {
+  border-color: var(--color-success);
+  background: var(--color-success-soft);
+}
+
+.mi-plan__title {
+  margin: 0 0 var(--space-xs);
+  font-size: var(--font-size-lg);
+}
+
+.mi-plan__subtitle {
+  margin: var(--space-md) 0 var(--space-xs);
+  font-size: 1rem;
+}
+
+.mi-plan__list {
+  margin: 0 0 var(--space-sm);
+  padding-left: 1.25rem;
+}
+
+.mi-plan__muted {
+  margin: 0 0 var(--space-sm);
+  color: var(--color-muted);
+}
+
+.mi-plan__form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+}
+
+.mi-plan__form .field__input {
+  flex: 1 1 10rem;
+}
+
+.mi-plan__form .error-text {
+  flex-basis: 100%;
+}
+
+.mi-plan__remove {
+  border: none;
+  background: none;
+  color: var(--color-error);
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* Índice de demos */
+.demo-index {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: var(--space-sm);
+  margin: 0 0 var(--space-lg);
+  padding: 0;
+  list-style: none;
+}
+
+.demo-index__card {
+  display: grid;
+  gap: 0.25rem;
+  height: 100%;
+  padding: var(--space-md);
+  border: 2px solid var(--color-primary);
+  border-radius: 0.5rem;
+  color: var(--color-text);
+  text-decoration: none;
+  box-sizing: border-box;
+}
+
+.demo-index__card:hover,
+.demo-index__card:focus-visible {
+  background: var(--color-secondary);
+}
+
+.demo-index__title {
+  color: var(--color-primary);
+  font-weight: 700;
+}
+
+.demo-index__text {
+  color: var(--color-muted);
+}

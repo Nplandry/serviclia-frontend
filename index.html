@@ -81,7 +81,6 @@
     </div>
     <p class="brand__subtitle">Defensa patrimonial y prevención de fraudes</p>
     <div class="header-actions">
-      <button id="installBtn" class="install-btn" type="button">Instalar</button>
       <button id="logoutBtn" class="install-btn" type="button" hidden>Cerrar sesión</button>
     </div>
   </header>
@@ -199,49 +198,6 @@
       </form>
     </section>
   </main>
-
-  <dialog id="installModal" class="install-modal">
-    <div class="install-modal__content">
-      <button id="closeInstallModal" class="install-modal__close" type="button" aria-label="Cerrar">×</button>
-      <h2 class="install-modal__title">Agregar ServicIA a tu dispositivo</h2>
-
-      <div id="installAndroidView" class="install-view" hidden>
-        <h3 class="install-modal__subtitle">Android</h3>
-        <div class="install-view__steps">
-          <ol>
-            <li>Toca el botón <strong>Instalar</strong> en el siguiente diálogo</li>
-            <li>ServicIA aparecerá en tu pantalla de inicio</li>
-            <li>¡Listo! Puedes usar la app sin internet</li>
-          </ol>
-          <button id="installAndroidBtn" class="modal-btn modal-btn--primary" type="button">Instalar ahora</button>
-        </div>
-      </div>
-
-      <div id="installIOSView" class="install-view" hidden>
-        <h3 class="install-modal__subtitle">iPhone / iPad</h3>
-        <div class="install-view__steps">
-          <ol>
-            <li>Toca el botón <strong>Compartir</strong> en la parte inferior</li>
-            <li>Desplázate y toca <strong>Agregar a pantalla de inicio</strong></li>
-            <li>En el diálogo, toca <strong>Agregar</strong></li>
-            <li>¡Listo! ServicIA estará en tu pantalla de inicio</li>
-          </ol>
-          <p class="install-view__hint">Nota: El icono está en la barra inferior, usualmente junto a un ↑</p>
-          <button class="modal-btn" type="button">Entendido</button>
-        </div>
-      </div>
-
-      <div id="installWebView" class="install-view" hidden>
-        <h3 class="install-modal__subtitle">Desde navegador</h3>
-        <p>Tu navegador no soporta instalación directa. Intenta:</p>
-        <ul>
-          <li>Usar Chrome en Android y crea el acceso directo</li>
-          <li>Usar Safari en iPhone/iPad y crea el acceso directo</li>
-        </ul>
-        <button class="modal-btn" type="button">Cerrar</button>
-      </div>
-    </div>
-  </dialog>
 
   <footer class="app-footer">
     <p class="app-footer__note">ServicIA es una orientación inicial, no reemplaza asesoría profesional.</p>

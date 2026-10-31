@@ -10,13 +10,12 @@ const App = {
     App.setGreeting();
     App.renderCategories(CATEGORIAS);
     App.loadVoices();
-    App.setupInstall();
     App.applyAuthState();
     if (typeof Compliance !== 'undefined') Compliance.initCookieBanner();
   },
 
   cacheElements() {
-    const ids = ['homeView','categoryView','detailView','formView','searchInput','categoryList','zeroResults','backFromCategory','backFromDetail','backFromForm','categoryTitle','categoryDescription','categoryContent','detailArticle','speakBtn','stopSpeakBtn','orientationForm','formRut','rutError','submitForm','formStatus','greeting','installBtn','logoutBtn','chatForm','chatInput','chatSend','chatMessages','chatStatus','mainChatForm','mainChatInput','mainChatSend','mainChatMessages','mainChatStatus','authGate','tabLogin','tabRegister','loginForm','registerForm','loginStatus','registerStatus','historyBtn','historyPanel','historyOverlay','historyClose','historyList','historyClear','carruselList'];
+    const ids = ['homeView','categoryView','detailView','formView','searchInput','categoryList','zeroResults','backFromCategory','backFromDetail','backFromForm','categoryTitle','categoryDescription','categoryContent','detailArticle','speakBtn','stopSpeakBtn','orientationForm','formRut','rutError','submitForm','formStatus','greeting','logoutBtn','chatForm','chatInput','chatSend','chatMessages','chatStatus','mainChatForm','mainChatInput','mainChatSend','mainChatMessages','mainChatStatus','authGate','tabLogin','tabRegister','loginForm','registerForm','loginStatus','registerStatus','historyBtn','historyPanel','historyOverlay','historyClose','historyList','historyClear','carruselList'];
     ids.forEach(id => App.elements[id] = document.getElementById(id));
     App.elements.appHeader = document.querySelector('.app-header');
     App.elements.appMain = document.getElementById('main');
@@ -986,31 +985,6 @@ const App = {
   stopSpeaking() {
     if (window.speechSynthesis) window.speechSynthesis.cancel();
     App.elements.stopSpeakBtn.hidden = true;
-  },
-
-  setupInstall() {
-    let deferredPrompt = null;
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-    const isAndroid = /Android/.test(navigator.userAgent);
-    window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferredPrompt = e; });
-    App.elements.installBtn.addEventListener('click', () => {
-      const modal = document.getElementById('installModal');
-      const views = ['installAndroidView','installIOSView','installWebView'].map(id => document.getElementById(id));
-      views.forEach(v => v.hidden = true);
-      if (deferredPrompt && isAndroid) {
-        views[0].hidden = false;
-        document.getElementById('installAndroidBtn').onclick = async () => {
-          await deferredPrompt.prompt();
-          const { outcome } = await deferredPrompt.userChoice;
-          if (outcome === 'accepted') { App.elements.installBtn.hidden = true; modal.close(); }
-          deferredPrompt = null;
-        };
-      } else if (isIOS) { views[1].hidden = false; views[1].querySelector('.modal-btn').onclick = () => modal.close(); }
-      else { views[2].hidden = false; views[2].querySelector('.modal-btn').onclick = () => modal.close(); }
-      modal.showModal();
-    });
-    document.getElementById('closeInstallModal')?.addEventListener('click', () => document.getElementById('installModal').close());
-    window.addEventListener('appinstalled', () => { App.elements.installBtn.hidden = true; deferredPrompt = null; });
   },
 
   addChatMessage(text, sender, messages) {

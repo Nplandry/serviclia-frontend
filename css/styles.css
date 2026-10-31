@@ -74,6 +74,7 @@ body {
 }
 
 .app-header {
+  position: relative;
   background-color: var(--color-primary);
   color: #ffffff;
   padding: var(--space-sm) var(--space-md);
@@ -113,11 +114,14 @@ body {
 }
 
 .header-actions {
+  position: absolute;
+  top: var(--space-lg);
+  right: var(--space-lg);
+  z-index: 1600;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: var(--space-xs);
-  margin-top: var(--space-xs);
   flex-wrap: wrap;
 }
 
@@ -157,7 +161,6 @@ body {
 
   .header-actions {
     gap: var(--space-sm);
-    margin-top: var(--space-sm);
   }
 
   .install-btn {
@@ -168,14 +171,23 @@ body {
 }
 
 .main {
-  max-width: 48rem;
   margin: 0 auto;
-  padding: var(--space-md);
+  padding: var(--space-lg);
 }
 
 @media (min-width: 40rem) {
   .main {
-    padding: var(--space-lg);
+    padding: var(--space-xl);
+  }
+
+  .menu-toggle {
+    top: var(--space-xl);
+    left: var(--space-xl);
+  }
+
+  .header-actions {
+    top: var(--space-xl);
+    right: var(--space-xl);
   }
 }
 
@@ -899,167 +911,6 @@ body {
   }
 }
 
-.install-modal {
-  position: fixed;
-  inset: 0;
-  width: 92vw;
-  max-width: 26rem;
-  max-height: 90vh;
-  margin: auto;
-  padding: 0;
-  border: none;
-  border-radius: var(--radius);
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-  backdrop-filter: blur(4px);
-  background-color: var(--color-bg);
-  z-index: 1000;
-  overflow-y: auto;
-}
-
-.install-modal::backdrop {
-  background-color: rgba(0, 0, 0, 0.5);
-}
-
-.install-modal__content {
-  padding: var(--space-md);
-  position: relative;
-}
-
-.install-modal__title {
-  margin: 0 0 var(--space-md);
-  font-size: var(--font-size-lg);
-  color: var(--color-primary);
-}
-
-.install-modal__subtitle {
-  margin: 0 0 var(--space-sm);
-  font-size: var(--font-size-base);
-  color: var(--color-primary-dark);
-}
-
-.install-modal__close {
-  position: absolute;
-  top: var(--space-sm);
-  right: var(--space-sm);
-  width: 2rem;
-  height: 2rem;
-  padding: 0;
-  border: none;
-  background: none;
-  font-size: 1.75rem;
-  color: var(--color-muted);
-  cursor: pointer;
-  border-radius: 50%;
-}
-
-.install-view {
-  margin-bottom: var(--space-md);
-}
-
-.install-view__steps {
-  margin: var(--space-sm) 0;
-}
-
-.install-view__steps ol {
-  margin: 0 0 var(--space-md);
-  padding-left: 1.25rem;
-}
-
-.install-view__steps li {
-  margin-bottom: var(--space-sm);
-  line-height: 1.5;
-}
-
-.install-view__hint {
-  font-size: 0.85rem;
-  color: var(--color-muted);
-  margin: var(--space-sm) 0;
-  padding: var(--space-xs);
-  background-color: var(--color-secondary);
-  border: 1px solid var(--color-primary);
-  border-radius: 0.25rem;
-}
-
-.modal-btn {
-  display: block;
-  width: 100%;
-  padding: var(--space-sm) var(--space-md);
-  margin-top: var(--space-sm);
-  border: none;
-  border-radius: var(--radius);
-  font-size: var(--font-size-base);
-  font-weight: 600;
-  cursor: pointer;
-  background-color: #f0f0f0;
-  color: var(--color-text);
-  transition: all 0.2s ease;
-}
-
-.modal-btn:hover,
-.modal-btn:focus {
-  background-color: var(--color-border);
-  outline: 2px solid var(--color-primary);
-  outline-offset: 2px;
-}
-
-.modal-btn--primary {
-  background-color: var(--color-primary);
-  color: #ffffff;
-}
-
-.modal-btn--primary:hover,
-.modal-btn--primary:focus {
-  background-color: var(--color-primary-dark);
-  outline: 2px solid var(--color-primary);
-}
-
-@media (min-width: 40rem) {
-  .install-modal__content {
-    padding: var(--space-lg);
-  }
-
-  .install-modal__title {
-    margin: 0 0 var(--space-lg);
-  }
-
-  .install-modal__subtitle {
-    margin: 0 0 var(--space-md);
-  }
-
-  .install-modal__close {
-    top: var(--space-md);
-    right: var(--space-md);
-    font-size: 2rem;
-  }
-
-  .install-view {
-    margin-bottom: var(--space-lg);
-  }
-
-  .install-view__steps {
-    margin: var(--space-md) 0;
-  }
-
-  .install-view__steps ol {
-    margin: 0 0 var(--space-lg);
-    padding-left: 1.5rem;
-  }
-
-  .install-view__steps li {
-    margin-bottom: var(--space-md);
-  }
-
-  .install-view__hint {
-    margin: var(--space-md) 0;
-    padding: var(--space-sm);
-  }
-
-  .modal-btn {
-    padding: var(--space-md) var(--space-lg);
-    margin-top: var(--space-md);
-  }
-}
-
 .auth {
   position: fixed;
   inset: 0;
@@ -1509,8 +1360,8 @@ body {
 
 .menu-toggle {
   position: absolute;
-  top: var(--space-sm);
-  left: var(--space-sm);
+  top: var(--space-lg);
+  left: var(--space-lg);
   z-index: 1600;
   display: inline-flex;
   align-items: center;
@@ -1700,7 +1551,7 @@ body {
 
 @media (min-width: 48rem) {
   .main:has(.wizard) {
-    max-width: 68rem;
+    margin: 0 auto;
   }
 
   .wizard {

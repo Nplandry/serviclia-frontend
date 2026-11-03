@@ -48,8 +48,8 @@
         </div>
         <div class="field">
           <label class="field__label" for="registerPassword">Contraseña</label>
-          <input id="registerPassword" class="field__input" name="password" type="password" autocomplete="new-password" required minlength="6">
-          <p class="help-text">Mínimo 6 caracteres.</p>
+          <input id="registerPassword" class="field__input" name="password" type="password" autocomplete="new-password" required minlength="8">
+          <p class="help-text">Mínimo 8 caracteres.</p>
         </div>
         <button class="submit-btn" type="submit">Crear cuenta</button>
         <p id="registerStatus" class="error-text" role="alert" aria-live="assertive"></p>
@@ -64,33 +64,61 @@
     </div>
   </div>
 
-  <button id="historyBtn" class="menu-toggle" type="button" aria-label="Abrir historial de consultas" aria-controls="historyPanel" aria-expanded="false" hidden>
-    <span class="menu-toggle__icon" aria-hidden="true">
-      <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-        <line x1="3" y1="6" x2="21" y2="6"></line>
-        <line x1="3" y1="12" x2="21" y2="12"></line>
-        <line x1="3" y1="18" x2="21" y2="18"></line>
-      </svg>
-    </span>
-  </button>
-
   <header class="app-header">
-    <div class="brand">
-      <span class="brand__mark">S</span>
-      <h1 class="brand__title">ServicIA</h1>
-    </div>
-    <p class="brand__subtitle">Defensa patrimonial y prevención de fraudes</p>
-    <div class="header-actions">
-      <button id="logoutBtn" class="install-btn" type="button" hidden>Cerrar sesión</button>
+    <div class="app-header__columna">
+    <button id="historyBtn" class="menu-toggle" type="button" aria-label="Abrir historial de consultas" aria-controls="historyPanel" aria-expanded="false" hidden>
+      <span class="menu-toggle__icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <line x1="3" y1="6" x2="21" y2="6"></line>
+          <line x1="3" y1="12" x2="21" y2="12"></line>
+          <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+      </span>
+    </button>
+      <div class="brand">
+        <span class="brand__mark">S</span>
+        <h1 class="brand__title">ServicIA</h1>
+      </div>
+      <p class="brand__subtitle">Defensa patrimonial y prevención de fraudes</p>
+      <div class="header-actions">
+        <button id="logoutBtn" class="install-btn" type="button" hidden>Cerrar sesión</button>
+      </div>
     </div>
   </header>
 
   <div id="historyOverlay" class="history-overlay" hidden></div>
-  <aside id="historyPanel" class="history" aria-label="Historial de consultas" aria-hidden="true">
+  <aside id="historyPanel" class="history" aria-label="Menú y historial de consultas" aria-hidden="true">
     <div class="history__head">
-      <h2 class="history__title">Historial de consultas</h2>
-      <button id="historyClose" class="history__close" type="button" aria-label="Cerrar historial">×</button>
+      <h2 class="history__title">Menú</h2>
+      <button id="historyClose" class="history__close" type="button" aria-label="Cerrar menú">×</button>
     </div>
+    <nav id="historyMenu" class="history-menu" aria-label="Menú principal">
+      <button class="history-menu__item history-menu__item--active" type="button" data-view="asistente" aria-current="page">
+        <svg class="history-menu__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <span>Asistente</span>
+      </button>
+      <button class="history-menu__item" type="button" data-view="mapa">
+        <svg class="history-menu__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M1 6l7-3 8 3 7-3v15l-7 3-8-3-7 3z"/><path d="M8 3v15M16 6v15"/></svg>
+        <span>Mapa</span>
+      </button>
+      <button class="history-menu__item" type="button" data-view="configuracion">
+        <svg class="history-menu__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/></svg>
+        <span>Configuración</span>
+      </button>
+      <button class="history-menu__item" type="button" data-view="api">
+        <svg class="history-menu__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M16 18l6-6-6-6M8 6l-6 6 6 6"/></svg>
+        <span>API</span>
+      </button>
+      <button class="history-menu__item" type="button" data-view="dashboard">
+        <svg class="history-menu__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18M7 16v-5M12 16V8M17 16v-9"/></svg>
+        <span>Dashboard</span>
+      </button>
+      <button class="history-menu__item" type="button" data-view="verificacion">
+        <svg class="history-menu__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>
+        <span>Centro de Verificación &amp; Sellos Oficiales</span>
+      </button>
+    </nav>
+    <h3 class="history__section">Historial de consultas</h3>
     <div id="historyList" class="history__list"></div>
     <div class="history__foot">
       <button id="historyClear" class="history__clear" type="button">Borrar historial</button>
@@ -134,7 +162,7 @@
         <form id="mainChatForm" class="chat__form">
           <label for="mainChatInput" class="u-visually-hidden">Sigamos hablando de su tema...</label>
           <input id="mainChatInput" class="chat__input" type="text" placeholder="Sigamos hablando de su tema..." autocomplete="off" maxlength="300">
-          <button id="mainChatSend" class="chat__send" type="submit" aria-label="Enviar mensaje">Enviar</button>
+          <button id="mainChatSend" class="chat__send" type="submit" aria-label="Enviar mensaje" disabled>Enviar</button>
         </form>
         <p id="mainChatStatus" class="chat__status" aria-live="polite"></p>
       </div>
@@ -156,7 +184,7 @@
         <form id="chatForm" class="chat__form">
           <label for="chatInput" class="u-visually-hidden">Sigamos hablando de su tema...</label>
           <input id="chatInput" class="chat__input" type="text" placeholder="Sigamos hablando de su tema..." autocomplete="off" maxlength="300">
-          <button id="chatSend" class="chat__send" type="submit" aria-label="Enviar mensaje">Enviar</button>
+          <button id="chatSend" class="chat__send" type="submit" aria-label="Enviar mensaje" disabled>Enviar</button>
         </form>
         <p id="chatStatus" class="chat__status" aria-live="polite"></p>
       </div>
@@ -196,6 +224,65 @@
         <button id="submitForm" class="submit-btn" type="submit">Analizar mi caso</button>
         <p id="formStatus" class="status-text" aria-live="polite"></p>
       </form>
+    </section>
+
+    <section id="mapView" class="view" hidden>
+      <button class="back-btn" type="button" data-back>Volver</button>
+      <h2 class="section-heading">Mapa</h2>
+      <p class="section-lead">Ubicación de comercios e instituciones en Chile.</p>
+      <div id="mapContainer" class="map-box"></div>
+      <p id="mapStatus" class="status-text" aria-live="polite"></p>
+    </section>
+
+    <section id="apiView" class="view" hidden>
+      <button class="back-btn" type="button" data-back>Volver</button>
+      <h2 class="section-heading">API: anonimizar datos personales</h2>
+      <p class="section-lead">Quita RUT, correos y teléfonos de un texto antes de compartirlo.</p>
+      <div class="form">
+        <div class="field">
+          <label class="field__label" for="apiInput">Texto a anonimizar</label>
+          <textarea id="apiInput" class="field__textarea" rows="4" maxlength="2000"></textarea>
+        </div>
+        <button id="apiRun" class="submit-btn" type="button">Anonimizar</button>
+      </div>
+      <pre id="apiOutput" class="api-output" aria-live="polite" hidden></pre>
+    </section>
+
+    <section id="dashboardView" class="view" hidden>
+      <button class="back-btn" type="button" data-back>Volver</button>
+      <h2 class="section-heading">Dashboard</h2>
+      <p class="section-lead">Resumen de sus consultas guardadas en este dispositivo.</p>
+      <div id="dashKpis" class="dash-kpis"></div>
+      <h3 class="section-heading">Consultas por tema</h3>
+      <div id="dashBars" class="dash-bars"></div>
+    </section>
+
+    <section id="configView" class="view" hidden>
+      <button class="back-btn" type="button" data-back>Volver</button>
+      <h2 class="section-heading">Configuración</h2>
+      <div class="config-card">
+        <p id="configUser" class="section-lead"></p>
+        <button id="configClear" class="history__clear" type="button">Borrar historial</button>
+        <button id="configLogout" class="submit-btn" type="button">Cerrar sesión</button>
+      </div>
+    <section id="verifyView" class="view" hidden>
+      <button class="back-btn" type="button" data-back>Volver</button>
+      <h2 class="section-heading">Centro de Verificación &amp; Sellos Oficiales</h2>
+      <p class="section-lead">Antes de pagar o entregar datos, confirme que el mensaje, la llamada o el documento es real.</p>
+      <div class="config-card">
+        <ol class="verify-steps">
+          <li>No pague ni entregue su RUT, claves o datos bancarios por teléfono, SMS o correo.</li>
+          <li>Busque el número de causa o de expediente en el sitio oficial de la institución, no en el enlace que le enviaron.</li>
+          <li>Un embargo o notificación judicial se entrega por escrito, por un receptor judicial.</li>
+          <li>Si tiene dudas, consulte en los canales oficiales de abajo.</li>
+        </ol>
+      </div>
+      <nav class="config-card" aria-label="Canales oficiales">
+        <a class="app-footer__link" href="https://www.sernac.cl" target="_blank" rel="noopener noreferrer">SERNAC</a>
+        <a class="app-footer__link" href="https://www.sernamyp.cl" target="_blank" rel="noopener noreferrer">SERNAMYP</a>
+        <a class="app-footer__link" href="https://www.chileatiende.gob.cl" target="_blank" rel="noopener noreferrer">ChileAtiende</a>
+      </nav>
+      <p class="help-text">Esta sección orienta, pero no verifica documentos ni sellos de forma automática.</p>
     </section>
   </main>
 

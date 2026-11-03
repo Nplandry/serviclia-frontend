@@ -1,58 +1,14 @@
+// Sesión contra la API (/v1/auth). El token JWT queda en localStorage: aceptable en desarrollo,
+// en producción conviene una cookie httpOnly.
 const Auth = {
+  // En producción defina window.SERVICIA_API_BASE antes de cargar este archivo (por ejemplo en un config.js).
+  API_BASE: (typeof window !== 'undefined' && window.SERVICIA_API_BASE) || 'http://localhost:8000',
   STORAGE_KEY: 'servicia.session',
-  USERS_KEY: 'servicia.users',
-  MAX_USERS: 200,
-
-  usuariosPrueba: [
-    { email: 'adulto@servicia.cl', password: 'adulto123', nombre: 'María González' }
-  ],
-
-  usuarios: [],
   sesion: null,
 
   init() {
-    Auth.loadUsers();
     Auth.restoreSession();
     return Auth;
-  },
-
-  loadUsers() {
-    Auth.usuarios = Auth.usuariosPrueba.map(u => Object.assign({}, u));
-    try {
-      const raw = localStorage.getItem(Auth.USERS_KEY);
-      if (raw) {
-        const extra = JSON.parse(raw) || [];
-        extra.forEach(u => {
-          if (u && u.email && !Auth.isRegistered(u.email)) {
-            Auth.usuarios.push(u);
-          }
-        });
-      }
-    } catch (e) {
-      void e;
-    }
-  },
-
-  persistUsers() {
-    try {
-      const registrados = Auth.usuarios.filter(u => !Auth.usuariosPrueba.some(p => p.email === u.email));
-      localStorage.setItem(Auth.USERS_KEY, JSON.stringify(registrados));
-    } catch (e) {
-      void e;
-    }
-  },
-
-  normalizeEmail(email) {
-    return String(email || '').trim().toLowerCase();
-  },
-
-  findUser(email) {
-    const target = Auth.normalizeEmail(email);
-    return Auth.usuarios.find(u => Auth.normalizeEmail(u.email) === target) || null;
-  },
-
-  isRegistered(email) {
-    return Auth.findUser(email) !== null;
   },
 
   isAuthenticated() {
@@ -63,92 +19,128 @@ const Auth = {
     return Auth.sesion;
   },
 
-  login(email, password) {
-    const user = Auth.findUser(email);
-    if (!user) {
-      return { ok: false, error: 'Este correo no está registrado.' };
+  async request(path, { method = 'GET', body, token } = {}) {
+    const headers = {};
+    if (body !== undefined) headers['Content-Type'] = 'application/json';
+    if (token) headers['Authorization'] = 'Bearer ' + token;
+    let res;
+    try {
+      res = await fetch(Auth.API_BASE + path, {
+        method,
+        headers,
+        body: body !== undefined ? JSON.stringify(body) : undefined
+      });
+    } catch (e) {
+      void e;
+      return { ok: false, status: 0, error: 'No se pudo conectar con el servidor. Intente de nuevo.' };
     }
-    if (user.password !== String(password)) {
-      return { ok: false, error: 'La contraseña no es correcta.' };
+    let data = null;
+    try {
+      data = await res.json();
+    } catch (e) {
+      void e;
     }
-    Auth.persistSession(user);
-    return { ok: true, user: Auth.sesion };
+    if (res.ok) return { ok: true, status: res.status, data };
+    return { ok: false, status: res.status, error: Auth.mensajeError(res.status, data) };
   },
 
-  register(data) {
-    const email = Auth.normalizeEmail(data.email);
-    const nombre = String(data.nombre || '').trim();
-    const password = String(data.password || '');
-
-    if (nombre.length < 2) {
-      return { ok: false, error: 'Ingrese su nombre completo.' };
-    }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      return { ok: false, error: 'Ingrese un correo electrónico válido.' };
-    }
-    if (password.length < 6) {
-      return { ok: false, error: 'La contraseña debe tener al menos 6 caracteres.' };
-    }
-    if (Auth.isRegistered(email)) {
-      return { ok: false, error: 'Este correo ya está registrado. Inicie sesión.' };
-    }
-    if (Auth.usuarios.length >= Auth.MAX_USERS) {
-      return { ok: false, error: 'Se alcanzó el máximo de usuarios permitidos.' };
-    }
-
-    const nuevo = { email: email, password: password, nombre: nombre };
-    Auth.usuarios.push(nuevo);
-    Auth.persistUsers();
-    Auth.persistSession(nuevo);
-    return { ok: true, user: Auth.sesion };
+  mensajeError(status, data) {
+    if (status === 422) return 'Revise los datos ingresados. La contraseña debe tener al menos 8 caracteres.';
+    if (status === 429) return 'Demasiados intentos. Espere un minuto e intente de nuevo.';
+    if (data && typeof data.detail === 'string') return data.detail;
+    return 'Ocurrió un error. Intente de nuevo.';
   },
 
-  validateOnboarding(data) {
-    const email = Auth.normalizeEmail(data.email);
-    const nombre = String(data.nombre || '').trim();
-    const password = String(data.password || '');
-
-    if (nombre.length < 2) {
-      return { ok: false, error: 'Ingrese su nombre completo.' };
-    }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      return { ok: false, error: 'Ingrese un correo electrónico válido.' };
-    }
-    if (password.length < 6) {
-      return { ok: false, error: 'La contraseña debe tener al menos 6 caracteres.' };
-    }
-    if (Auth.isRegistered(email)) {
-      return { ok: false, error: 'Este correo ya está registrado. Inicie sesión en la app.' };
-    }
-    if (Auth.usuarios.length >= Auth.MAX_USERS) {
-      return { ok: false, error: 'Se alcanzó el máximo de usuarios permitidos.' };
-    }
-    return { ok: true };
-  },
-
-  onboardApi(data) {
-    return new Promise(function (resolve) {
-      setTimeout(function () {
-        const check = Auth.validateOnboarding(data);
-        if (!check.ok) {
-          resolve(check);
-          return;
-        }
-        const nuevo = {
-          email: Auth.normalizeEmail(data.email),
-          password: String(data.password),
-          nombre: String(data.nombre).trim(),
-          edad: data.edad || null,
-          preocupacion: data.preocupacion || null,
-          proposito: data.proposito || null,
-          onboardedAt: new Date().toISOString()
-        };
-        Auth.usuarios.push(nuevo);
-        Auth.persistUsers();
-        Auth.persistSession(nuevo);
-        resolve({ ok: true, user: Auth.sesion });
-      }, 700);
+  async login(email, password) {
+    const res = await Auth.request('/v1/auth/login', {
+      method: 'POST',
+      body: { email: String(email || '').trim(), password: String(password || '') }
     });
+    if (!res.ok) return { ok: false, error: res.error };
+    return Auth.cargarSesion(res.data.access_token);
+  },
+
+  async register(data) {
+    const payload = {
+      email: String(data.email || '').trim(),
+      nombre: String(data.nombre || '').trim(),
+      password: String(data.password || '')
+    };
+    const perfil = Auth.limpiarPerfil(data.perfil);
+    if (perfil) payload.perfil = perfil;
+    const res = await Auth.request('/v1/auth/registro', { method: 'POST', body: payload });
+    if (!res.ok) return { ok: false, error: res.error };
+    return Auth.login(payload.email, payload.password);
+  },
+
+  // Usado por el onboarding: crea la cuenta con su perfil en una sola petición.
+  async onboardApi(data) {
+    return Auth.register({
+      nombre: data.nombre,
+      email: data.email,
+      password: data.password,
+      perfil: { edad: data.edad, preocupacion: data.preocupacion, proposito: data.proposito }
+    });
+  },
+
+  // Quita campos vacíos y convierte la edad a número. Devuelve null si no queda nada.
+  limpiarPerfil(perfil) {
+    if (!perfil) return null;
+    const limpio = {};
+    if (perfil.edad !== undefined && perfil.edad !== null && perfil.edad !== '') limpio.edad = Number(perfil.edad);
+    if (perfil.preocupacion) limpio.preocupacion = perfil.preocupacion;
+    if (perfil.proposito) limpio.proposito = perfil.proposito;
+    return Object.keys(limpio).length ? limpio : null;
+  },
+
+  // Actualiza el perfil en el servidor. Envíe solo los campos que cambian; null borra un campo.
+  async actualizarPerfil(cambios) {
+    if (!Auth.sesion) return { ok: false, error: 'Inicie sesión para continuar.' };
+    const res = await Auth.request('/v1/perfil', { method: 'PATCH', body: cambios, token: Auth.sesion.token });
+    if (!res.ok) return { ok: false, error: res.error };
+    Auth.sesion.perfil = res.data;
+    Auth.persistSession();
+    return { ok: true, perfil: res.data };
+  },
+
+  // Pide al servidor los datos del usuario con el token y deja la sesión lista.
+  async cargarSesion(token) {
+    const me = await Auth.request('/v1/auth/yo', { token });
+    if (!me.ok) return { ok: false, error: 'No se pudo iniciar sesión. Intente de nuevo.' };
+    Auth.sesion = { email: me.data.email, nombre: me.data.nombre, perfil: me.data.perfil || {}, token: token };
+    Auth.persistSession();
+    return { ok: true, user: Auth.sesion };
+  },
+
+  // Revisa al arrancar que el token guardado siga vigente y refresca los datos del servidor.
+  async verificarSesion() {
+    if (!Auth.sesion) return false;
+    const token = Auth.sesion.token;
+    const me = await Auth.request('/v1/auth/yo', { token });
+    // Si mientras esperaba cambió la sesión guardada (logout o login en otra pestaña), usa la guardada
+    if (Auth.tokenGuardado() !== token) {
+      Auth.sesion = null;
+      Auth.restoreSession();
+      return Auth.isAuthenticated();
+    }
+    if (me.ok) {
+      Auth.sesion.nombre = me.data.nombre;
+      Auth.sesion.perfil = me.data.perfil || {};
+      Auth.persistSession();
+      return true;
+    }
+    if (me.status === 0) return true; // sin conexión: mantiene la sesión local (PWA offline)
+    Auth.logout();
+    return false;
+  },
+
+  tokenGuardado() {
+    try {
+      const raw = localStorage.getItem(Auth.STORAGE_KEY);
+      return raw ? (JSON.parse(raw) || {}).token || null : null;
+    } catch (e) {
+      return null;
+    }
   },
 
   logout() {
@@ -160,8 +152,7 @@ const Auth = {
     }
   },
 
-  persistSession(user) {
-    Auth.sesion = { email: user.email, nombre: user.nombre };
+  persistSession() {
     try {
       localStorage.setItem(Auth.STORAGE_KEY, JSON.stringify(Auth.sesion));
     } catch (e) {
@@ -172,12 +163,10 @@ const Auth = {
   restoreSession() {
     try {
       const raw = localStorage.getItem(Auth.STORAGE_KEY);
-      if (!raw) {
-        return;
-      }
+      if (!raw) return;
       const parsed = JSON.parse(raw);
-      if (parsed && Auth.isRegistered(parsed.email)) {
-        Auth.sesion = { email: parsed.email, nombre: parsed.nombre };
+      if (parsed && parsed.token) {
+        Auth.sesion = { email: parsed.email, nombre: parsed.nombre, perfil: parsed.perfil || {}, token: parsed.token };
       }
     } catch (e) {
       Auth.sesion = null;

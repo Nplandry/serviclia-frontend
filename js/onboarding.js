@@ -41,7 +41,7 @@ const Onboarding = {
       type: 'text',
       campo: 'password',
       titulo: 'Crea una contraseña',
-      texto: 'Mínimo 6 caracteres.',
+      texto: 'Mínimo 8 caracteres.',
       placeholder: 'Contraseña',
       inputType: 'password'
     },
@@ -101,6 +101,11 @@ const Onboarding = {
       const raw = localStorage.getItem(Onboarding.STORAGE_KEY);
       if (raw) {
         Onboarding.datos = JSON.parse(raw) || {};
+        // Limpia borradores de versiones anteriores que sí guardaban la contraseña
+        if ('password' in Onboarding.datos) {
+          delete Onboarding.datos.password;
+          Onboarding.save();
+        }
       }
     } catch (e) {
       Onboarding.datos = {};
@@ -108,8 +113,11 @@ const Onboarding = {
   },
 
   save() {
+    // La contraseña nunca se guarda en el dispositivo: solo vive en memoria hasta crear la cuenta.
+    const borrador = Object.assign({}, Onboarding.datos);
+    delete borrador.password;
     try {
-      localStorage.setItem(Onboarding.STORAGE_KEY, JSON.stringify(Onboarding.datos));
+      localStorage.setItem(Onboarding.STORAGE_KEY, JSON.stringify(borrador));
     } catch (e) {
       void e;
     }
@@ -216,11 +224,14 @@ const Onboarding = {
     if (paso.campo === 'email' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
       return 'Ingrese un correo electrónico válido.';
     }
-    if (paso.campo === 'email' && Auth.isRegistered(value)) {
-      return 'Este correo ya está registrado. Inicie sesión en la app.';
+    if (paso.campo === 'edad') {
+      const edad = Number(value);
+      if (!Number.isInteger(edad) || edad < 14 || edad > 120) {
+        return 'Ingrese una edad entre 14 y 120 años.';
+      }
     }
-    if (paso.campo === 'password' && value.length < 6) {
-      return 'La contraseña debe tener al menos 6 caracteres.';
+    if (paso.campo === 'password' && value.length < 8) {
+      return 'La contraseña debe tener al menos 8 caracteres.';
     }
     return '';
   },
@@ -303,6 +314,13 @@ const Onboarding = {
   },
 
   async finish(btn) {
+    // Si recargó la página, la contraseña ya no está en memoria (no se guarda en el dispositivo)
+    if (!Onboarding.datos.password) {
+      Onboarding.index = Onboarding.pasos.findIndex(p => p.campo === 'password');
+      Onboarding.renderCard();
+      Onboarding.elements.stepStatus.textContent = 'Por seguridad, vuelva a escribir su contraseña.';
+      return;
+    }
     btn.disabled = true;
     btn.textContent = 'Creando tu cuenta...';
     Onboarding.elements.stepStatus.textContent = '';
@@ -312,7 +330,8 @@ const Onboarding = {
       email: Onboarding.datos.email,
       password: Onboarding.datos.password,
       edad: Onboarding.datos.edad,
-      preocupacion: Onboarding.datos.preocupacion
+      preocupacion: Onboarding.datos.preocupacion,
+      proposito: Onboarding.datos.proposito
     });
 
     if (!res.ok) {

@@ -1,4 +1,5 @@
 const App = {
+  ASSISTANT_MIN_CHARS: 5,
   state: { currentCategory: null, currentItem: null, voices: [] },
   elements: {},
 
@@ -12,10 +13,16 @@ const App = {
     App.loadVoices();
     App.applyAuthState();
     if (typeof Compliance !== 'undefined') Compliance.initCookieBanner();
+    App.verifySession();
+  },
+
+  async verifySession() {
+    const vigente = await Auth.verificarSesion();
+    if (!vigente) App.applyAuthState();
   },
 
   cacheElements() {
-    const ids = ['homeView','categoryView','detailView','formView','searchInput','categoryList','zeroResults','backFromCategory','backFromDetail','backFromForm','categoryTitle','categoryDescription','categoryContent','detailArticle','speakBtn','stopSpeakBtn','orientationForm','formRut','rutError','submitForm','formStatus','greeting','logoutBtn','chatForm','chatInput','chatSend','chatMessages','chatStatus','mainChatForm','mainChatInput','mainChatSend','mainChatMessages','mainChatStatus','authGate','tabLogin','tabRegister','loginForm','registerForm','loginStatus','registerStatus','historyBtn','historyPanel','historyOverlay','historyClose','historyList','historyClear','carruselList'];
+    const ids = ['homeView','categoryView','detailView','formView','searchInput','categoryList','zeroResults','backFromCategory','backFromDetail','backFromForm','categoryTitle','categoryDescription','categoryContent','detailArticle','speakBtn','stopSpeakBtn','orientationForm','formRut','rutError','submitForm','formStatus','greeting','logoutBtn','chatForm','chatInput','chatSend','chatMessages','chatStatus','mainChatForm','mainChatInput','mainChatSend','mainChatMessages','mainChatStatus','authGate','tabLogin','tabRegister','loginForm','registerForm','loginStatus','registerStatus','historyBtn','historyPanel','historyOverlay','historyClose','historyList','historyClear','carruselList','historyMenu','mapView','apiView','dashboardView','configView','mapContainer','mapStatus','apiInput','apiRun','apiOutput','dashKpis','dashBars','configUser','configClear','configLogout','verifyView'];
     ids.forEach(id => App.elements[id] = document.getElementById(id));
     App.elements.appHeader = document.querySelector('.app-header');
     App.elements.appMain = document.getElementById('main');
@@ -32,6 +39,155 @@ const App = {
     App.elements.historyClose.addEventListener('click', App.closeHistory);
     App.elements.historyOverlay.addEventListener('click', App.closeHistory);
     App.elements.historyClear.addEventListener('click', App.handleHistoryClear);
+    App.elements.historyMenu.addEventListener('click', App.handleMenuClick);
+    document.querySelectorAll('[data-back]').forEach(btn => btn.addEventListener('click', App.showHome));
+    App.elements.apiRun.addEventListener('click', App.runApiAnonymize);
+    App.elements.configClear.addEventListener('click', App.handleConfigClear);
+    App.elements.configLogout.addEventListener('click', App.handleLogout);
+  },
+
+  handleMenuClick(e) {
+    const btn = e.target.closest('[data-view]');
+    if (!btn) return;
+    App.openSection(btn.dataset.view);
+  },
+
+  openSection(name) {
+    App.closeHistory();
+    if (name === 'asistente') return App.showHome();
+    if (name === 'mapa') { App.showView('mapView'); return App.initMap(); }
+    if (name === 'api') return App.showView('apiView');
+    if (name === 'dashboard') { App.renderDashboard(); return App.showView('dashboardView'); }
+    if (name === 'configuracion') { App.renderConfig(); return App.showView('configView'); }
+    if (name === 'verificacion') return App.showView('verifyView');
+  },
+
+  setMenuActive(name) {
+    App.elements.historyMenu.querySelectorAll('[data-view]').forEach(btn => {
+      const active = btn.dataset.view === name;
+      btn.classList.toggle('history-menu__item--active', active);
+      if (active) btn.setAttribute('aria-current', 'page');
+      else btn.removeAttribute('aria-current');
+    });
+  },
+
+  renderDashboard() {
+    const items = Historial.getAll();
+    const total = items.length;
+    const ok = items.filter(it => it.ok).length;
+    const ultima = total ? new Date(items[0].fecha).toLocaleString('es-CL') : '—';
+
+    const kpis = App.elements.dashKpis;
+    App.clearChildren(kpis);
+    [
+      ['Consultas guardadas', total],
+      ['Sin alerta', ok],
+      ['Con alerta', total - ok],
+      ['Última consulta', ultima]
+    ].forEach(([label, value]) => {
+      const card = document.createElement('div');
+      card.className = 'dash-kpi';
+      const l = document.createElement('p');
+      l.className = 'dash-kpi__label';
+      l.textContent = label;
+      const v = document.createElement('p');
+      v.className = 'dash-kpi__value';
+      v.textContent = String(value);
+      card.appendChild(l);
+      card.appendChild(v);
+      kpis.appendChild(card);
+    });
+
+    const bars = App.elements.dashBars;
+    App.clearChildren(bars);
+    if (total === 0) {
+      const empty = document.createElement('p');
+      empty.className = 'history__empty';
+      empty.textContent = 'Aún no hay consultas para mostrar.';
+      bars.appendChild(empty);
+      return;
+    }
+    const conteo = {};
+    items.forEach(it => {
+      const tema = it.caso || 'Sin tema';
+      conteo[tema] = (conteo[tema] || 0) + 1;
+    });
+    const max = Math.max(...Object.values(conteo));
+    Object.entries(conteo).sort((a, b) => b[1] - a[1]).forEach(([tema, n]) => {
+      const row = document.createElement('div');
+      const label = document.createElement('p');
+      label.className = 'dash-bar__label';
+      const nombre = document.createElement('span');
+      nombre.textContent = tema;
+      const cantidad = document.createElement('span');
+      cantidad.textContent = String(n);
+      label.appendChild(nombre);
+      label.appendChild(cantidad);
+      const track = document.createElement('div');
+      track.className = 'dash-bar__track';
+      const fill = document.createElement('div');
+      fill.className = 'dash-bar__fill';
+      fill.style.width = Math.round((n / max) * 100) + '%';
+      track.appendChild(fill);
+      row.appendChild(label);
+      row.appendChild(track);
+      bars.appendChild(row);
+    });
+  },
+
+  renderConfig() {
+    const user = Auth.getCurrentUser() || {};
+    const partes = [user.nombre, user.email].filter(Boolean);
+    App.elements.configUser.textContent = partes.length ? 'Sesión: ' + partes.join(' · ') : 'Sin sesión activa.';
+  },
+
+  handleConfigClear() {
+    if (!window.confirm('¿Borrar todo el historial de consultas de este dispositivo?')) return;
+    App.handleHistoryClear();
+  },
+
+  runApiAnonymize() {
+    const texto = App.elements.apiInput.value;
+    App.elements.apiOutput.textContent = texto.trim()
+      ? Security.redactText(texto)
+      : 'Ingrese un texto para anonimizar.';
+    App.elements.apiOutput.hidden = false;
+  },
+
+  initMap() {
+    const status = App.elements.mapStatus;
+    if (App.state.map) {
+      setTimeout(() => App.state.map.invalidateSize(), 0);
+      return;
+    }
+    status.textContent = 'Cargando mapa...';
+    App.loadMapAssets()
+      .then(() => {
+        App.state.map = L.map(App.elements.mapContainer).setView([-35.6, -71.5], 4);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '© OpenStreetMap'
+        }).addTo(App.state.map);
+        status.textContent = '';
+      })
+      .catch(() => {
+        status.style.color = 'var(--color-error)';
+        status.textContent = 'No se pudo cargar el mapa. Revise su conexión a internet.';
+      });
+  },
+
+  loadMapAssets() {
+    if (window.L) return Promise.resolve();
+    const css = document.createElement('link');
+    css.rel = 'stylesheet';
+    css.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+    document.head.appendChild(css);
+    return new Promise((resolve, reject) => {
+      const js = document.createElement('script');
+      js.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+      js.onload = resolve;
+      js.onerror = reject;
+      document.head.appendChild(js);
+    });
   },
 
   applyAuthState() {
@@ -138,10 +294,13 @@ const App = {
     App.elements.registerStatus.textContent = '';
   },
 
-  handleLogin(e) {
+  async handleLogin(e) {
     e.preventDefault();
     const fd = new FormData(App.elements.loginForm);
-    const res = Auth.login(fd.get('email'), fd.get('password'));
+    const submit = App.elements.loginForm.querySelector('button[type="submit"]');
+    if (submit) submit.disabled = true;
+    const res = await Auth.login(fd.get('email'), fd.get('password'));
+    if (submit) submit.disabled = false;
     if (!res.ok) {
       App.elements.loginStatus.textContent = res.error;
       return;
@@ -151,10 +310,13 @@ const App = {
     App.applyAuthState();
   },
 
-  handleRegister(e) {
+  async handleRegister(e) {
     e.preventDefault();
     const fd = new FormData(App.elements.registerForm);
-    const res = Auth.register({ nombre: fd.get('nombre'), email: fd.get('email'), password: fd.get('password') });
+    const submit = App.elements.registerForm.querySelector('button[type="submit"]');
+    if (submit) submit.disabled = true;
+    const res = await Auth.register({ nombre: fd.get('nombre'), email: fd.get('email'), password: fd.get('password') });
+    if (submit) submit.disabled = false;
     if (!res.ok) {
       App.elements.registerStatus.textContent = res.error;
       return;
@@ -179,13 +341,9 @@ const App = {
     App.elements.stopSpeakBtn.addEventListener('click', App.stopSpeaking);
     App.elements.orientationForm.addEventListener('submit', App.handleFormSubmit);
     App.elements.formRut.addEventListener('blur', App.handleRutBlur);
-    App.bindChat(App.elements.chatForm, App.elements.chatInput, App.elements.chatSend, App.elements.chatMessages);
-    App.bindChat(App.elements.mainChatForm, App.elements.mainChatInput, App.elements.mainChatSend, App.elements.mainChatMessages);
+    App.bindAssistant('main', App.elements.mainChatForm, App.elements.mainChatInput, App.elements.mainChatSend, App.elements.mainChatMessages, App.elements.mainChatStatus);
+    App.bindAssistant('categoria', App.elements.chatForm, App.elements.chatInput, App.elements.chatSend, App.elements.chatMessages, App.elements.chatStatus);
     if (window.speechSynthesis) window.speechSynthesis.onvoiceschanged = App.loadVoices;
-  },
-
-  bindChat(form, input, send, messages) {
-    form.addEventListener('submit', e => App.handleChatSubmit(e, { input, send, messages }));
   },
 
   setGreeting() {
@@ -203,17 +361,6 @@ const App = {
     const list = App.elements.carruselList;
     App.clearChildren(list);
 
-    const iconSVG = {
-      'briefcase': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"></path></svg>',
-      'document': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><polyline points="13 2 13 9 20 9"></polyline></svg>',
-      'home': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>',
-      'search': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path></svg>',
-      'money': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><path d="M12 9v6M9 12h6"></path></svg>',
-      'id-card': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2" ry="2"></rect><line x1="2" y1="10" x2="22" y2="10"></line><circle cx="7" cy="7" r="1.5"></circle><line x1="11" y1="7" x2="18" y2="7"></line><line x1="11" y1="12" x2="18" y2="12"></line></svg>',
-      'phone': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>',
-      'document-sealed': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><polyline points="13 2 13 9 20 9"></polyline><path d="M12 17v-2m0 6v-2"></path></svg>'
-    };
-
     RECOMENDADOS.forEach(rec => {
       const card = document.createElement('button');
       card.className = 'recomendado';
@@ -226,7 +373,7 @@ const App = {
       const icono = document.createElement('div');
       icono.className = 'recomendado__icono';
       icono.setAttribute('aria-hidden', 'true');
-      icono.innerHTML = iconSVG[rec.icono] || iconSVG['document'];
+      icono.innerHTML = ICONOS_SVG[rec.icono] || ICONOS_SVG['document'];
       card.appendChild(icono);
 
       const titulo = document.createElement('p');
@@ -252,7 +399,10 @@ const App = {
       const btn = document.createElement('button');
       btn.className = 'category-card';
       btn.type = 'button';
-      btn.innerHTML = `<span>${c.title}</span><span class="category-card__desc">${c.short}</span>`;
+      const tema = c.short.split(/\s+-\s+/).pop();
+      const iconoSvg = ICONOS_SVG[ICONO_CATEGORIA[c.id]] || ICONOS_SVG['document'];
+      btn.innerHTML = `<span class="category-card__header"><span class="category-card__icono" aria-hidden="true">${iconoSvg}</span><span class="category-card__title">${c.title}</span></span>` +
+        `<span class="category-card__topic">${tema}</span>`;
       btn.addEventListener('click', () => App.openCategory(c.id));
       li.appendChild(btn);
       App.elements.categoryList.appendChild(li);
@@ -402,7 +552,6 @@ const App = {
     relatoField.appendChild(relatoInput);
     step.appendChild(relatoField);
 
-    // Sección de documentos adjuntos
     const docsField = document.createElement('div');
     docsField.className = 'field';
     
@@ -416,7 +565,6 @@ const App = {
     docsHelp.textContent = 'Adjunte documentos que respalden su caso (PDF, imágenes, etc.)';
     docsField.appendChild(docsHelp);
 
-    // Zona drag & drop
     const dropZone = document.createElement('div');
     dropZone.className = 'docs__drop-zone';
     dropZone.setAttribute('role', 'region');
@@ -446,13 +594,11 @@ const App = {
 
     docsField.appendChild(dropZone);
 
-    // Lista de archivos adjuntos
     const docsList = document.createElement('ul');
     docsList.className = 'docs__list';
     docsList.setAttribute('aria-label', 'Archivos adjuntos');
     docsField.appendChild(docsList);
 
-    // Estado de carga
     const docsStatus = document.createElement('p');
     docsStatus.className = 'docs__status';
     docsStatus.hidden = true;
@@ -460,7 +606,6 @@ const App = {
 
     step.appendChild(docsField);
 
-    // Listeners para documentos
     const attachedFiles = [];
 
     const renderDocsList = () => {
@@ -514,7 +659,6 @@ const App = {
 
     fileInput.addEventListener('change', (e) => handleFiles(e.target.files));
 
-    // Drag & Drop
     dropZone.addEventListener('dragover', (e) => {
       e.preventDefault();
       dropZone.classList.add('docs__drop-zone--active');
@@ -592,7 +736,6 @@ const App = {
           });
         }
 
-        // Preparar datos de auditoría con documentos adjuntos
         const auditData = {
           casoId: c.id,
           rut: rawRut,
@@ -881,26 +1024,6 @@ const App = {
     return { resumen: alertText, ok: alertOk };
   },
 
-  addContentCard(text, onClick) {
-    const btn = document.createElement('button');
-    btn.className = 'content-card';
-    btn.type = 'button';
-    btn.textContent = text;
-    btn.addEventListener('click', onClick);
-    App.elements.categoryContent.appendChild(btn);
-  },
-
-  openDetail(id) {
-    const item = App.state.currentCategory.items.find(i => i.id === id);
-    if (!item) return;
-    App.state.currentItem = item;
-    const article = document.createElement('article');
-    article.innerHTML = `<h2 class="detail-article__title">${item.title}</h2><ol class="detail-article__list">${item.content.map(s => `<li class="detail-article__item">${s}</li>`).join('')}</ol>`;
-    App.clearChildren(App.elements.detailArticle);
-    App.elements.detailArticle.appendChild(article);
-    App.showView('detailView');
-  },
-
   showHome() {
     App.state.currentCategory = null;
     App.state.currentItem = null;
@@ -957,7 +1080,9 @@ const App = {
   },
 
   showView(name) {
-    ['homeView','categoryView','detailView','formView'].forEach(n => App.elements[n].hidden = n !== name);
+    const sectionByView = { mapView: 'mapa', apiView: 'api', dashboardView: 'dashboard', configView: 'configuracion', verifyView: 'verificacion' };
+    ['homeView','categoryView','detailView','formView','mapView','apiView','dashboardView','configView','verifyView'].forEach(n => App.elements[n].hidden = n !== name);
+    App.setMenuActive(sectionByView[name] || 'asistente');
     window.scrollTo(0, 0);
   },
 
@@ -996,83 +1121,90 @@ const App = {
     messages.scrollTop = messages.scrollHeight;
   },
 
-  async streamTextToBubble(text, messages) {
-    const b = document.createElement('div');
-    b.className = 'chat__bubble chat__bubble--bot chat__bubble--typing';
-    messages.classList.add('chat__messages--has-messages');
-    messages.appendChild(b);
-    for (const ch of text) { b.textContent += ch; messages.scrollTop = messages.scrollHeight; await App.delay(35); }
-    b.classList.remove('chat__bubble--typing');
+  // Asistente ServicIA: envía la pregunta al backend RAG y muestra la respuesta con sus fuentes.
+  // El chat de inicio consulta toda la normativa; el de una categoría filtra por esa categoría.
+  bindAssistant(tipo, form, input, send, messages, status) {
+    // El botón Enviar queda deshabilitado hasta que la pregunta tenga el mínimo de caracteres.
+    const refrescar = () => { send.disabled = input.value.trim().length < App.ASSISTANT_MIN_CHARS; };
+    input.addEventListener('input', refrescar);
+    refrescar();
+    form.addEventListener('submit', e => App.handleAssistantSubmit(e, { tipo, input, send, messages, status, refrescar }));
   },
 
-  delay(ms) { return new Promise(r => setTimeout(r, ms)); },
-
-  async handleChatSubmit(e, { input, send, messages }) {
+  async handleAssistantSubmit(e, { tipo, input, send, messages, status, refrescar }) {
     e.preventDefault();
     const msg = Security.sanitizeText(input.value);
-    if (!msg) return;
+    if (msg.length < App.ASSISTANT_MIN_CHARS) return;
+    status.textContent = '';
     App.addChatMessage(msg, 'user', messages);
     input.value = '';
+    input.disabled = true;
     send.disabled = true;
-    await App.delay(400);
-    await App.streamTextToBubble('Disponible proximamente', messages);
-    send.disabled = false;
+
+    const espera = document.createElement('div');
+    espera.className = 'chat__bubble chat__bubble--bot chat__bubble--waiting';
+    espera.setAttribute('aria-label', 'El asistente está buscando la respuesta');
+    espera.innerHTML = '<span class="chat__dot"></span><span class="chat__dot"></span><span class="chat__dot"></span>';
+    messages.appendChild(espera);
+    messages.scrollTop = messages.scrollHeight;
+
+    const categoria = tipo === 'categoria' && App.state.currentCategory ? App.state.currentCategory.id : null;
+    const res = await API.consultarAsistente(msg, categoria);
+    espera.remove();
+    input.disabled = false;
+    refrescar();  // el botón vuelve según el contenido del campo (vacío queda deshabilitado)
+
+    if (!res.ok) {
+      App.addChatMessage(res.error || 'No se pudo obtener respuesta. Intente de nuevo.', 'bot', messages);
+      if (res.status === 401) {
+        Auth.logout();
+        App.applyAuthState();
+      }
+      return;
+    }
+    const burbuja = App.renderAssistantAnswer(res.data, messages);
+    // Muestra el inicio de la respuesta, no el final: así se lee de arriba hacia abajo
+    messages.scrollTop = Math.max(0, burbuja.offsetTop - messages.offsetTop - 8);
     input.focus();
   },
 
-  Chat: {
-    ws: null, isConnected: false, reconnectDelay: 3000, maxReconnectDelay: 30000, currentDelay: 3000, reconnectAttempts: 0, maxReconnectAttempts: 10, pendingQueue: [], activeStreams: new Map(),
-    config: { url: null, autoConnect: false, categoryContext: false },
-    init(o = {}) { Object.assign(App.Chat.config, o); if (App.Chat.config.autoConnect && App.Chat.config.url) App.Chat.connect(); },
-    connect() {
-      if (App.Chat.ws?.readyState === WebSocket.CONNECTING || App.Chat.ws?.readyState === WebSocket.OPEN) return;
-      if (!App.Chat.config.url) return;
-      App.Chat.ws = new WebSocket(App.Chat.config.url);
-      App.Chat.ws.onopen = () => { App.Chat.isConnected = true; App.Chat.reconnectAttempts = 0; App.Chat.currentDelay = App.Chat.reconnectDelay; App.Chat.flushPendingQueue(); document.dispatchEvent(new CustomEvent('chat:connected')); };
-      App.Chat.ws.onmessage = e => App.Chat.handleMessage(e.data);
-      App.Chat.ws.onerror = () => document.dispatchEvent(new CustomEvent('chat:error', { detail: { message: 'Error de conexión con el asistente' } }));
-      App.Chat.ws.onclose = () => { App.Chat.isConnected = false; document.dispatchEvent(new CustomEvent('chat:disconnected')); App.Chat.scheduleReconnect(); };
-    },
-    disconnect() { App.Chat.ws?.close(); App.Chat.ws = null; App.Chat.isConnected = false; },
-    scheduleReconnect() {
-      if (App.Chat.reconnectAttempts >= App.Chat.maxReconnectAttempts) { document.dispatchEvent(new CustomEvent('chat:error', { detail: { message: 'No se pudo reconectar con el asistente' } })); return; }
-      App.Chat.reconnectAttempts++;
-      setTimeout(() => App.Chat.connect(), App.Chat.currentDelay);
-      App.Chat.currentDelay = Math.min(App.Chat.currentDelay * 1.5, App.Chat.maxReconnectDelay);
-    },
-    send(msg, opts = {}) {
-      const p = { type: 'message', message: Security.sanitizeText(msg), timestamp: new Date().toISOString(), ...opts };
-      if (App.Chat.config.categoryContext && App.state.currentCategory) p.categoryId = App.state.currentCategory.id;
-      if (App.Chat.isConnected && App.Chat.ws.readyState === WebSocket.OPEN) App.Chat.ws.send(JSON.stringify(p));
-      else { App.Chat.pendingQueue.push(p); if (!App.Chat.isConnected) App.Chat.connect(); }
-    },
-    flushPendingQueue() { while (App.Chat.pendingQueue.length && App.Chat.ws.readyState === WebSocket.OPEN) App.Chat.ws.send(JSON.stringify(App.Chat.pendingQueue.shift())); },
-    handleMessage(raw) {
-      let d; try { d = JSON.parse(raw); } catch { d = { type: 'text', content: raw }; }
-      if (d.type === 'stream' || d.type === 'chunk') App.Chat.handleStreamChunk(d);
-      else if (d.type === 'stream_start') App.Chat.handleStreamStart(d);
-      else if (d.type === 'stream_end') App.Chat.handleStreamEnd(d);
-      else if (d.type === 'error') document.dispatchEvent(new CustomEvent('chat:error', { detail: d }));
-      else document.dispatchEvent(new CustomEvent('chat:message', { detail: d }));
-    },
-    handleStreamStart(d) {
-      const id = d.streamId || 'default';
-      const b = document.createElement('div'); b.className = 'chat__bubble chat__bubble--bot chat__bubble--typing'; b.id = `stream-${id}`; b.textContent = '';
-      const c = document.getElementById(d.containerId || 'mainChatMessages');
-      if (c) { c.classList.add('chat__messages--has-messages'); c.appendChild(b); c.scrollTop = c.scrollHeight; }
-      App.Chat.activeStreams.set(id, { bubble: b, container: c });
-      document.dispatchEvent(new CustomEvent('chat:streamStart', { detail: d }));
-    },
-    handleStreamChunk(d) {
-      const s = App.Chat.activeStreams.get(d.streamId || 'default');
-      if (s?.bubble) { s.bubble.textContent += d.content || ''; s.container.scrollTop = s.container.scrollHeight; }
-      document.dispatchEvent(new CustomEvent('chat:streamChunk', { detail: d }));
-    },
-    handleStreamEnd(d) {
-      const s = App.Chat.activeStreams.get(d.streamId || 'default');
-      if (s?.bubble) { s.bubble.classList.remove('chat__bubble--typing'); s.bubble.id = ''; App.Chat.activeStreams.delete(d.streamId || 'default'); }
-      document.dispatchEvent(new CustomEvent('chat:streamEnd', { detail: d }));
+  renderAssistantAnswer(data, messages) {
+    const b = document.createElement('div');
+    b.className = 'chat__bubble chat__bubble--bot';
+    const texto = document.createElement('p');
+    texto.className = 'chat__answer';
+    texto.textContent = data.respuesta;
+    b.appendChild(texto);
+
+    if (data.fuentes && data.fuentes.length) {
+      const titulo = document.createElement('p');
+      titulo.className = 'chat__sources-title';
+      titulo.textContent = 'Fuentes:';
+      b.appendChild(titulo);
+      const lista = document.createElement('ol');
+      lista.className = 'chat__sources';
+      data.fuentes.forEach(f => {
+        const li = document.createElement('li');
+        const etiqueta = f.titulo + (f.pagina ? ', página ' + f.pagina : '');
+        // Solo enlaces https: la URL viene de la base de documentos
+        if (f.url && /^https:\/\//i.test(f.url)) {
+          const a = document.createElement('a');
+          a.href = f.url;
+          a.target = '_blank';
+          a.rel = 'noopener noreferrer';
+          a.textContent = etiqueta;
+          li.appendChild(a);
+        } else {
+          li.textContent = etiqueta;
+        }
+        lista.appendChild(li);
+      });
+      b.appendChild(lista);
     }
+
+    messages.classList.add('chat__messages--has-messages');
+    messages.appendChild(b);
+    return b;
   }
 };
 

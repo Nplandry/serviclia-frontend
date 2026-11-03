@@ -1,15 +1,17 @@
-const CACHE_NAME = 'servicia-v4';
+const CACHE_NAME = 'servicia-v8';
 const ASSETS = [
   './',
   './index.html',
   './onboarding/',
   './onboarding/index.html',
   './css/styles.css',
-  './js/app.js',
+  './js/data/categorias.js',
+  './js/core/security.js',
   './js/compliance.js',
-  './js/security.js',
-  './js/auth.js',
-  './js/history.js',
+  './js/core/auth.js',
+  './js/services/api.js',
+  './js/modules/history.js',
+  './js/app.js',
   './js/onboarding.js',
   './manifest.json'
 ];
@@ -46,6 +48,12 @@ self.addEventListener('fetch', function (event) {
   }
 
   if (request.url.startsWith('http') === false) {
+    return;
+  }
+
+  // Solo se cachean archivos de la propia app. Las respuestas de la API (otro origen o con sesión)
+  // contienen datos personales y nunca se guardan en el dispositivo.
+  if (new URL(request.url).origin !== self.location.origin || request.headers.has('Authorization')) {
     return;
   }
 

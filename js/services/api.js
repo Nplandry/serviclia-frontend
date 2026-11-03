@@ -1,6 +1,6 @@
 const API = {
 
-  // Consulta al asistente con RAG (POST /v1/consultas). Requiere sesión iniciada.
+  // Consulta al asistente con RAG, mediante POST a v1 consultas. Requiere sesion iniciada.
   consultarAsistente: async function (pregunta, categoria) {
     const sesion = Auth.getCurrentUser();
     if (!sesion || !sesion.token) return { ok: false, status: 401, error: 'Inicie sesión para usar el asistente.' };

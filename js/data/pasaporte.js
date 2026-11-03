@@ -1,4 +1,4 @@
-// Datos de demostración del Pasaporte Digital. Reemplazar por la respuesta del backend cuando exista el endpoint.
+// Datos de demostracion del Pasaporte Digital. Reemplazar por la respuesta del backend cuando exista el endpoint.
 const PASAPORTE_MOCK = {
   titular: {
     iniciales: 'NP',

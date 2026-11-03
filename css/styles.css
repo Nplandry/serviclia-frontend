@@ -1449,7 +1449,7 @@ body {
   color: var(--color-primary);
 }
 
-/* Auditoría del tema */
+/* Auditoria del tema */
 .auditoria {
   display: grid;
   gap: var(--space-lg);

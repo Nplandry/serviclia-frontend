@@ -1,4 +1,4 @@
-// Pasaporte Digital de Integridad Patrimonial: selector de rubro y tarjeta de la credencial.
+// Pasaporte Digital de Integridad Patrimonial selector de rubro y tarjeta de la credencial.
 const Pasaporte = {
   elementos: {},
 

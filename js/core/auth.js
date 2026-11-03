@@ -1,7 +1,7 @@
-// Sesión contra la API (/v1/auth). El token JWT queda en localStorage: aceptable en desarrollo,
-// en producción conviene una cookie httpOnly.
+// Sesion contra la API v1 auth. El token JWT queda en localStorage, aceptable en desarrollo
+// en produccion conviene una cookie httpOnly.
 const Auth = {
-  // En producción defina window.SERVICIA_API_BASE antes de cargar este archivo (por ejemplo en un config.js).
+  // En produccion defina la variable SERVICIA API BASE antes de cargar este archivo, por ejemplo en un config.js.
   API_BASE: (typeof window !== 'undefined' && window.SERVICIA_API_BASE) || 'http://localhost:8000',
   STORAGE_KEY: 'servicia.session',
   sesion: null,
@@ -70,7 +70,7 @@ const Auth = {
     return Auth.login(payload.email, payload.password);
   },
 
-  // Usado por el onboarding: crea la cuenta con su perfil en una sola petición.
+  // Usado por el onboarding crea la cuenta con su perfil en una sola peticion.
   async onboardApi(data) {
     return Auth.register({
       nombre: data.nombre,
@@ -80,7 +80,7 @@ const Auth = {
     });
   },
 
-  // Quita campos vacíos y convierte la edad a número. Devuelve null si no queda nada.
+  // Quita campos vacios y convierte la edad a numero. Devuelve null si no queda nada.
   limpiarPerfil(perfil) {
     if (!perfil) return null;
     const limpio = {};
@@ -90,7 +90,7 @@ const Auth = {
     return Object.keys(limpio).length ? limpio : null;
   },
 
-  // Actualiza el perfil en el servidor. Envíe solo los campos que cambian; null borra un campo.
+  // Actualiza el perfil en el servidor. Envie solo los campos que cambian. Un valor null borra el campo.
   async actualizarPerfil(cambios) {
     if (!Auth.sesion) return { ok: false, error: 'Inicie sesión para continuar.' };
     const res = await Auth.request('/v1/perfil', { method: 'PATCH', body: cambios, token: Auth.sesion.token });
@@ -100,7 +100,7 @@ const Auth = {
     return { ok: true, perfil: res.data };
   },
 
-  // Pide al servidor los datos del usuario con el token y deja la sesión lista.
+  // Pide al servidor los datos del usuario con el token y deja la sesion lista.
   async cargarSesion(token) {
     const me = await Auth.request('/v1/auth/yo', { token });
     if (!me.ok) return { ok: false, error: 'No se pudo iniciar sesión. Intente de nuevo.' };
@@ -114,7 +114,7 @@ const Auth = {
     if (!Auth.sesion) return false;
     const token = Auth.sesion.token;
     const me = await Auth.request('/v1/auth/yo', { token });
-    // Si mientras esperaba cambió la sesión guardada (logout o login en otra pestaña), usa la guardada
+    // Si mientras esperaba cambio la sesion guardada logout o login en otra pestana, usa la guardada.
     if (Auth.tokenGuardado() !== token) {
       Auth.sesion = null;
       Auth.restoreSession();
@@ -126,7 +126,7 @@ const Auth = {
       Auth.persistSession();
       return true;
     }
-    if (me.status === 0) return true; // sin conexión: mantiene la sesión local (PWA offline)
+    if (me.status === 0) return true;  // sin conexion mantiene la sesion local PWA offline
     Auth.logout();
     return false;
   },

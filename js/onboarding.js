@@ -101,7 +101,7 @@ const Onboarding = {
       const raw = localStorage.getItem(Onboarding.STORAGE_KEY);
       if (raw) {
         Onboarding.datos = JSON.parse(raw) || {};
-        // Limpia borradores de versiones anteriores que sí guardaban la contraseña
+        // Limpia borradores de versiones anteriores que guardaban la contrasena.
         if ('password' in Onboarding.datos) {
           delete Onboarding.datos.password;
           Onboarding.save();
@@ -113,7 +113,7 @@ const Onboarding = {
   },
 
   save() {
-    // La contraseña nunca se guarda en el dispositivo: solo vive en memoria hasta crear la cuenta.
+    // La contrasena nunca se guarda en el dispositivo. Solo vive en memoria hasta crear la cuenta.
     const borrador = Object.assign({}, Onboarding.datos);
     delete borrador.password;
     try {
@@ -312,7 +312,7 @@ const Onboarding = {
   },
 
   async finish(btn) {
-    // Si recargó la página, la contraseña ya no está en memoria (no se guarda en el dispositivo)
+    // Si recargo la pagina, la contrasena ya no esta en memoria. No se guarda en el dispositivo.
     if (!Onboarding.datos.password) {
       Onboarding.index = Onboarding.pasos.findIndex(p => p.campo === 'password');
       Onboarding.renderCard();

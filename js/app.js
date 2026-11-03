@@ -45,7 +45,6 @@ const App = {
     App.elements.historyOverlay.addEventListener('click', App.closeHistory);
     App.elements.historyClear.addEventListener('click', App.handleHistoryClear);
     App.elements.historyMenu.addEventListener('click', App.handleMenuClick);
-    document.querySelectorAll('[data-back]').forEach(btn => btn.addEventListener('click', App.showAsistente));
     App.elements.apiRun.addEventListener('click', App.runApiAnonymize);
     App.elements.configClear.addEventListener('click', App.handleConfigClear);
     App.elements.configLogout.addEventListener('click', App.handleLogout);
@@ -349,7 +348,7 @@ const App = {
 
   clearChildren(el) { while (el.firstChild) el.removeChild(el.firstChild); },
 
-  // Selector de temas: el tema elegido define la auditoría y el filtro de normativa del asistente.
+  // Selector de temas el tema elegido define la auditoria y el filtro de normativa del asistente.
   renderCategoryTabs() {
     const list = App.elements.categoryList;
     App.clearChildren(list);
@@ -404,7 +403,7 @@ const App = {
     App.showView('asistenteView');
   },
 
-  // Auditoría del tema en dos pasos: datos del caso y diagnóstico en cuatro bloques.
+  // Auditoria del tema en dos pasos datos del caso y diagnostico.
   renderAuditoria(c) {
     const raiz = App.elements.auditoria;
     App.clearChildren(raiz);
@@ -491,7 +490,7 @@ const App = {
     return card;
   },
 
-  // Documentos del caso (PDF o fotos). Se validan y listan en el navegador; no se suben al servidor.
+  // Documentos del caso PDF o fotos. Se validan y listan en el navegador. No se suben al servidor.
   buildAdjuntos(c) {
     const cfg = App.ADJUNTOS;
     const archivos = [];
@@ -760,7 +759,7 @@ const App = {
     messages.scrollTop = messages.scrollHeight;
   },
 
-  // Asistente ServicIA flotante: consulta el backend RAG filtrando por el tema elegido.
+  // Asistente ServicIA flotante. Consulta el backend RAG filtrando por el tema elegido.
   bindAssistant() {
     App.elements.chatInput.addEventListener('input', App.refreshChatSend);
     App.elements.chatForm.addEventListener('submit', App.handleAssistantSubmit);
@@ -770,7 +769,7 @@ const App = {
     App.refreshChatSend();
   },
 
-  // Abre el panel. Si llega un texto (el relato del caso), lo deja escrito para que el usuario decida enviarlo.
+  // Abre el panel. Si llega un texto, como el relato del caso, lo deja escrito para que el usuario decida enviarlo.
   abrirAsistente(texto) {
     const { asistentePanel: panel, asistenteFab: fab, chatInput: input, chatMessages: messages } = App.elements;
     if (!messages.children.length) {
@@ -795,7 +794,7 @@ const App = {
     }
   },
 
-  // El botón Enviar queda deshabilitado hasta que la pregunta tenga el mínimo de caracteres.
+  // El boton Enviar queda deshabilitado hasta que la pregunta tenga el minimo de caracteres.
   refreshChatSend() {
     App.elements.chatSend.disabled = App.elements.chatInput.value.trim().length < App.ASSISTANT_MIN_CHARS;
   },
@@ -841,7 +840,7 @@ const App = {
       return;
     }
     const burbuja = App.renderAssistantAnswer(res.data, messages);
-    // Muestra el inicio de la respuesta, no el final: así se lee de arriba hacia abajo
+    // Muestra el inicio de la respuesta, no el final, para leer de arriba hacia abajo.
     messages.scrollTop = Math.max(0, burbuja.offsetTop - messages.offsetTop - 8);
     input.focus();
   },
@@ -864,7 +863,7 @@ const App = {
       data.fuentes.forEach(f => {
         const li = document.createElement('li');
         const etiqueta = f.titulo + (f.pagina ? ', página ' + f.pagina : '');
-        // Solo enlaces https: la URL viene de la base de documentos
+        // Solo se aceptan enlaces https. La URL viene de la base de documentos.
         if (f.url && /^https:\/\//i.test(f.url)) {
           const a = document.createElement('a');
           a.href = f.url;

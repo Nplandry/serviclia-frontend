@@ -1,4 +1,4 @@
-const CACHE_NAME = 'servicia-v19';
+const CACHE_NAME = 'servicia-v20';
 const ASSETS = [
   './',
   './index.html',
@@ -53,7 +53,7 @@ self.addEventListener('fetch', function (event) {
     return;
   }
 
-  // Solo se cachean archivos de la propia app. Las respuestas de la API (otro origen o con sesión)
+  // Solo se cachean archivos de la propia app. Las respuestas de la API otro origen o con sesion
   // contienen datos personales y nunca se guardan en el dispositivo.
   if (new URL(request.url).origin !== self.location.origin || request.headers.has('Authorization')) {
     return;

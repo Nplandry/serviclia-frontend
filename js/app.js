@@ -476,17 +476,44 @@ const App = {
 
     const adjuntos = App.buildAdjuntos(c);
 
+    const rutCampo = document.createElement('div');
+    rutCampo.className = 'field';
+    const rutLabel = document.createElement('label');
+    rutLabel.className = 'field__label';
+    rutLabel.htmlFor = 'rut-' + c.id;
+    rutLabel.textContent = 'Su RUT (opcional)';
+    const rut = document.createElement('input');
+    rut.type = 'text';
+    rut.id = 'rut-' + c.id;
+    rut.className = 'field__input';
+    rut.placeholder = '12.345.678-9';
+    rut.maxLength = 12;
+    rut.autocomplete = 'off';
+    rut.addEventListener('blur', () => { if (rut.value.trim()) rut.value = Security.formatRut(rut.value); });
+    const rutError = document.createElement('p');
+    rutError.className = 'error-text';
+    rutError.setAttribute('role', 'alert');
+    rutError.hidden = true;
+    rutCampo.append(rutLabel, rut, rutError);
+
     const auditar = document.createElement('button');
     auditar.type = 'button';
     auditar.className = 'submit-btn';
     auditar.textContent = 'Auditar ahora';
     auditar.addEventListener('click', () => {
+      rutError.hidden = true;
+      if (rut.value.trim() && !Security.validateRut(rut.value.trim())) {
+        rutError.textContent = 'El RUT ingresado no es válido. Revise el dígito verificador o déjelo vacío.';
+        rutError.hidden = false;
+        rut.focus();
+        return;
+      }
       App.renderDiagnostico(resultado, c, seleccionado, relato.value.trim(), adjuntos.archivos());
       Historial.add({ caso: c.title, casoId: c.id, resumen: seleccionado.diagnostico.etiqueta, ok: seleccionado.diagnostico.nivel !== 'alto' });
       App.renderHistory();
     });
 
-    card.append(tipos, campo, adjuntos.nodo, auditar);
+    card.append(tipos, campo, rutCampo, adjuntos.nodo, auditar);
     return card;
   },
 

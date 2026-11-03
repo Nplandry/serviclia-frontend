@@ -11,6 +11,7 @@ const App = {
     App.setGreeting();
     App.renderCategories(CATEGORIAS);
     App.loadVoices();
+    Pasaporte.init();
     App.applyAuthState();
     if (typeof Compliance !== 'undefined') Compliance.initCookieBanner();
     App.verifySession();

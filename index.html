@@ -281,10 +281,14 @@
         <button id="configClear" class="history__clear" type="button">Borrar historial</button>
         <button id="configLogout" class="submit-btn" type="button">Cerrar sesión</button>
       </div>
+    </section>
+
     <section id="verifyView" class="view" hidden>
       <button class="back-btn" type="button" data-back>Volver</button>
-      <h2 class="section-heading">Pasaporte Digital</h2>
-      <p class="section-lead">Antes de pagar o entregar datos, confirme que el mensaje, la llamada o el documento es real.</p>
+      <h2 class="section-heading">Pasaporte Digital de Integridad Patrimonial</h2>
+      <p class="section-lead">Credencial verificada en fuentes oficiales. Seleccione el rubro para ver los indicadores de solvencia y certeza jurídica.</p>
+      <div id="pasaporteRaiz" class="pasaporte"></div>
+      <h3 class="pasaporte__subtitulo">Cómo confirmar que un mensaje o documento es real</h3>
       <div class="config-card">
         <ol class="verify-steps">
           <li>No pague ni entregue su RUT, claves o datos bancarios por teléfono, SMS o correo.</li>
@@ -323,6 +327,8 @@
 </script>
   <script src="js/modules/history.js">
 </script>
+  <script src="js/data/pasaporte.js"></script>
+  <script src="js/modules/pasaporte.js"></script>
   <script src="js/app.js">
 </script>
   <script>    if ('serviceWorker' in navigator) {

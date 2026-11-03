@@ -33,6 +33,8 @@ El menú lateral (Asistente, Pasaporte Digital, Mapa, Portal API, Dashboard y Co
 | `js/services/api.js` | Llamadas a la API (asistente y orientación) |
 | `js/modules/history.js` | Historial local de consultas |
 | `js/data/categorias.js` | Categorías, preguntas recomendadas e iconos |
+| `js/data/pasaporte.js` | Datos de demostración (mock) del Pasaporte Digital |
+| `js/modules/pasaporte.js` | Render del Pasaporte Digital: selector de rubro y tarjeta |
 | `js/onboarding.js` | Lógica del flujo de bienvenida |
 | `sw.js` | Service Worker: caché de la app. No guarda respuestas de la API. |
 | `manifest.json` | Configuración de la PWA |
@@ -45,9 +47,15 @@ El menú lateral (Asistente, Pasaporte Digital, Mapa, Portal API, Dashboard y Co
 4. `js/core/auth.js`
 5. `js/services/api.js`
 6. `js/modules/history.js`
-7. `js/app.js`
+7. `js/data/pasaporte.js`
+8. `js/modules/pasaporte.js`
+9. `js/app.js`
 
 `sw.js` se registra al final de la página.
+
+## Pasaporte Digital
+
+La vista `verifyView` muestra la credencial de integridad patrimonial. Sus datos (titular, rubros, indicadores, token) están en `js/data/pasaporte.js` como mock. Para conectarla al backend, reemplace ese objeto por la respuesta de la API; el render no cambia. El botón de descarga está deshabilitado mientras la función no exista.
 
 ## Conexión con el backend
 

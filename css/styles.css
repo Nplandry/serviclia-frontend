@@ -2505,6 +2505,236 @@ body {
   color: var(--color-primary);
 }
 
+/* Pasaporte Digital */
+.pasaporte {
+  display: grid;
+  gap: var(--space-md);
+  margin-bottom: var(--space-xl);
+}
+
+.pasaporte__rubros {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-xs);
+}
+
+.pasaporte__rubro {
+  min-height: var(--touch-min);
+  padding: var(--space-sm) var(--space-md);
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  color: var(--color-primary);
+  background-color: var(--color-bg);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  text-align: left;
+}
+
+.pasaporte__rubro--activo {
+  color: #ffffff;
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.pasaporte__rubro:focus-visible {
+  outline: 3px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.pasaporte__tarjeta {
+  display: grid;
+  gap: var(--space-md);
+  padding: var(--space-lg);
+  color: var(--color-text);
+  background-color: var(--color-bg);
+  border: 2px solid var(--color-primary);
+  border-radius: var(--radius);
+}
+
+.pasaporte__cabecera {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-xs);
+  padding-bottom: var(--space-sm);
+  border-bottom: 2px solid var(--color-border);
+}
+
+.pasaporte__marca {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--color-primary);
+}
+
+.pasaporte__badge {
+  padding: 0.2rem 0.6rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--color-success-ink);
+  background-color: var(--color-success-soft);
+  border: 1px solid var(--color-success);
+  border-radius: 999px;
+}
+
+.pasaporte__titular {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.pasaporte__avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 3.5rem;
+  height: 3.5rem;
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  color: #ffffff;
+  background-color: var(--icono-bg);
+  border-radius: var(--radius);
+}
+
+.pasaporte__nombre {
+  margin: 0;
+  font-size: var(--font-size-base);
+  font-weight: 700;
+}
+
+.pasaporte__rut,
+.pasaporte__score-fila {
+  margin: var(--space-xs) 0 0;
+  font-size: 0.875rem;
+  color: var(--color-muted);
+}
+
+.pasaporte__score {
+  color: var(--color-success);
+}
+
+.pasaporte__lista {
+  display: grid;
+  gap: var(--space-xs);
+  margin: 0;
+  padding: var(--space-md);
+  list-style: none;
+  background-color: var(--color-secondary);
+  border-radius: var(--radius);
+}
+
+.pasaporte__item {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--space-md);
+  font-size: 0.875rem;
+}
+
+.pasaporte__item > span:first-child {
+  min-width: 0;
+}
+
+.pasaporte__estado {
+  flex: 0 0 auto;
+  font-weight: 700;
+  text-align: right;
+}
+
+.pasaporte__estado--ok {
+  color: var(--color-success);
+}
+
+.pasaporte__estado--info {
+  color: var(--color-primary);
+}
+
+.pasaporte__pie {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  padding-top: var(--space-md);
+  border-top: 2px solid var(--color-border);
+}
+
+.pasaporte__token-etiqueta,
+.pasaporte__validez {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--color-muted);
+}
+
+.pasaporte__token {
+  display: block;
+  font-family: var(--font-mono);
+  font-weight: 700;
+}
+
+.pasaporte__qr {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  flex: 0 0 auto;
+  width: 4.5rem;
+  height: 4.5rem;
+  padding: 0.35rem;
+  background-color: #ffffff;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-sm);
+}
+
+.pasaporte__qr-celda {
+  background-color: transparent;
+}
+
+.pasaporte__qr-celda--on {
+  background-color: var(--color-text);
+}
+
+.pasaporte__descarga {
+  width: 100%;
+  min-height: var(--touch-min);
+  padding: var(--space-sm) var(--space-md);
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  color: var(--color-muted);
+  background-color: var(--color-warn-soft);
+  border: none;
+  border-radius: var(--radius);
+  cursor: not-allowed;
+}
+
+.pasaporte__nota {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--color-muted);
+  text-align: center;
+}
+
+.pasaporte__subtitulo {
+  margin: 0 0 var(--space-sm);
+  font-size: var(--font-size-base);
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+@media (min-width: 40rem) {
+  .pasaporte__rubros {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .pasaporte__tarjeta {
+    max-width: 30rem;
+    margin: 0 auto;
+    width: 100%;
+  }
+}
+
 .verify-steps {
   margin: 0;
   padding-left: 1.25rem;

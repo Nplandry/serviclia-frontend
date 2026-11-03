@@ -30,16 +30,13 @@ const Auth = {
         headers,
         body: body !== undefined ? JSON.stringify(body) : undefined
       });
-    } catch (e) {
-      void e;
+    } catch {
       return { ok: false, status: 0, error: 'No se pudo conectar con el servidor. Intente de nuevo.' };
     }
     let data = null;
     try {
       data = await res.json();
-    } catch (e) {
-      void e;
-    }
+    } catch {}
     if (res.ok) return { ok: true, status: res.status, data };
     return { ok: false, status: res.status, error: Auth.mensajeError(res.status, data) };
   },
@@ -147,17 +144,13 @@ const Auth = {
     Auth.sesion = null;
     try {
       localStorage.removeItem(Auth.STORAGE_KEY);
-    } catch (e) {
-      void e;
-    }
+    } catch {}
   },
 
   persistSession() {
     try {
       localStorage.setItem(Auth.STORAGE_KEY, JSON.stringify(Auth.sesion));
-    } catch (e) {
-      void e;
-    }
+    } catch {}
   },
 
   restoreSession() {

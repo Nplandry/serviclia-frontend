@@ -42,9 +42,7 @@ const Compliance = {
   _persistAll(owner, list) {
     try {
       localStorage.setItem(Compliance.storageKeyFor(owner), JSON.stringify(list));
-    } catch (e) {
-      void e;
-    }
+    } catch {}
   },
 
   grantConsent(params) {
@@ -107,9 +105,7 @@ const Compliance = {
         severidad: detail && detail.severidad ? detail.severidad : 'media'
       });
       localStorage.setItem(Compliance.INCIDENT_KEY, JSON.stringify(list.slice(0, 100)));
-    } catch (e) {
-      void e;
-    }
+    } catch {}
   },
 
   getCookieConsent() {
@@ -123,9 +119,7 @@ const Compliance = {
   setCookieConsent(value) {
     try {
       localStorage.setItem(Compliance.COOKIE_KEY, value);
-    } catch (e) {
-      void e;
-    }
+    } catch {}
   },
 
   initCookieBanner() {

@@ -27,9 +27,7 @@ const Historial = {
   persist() {
     try {
       localStorage.setItem(Historial.storageKey(), JSON.stringify(Historial.items));
-    } catch (e) {
-      void e;
-    }
+    } catch {}
   },
 
   add(entry) {

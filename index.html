@@ -12,56 +12,72 @@
 </head>
 <body>
   <div id="authGate" class="auth" hidden>
-    <div class="auth__card">
-      <div class="auth__brand">
-        <span class="brand__mark">S</span>
-        <h1 class="auth__title">ServicIA</h1>
+    <section class="auth__hero">
+      <div class="auth__columna">
+        <div class="auth__intro">
+          <div class="auth__brand">
+            <span class="brand__mark">S</span>
+            <h1 class="auth__title">ServicIA</h1>
+          </div>
+          <p class="auth__subtitle">Defensa patrimonial y prevención de fraudes</p>
+          <ul class="auth__beneficios">
+            <li>Orientación paso a paso ante amenazas de embargo, seguros no consentidos y cambios de plan.</li>
+            <li>Respuestas basadas en normativa oficial chilena, con sus fuentes.</li>
+            <li>Sus datos personales se protegen según la Ley 21.719.</li>
+          </ul>
+        </div>
+
+        <div class="auth__card">
+          <div class="auth__tabs" role="tablist" aria-label="Acceso">
+            <button id="tabLogin" class="auth__tab auth__tab--active" type="button" role="tab" aria-selected="true">Iniciar sesión</button>
+            <button id="tabRegister" class="auth__tab" type="button" role="tab" aria-selected="false">Registrarse</button>
+          </div>
+
+          <form id="loginForm" class="auth__form" novalidate>
+            <div class="field">
+              <label class="field__label" for="loginEmail">Correo electrónico</label>
+              <input id="loginEmail" class="field__input" name="email" type="email" autocomplete="username" required placeholder="correo@ejemplo.cl">
+            </div>
+            <div class="field">
+              <label class="field__label" for="loginPassword">Contraseña</label>
+              <input id="loginPassword" class="field__input" name="password" type="password" autocomplete="current-password" required>
+            </div>
+            <button class="submit-btn" type="submit">Entrar</button>
+            <p id="loginStatus" class="error-text" role="alert" aria-live="assertive"></p>
+          </form>
+
+          <form id="registerForm" class="auth__form" novalidate hidden>
+            <div class="field">
+              <label class="field__label" for="registerName">Nombre</label>
+              <input id="registerName" class="field__input" name="nombre" type="text" autocomplete="name" required minlength="2" maxlength="60">
+            </div>
+            <div class="field">
+              <label class="field__label" for="registerEmail">Correo electrónico</label>
+              <input id="registerEmail" class="field__input" name="email" type="email" autocomplete="username" required placeholder="correo@ejemplo.cl">
+            </div>
+            <div class="field">
+              <label class="field__label" for="registerPassword">Contraseña</label>
+              <input id="registerPassword" class="field__input" name="password" type="password" autocomplete="new-password" required minlength="8">
+              <p class="help-text">Mínimo 8 caracteres.</p>
+            </div>
+            <button class="submit-btn" type="submit">Crear cuenta</button>
+            <p id="registerStatus" class="error-text" role="alert" aria-live="assertive"></p>
+          </form>
+        </div>
       </div>
-      <p class="auth__subtitle">Defensa patrimonial y prevención de fraudes</p>
+    </section>
 
-      <div class="auth__tabs" role="tablist" aria-label="Acceso">
-        <button id="tabLogin" class="auth__tab auth__tab--active" type="button" role="tab" aria-selected="true">Iniciar sesión</button>
-        <button id="tabRegister" class="auth__tab" type="button" role="tab" aria-selected="false">Registrarse</button>
+    <section class="auth__ads" aria-label="Publicidad">
+      <div class="auth__columna auth__columna--ads">
+        <p class="auth__ads-label">Publicidad</p>
+        <div class="ad-slot ad-slot--banner" data-ad-slot="auth-banner" aria-label="Espacio publicitario">Espacio publicitario</div>
+        <div class="auth__ads-grid">
+          <div class="ad-slot" data-ad-slot="auth-1" aria-label="Espacio publicitario">Espacio publicitario</div>
+          <div class="ad-slot" data-ad-slot="auth-2" aria-label="Espacio publicitario">Espacio publicitario</div>
+          <div class="ad-slot" data-ad-slot="auth-3" aria-label="Espacio publicitario">Espacio publicitario</div>
+        </div>
       </div>
-
-      <form id="loginForm" class="auth__form" novalidate>
-        <div class="field">
-          <label class="field__label" for="loginEmail">Correo electrónico</label>
-          <input id="loginEmail" class="field__input" name="email" type="email" autocomplete="username" required placeholder="correo@ejemplo.cl">
-        </div>
-        <div class="field">
-          <label class="field__label" for="loginPassword">Contraseña</label>
-          <input id="loginPassword" class="field__input" name="password" type="password" autocomplete="current-password" required>
-        </div>
-        <button class="submit-btn" type="submit">Entrar</button>
-        <p id="loginStatus" class="error-text" role="alert" aria-live="assertive"></p>
-      </form>
-
-      <form id="registerForm" class="auth__form" novalidate hidden>
-        <div class="field">
-          <label class="field__label" for="registerName">Nombre</label>
-          <input id="registerName" class="field__input" name="nombre" type="text" autocomplete="name" required minlength="2" maxlength="60">
-        </div>
-        <div class="field">
-          <label class="field__label" for="registerEmail">Correo electrónico</label>
-          <input id="registerEmail" class="field__input" name="email" type="email" autocomplete="username" required placeholder="correo@ejemplo.cl">
-        </div>
-        <div class="field">
-          <label class="field__label" for="registerPassword">Contraseña</label>
-          <input id="registerPassword" class="field__input" name="password" type="password" autocomplete="new-password" required minlength="8">
-          <p class="help-text">Mínimo 8 caracteres.</p>
-        </div>
-        <button class="submit-btn" type="submit">Crear cuenta</button>
-        <p id="registerStatus" class="error-text" role="alert" aria-live="assertive"></p>
-      </form>
-
-      <details class="auth__hint">
-        <summary>Clave de prueba</summary>
-        <ul>
-          <li>adulto@servicia.cl / adulto123</li>
-        </ul>
-      </details>
-    </div>
+    </section>
   </div>
 
   <header class="app-header">

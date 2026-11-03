@@ -118,9 +118,7 @@ const Onboarding = {
     delete borrador.password;
     try {
       localStorage.setItem(Onboarding.STORAGE_KEY, JSON.stringify(borrador));
-    } catch (e) {
-      void e;
-    }
+    } catch {}
   },
 
   renderProgress() {
@@ -343,9 +341,7 @@ const Onboarding = {
 
     try {
       localStorage.removeItem(Onboarding.STORAGE_KEY);
-    } catch (e) {
-      void e;
-    }
+    } catch {}
 
     Onboarding.clear(Onboarding.elements.deck);
     const done = document.createElement('article');

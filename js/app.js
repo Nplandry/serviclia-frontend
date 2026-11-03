@@ -138,7 +138,7 @@ const App = {
   renderConfig() {
     const user = Auth.getCurrentUser() || {};
     const partes = [user.nombre, user.email].filter(Boolean);
-    App.elements.configUser.textContent = partes.length ? 'Sesión: ' + partes.join(' · ') : 'Sin sesión activa.';
+    App.elements.configUser.textContent = partes.length ? 'Sesión: ' + partes.join(' ') : 'Sin sesión activa.';
   },
 
   handleConfigClear() {

@@ -142,77 +142,11 @@
   </aside>
 
   <main id="main" class="main">
-    <section id="homeView" class="view">
-      <div class="hero">
-        <h2 id="greeting" class="hero__title">Bienvenido</h2>
-        <p class="hero__text">Seleccione un tema para recibir orientación paso a paso.</p>
-      </div>
-
-      <div class="search-box">
-        <label for="searchInput" class="u-visually-hidden">Buscar temas de orientación</label>
-        <input id="searchInput" class="search-box__input" type="search" placeholder="Buscar: embargo, seguros, portabilidad, solvencia..." autocomplete="off" aria-describedby="searchHelp">
-      </div>
-
-      <section class="recomendados">
-        <h2 class="recomendados__title">Recomendados para ti</h2>
-        <div id="carrusel" class="recomendados__carrusel" role="region" aria-label="Casos recomendados">
-          <div class="recomendados__list" id="carruselList"></div>
-        </div>
-      </section>
-
-      <nav aria-label="Categorías de orientación">
+    <section id="asistenteView" class="view">
+      <nav aria-label="Temas de orientación">
         <ul id="categoryList" class="category-list"></ul>
       </nav>
-
-      <div id="zeroResults" class="zero-results" hidden>
-        <p class="zero-results__title">No encontramos temas con esa palabra.</p>
-        <ul class="zero-results__list">
-          <li>Pruebe con "embargo", "seguros", "portabilidad" o "solvencia".</li>
-          <li>Use palabras simples y sin tildes.</li>
-        </ul>
-      </div>
-
-      <div class="chat chat--main">
-        <h3 class="chat__title">Asistente ServicIA</h3>
-        <div id="mainChatMessages" class="chat__messages" role="log" aria-live="polite" aria-label="Mensajes del asistente"></div>
-        <form id="mainChatForm" class="chat__form">
-          <label for="mainChatInput" class="u-visually-hidden">Sigamos hablando de su tema...</label>
-          <input id="mainChatInput" class="chat__input" type="text" placeholder="Sigamos hablando de su tema..." autocomplete="off" maxlength="300">
-          <button id="mainChatSend" class="chat__send" type="submit" aria-label="Enviar mensaje" disabled>Enviar</button>
-        </form>
-        <p id="mainChatStatus" class="chat__status" aria-live="polite"></p>
-      </div>
-
-      <button id="emergencyBtn" class="emergency-btn" type="button" aria-live="polite" hidden>
-        ¿Qué digo ahora?
-      </button>
-    </section>
-
-    <section id="categoryView" class="view" hidden>
-      <button id="backFromCategory" class="back-btn" type="button">Volver</button>
-      <h2 id="categoryTitle" class="section-heading"></h2>
-      <p id="categoryDescription" class="section-lead"></p>
-      <div id="categoryContent" class="content-cards"></div>
-
-      <div class="chat">
-        <h3 class="chat__title">Asistente ServicIA</h3>
-        <div id="chatMessages" class="chat__messages" role="log" aria-live="polite" aria-label="Mensajes del asistente"></div>
-        <form id="chatForm" class="chat__form">
-          <label for="chatInput" class="u-visually-hidden">Sigamos hablando de su tema...</label>
-          <input id="chatInput" class="chat__input" type="text" placeholder="Sigamos hablando de su tema..." autocomplete="off" maxlength="300">
-          <button id="chatSend" class="chat__send" type="submit" aria-label="Enviar mensaje" disabled>Enviar</button>
-        </form>
-        <p id="chatStatus" class="chat__status" aria-live="polite"></p>
-      </div>
-    </section>
-
-    <section id="detailView" class="view" hidden>
-      <button id="backFromDetail" class="back-btn" type="button">Volver</button>
-      <article id="detailArticle" class="detail-article"></article>
-      <div class="speak-controls">
-        <button id="speakBtn" class="speak-btn" type="button">Escuchar en voz alta</button>
-        <button id="stopSpeakBtn" class="stop-speak-btn" type="button" hidden>Detener lectura</button>
-      </div>
+      <div id="auditoria" class="auditoria"></div>
     </section>
 
     <section id="formView" class="view" hidden>
@@ -305,6 +239,29 @@
       <p class="help-text">Esta sección orienta, pero no verifica documentos ni sellos de forma automática.</p>
     </section>
   </main>
+
+  <button id="asistenteFab" class="asistente-fab" type="button" aria-controls="asistentePanel" aria-expanded="false" hidden>
+    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+    <span class="u-visually-hidden">Abrir Asistente ServicIA</span>
+  </button>
+
+  <section id="asistentePanel" class="asistente-panel" role="dialog" aria-labelledby="asistenteTitulo" hidden>
+    <header class="asistente-panel__head">
+      <div>
+        <h2 id="asistenteTitulo" class="asistente-panel__title">Asistente ServicIA</h2>
+        <p id="asistenteTema" class="asistente-panel__tema"></p>
+      </div>
+      <button id="asistenteClose" class="asistente-panel__close" type="button" aria-label="Cerrar asistente">&times;</button>
+    </header>
+    <div id="chatMessages" class="chat__messages asistente-panel__messages" role="log" aria-live="polite" aria-label="Mensajes del asistente"></div>
+    <form id="chatForm" class="chat__form">
+      <label for="chatInput" class="u-visually-hidden">Escriba su pregunta</label>
+      <input id="chatInput" class="chat__input" type="text" placeholder="Escriba su pregunta..." autocomplete="off" maxlength="300">
+      <button id="chatSend" class="chat__send" type="submit" aria-label="Enviar mensaje" disabled>Enviar</button>
+    </form>
+    <p id="chatStatus" class="chat__status" aria-live="polite"></p>
+    <p class="asistente-panel__nota">Respuestas basadas en normativa oficial. Es orientación, no asesoría legal.</p>
+  </section>
 
   <footer class="app-footer">
     <p class="app-footer__note">ServicIA es una orientación inicial, no reemplaza asesoría profesional.</p>

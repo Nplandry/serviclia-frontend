@@ -1,17 +1,4 @@
 const Security = {
-  escapeHtml: function (text) {
-    const map = {
-      '&': '&amp;',
-      '<': '&lt;',
-      '>': '&gt;',
-      '"': '&quot;',
-      "'": '&#039;'
-    };
-    return String(text).replace(/[&<>"']/g, function (char) {
-      return map[char];
-    });
-  },
-
   sanitizeText: function (text) {
     return String(text).trim().replace(/[<>]/g, '');
   },
@@ -64,15 +51,6 @@ const Security = {
     }
     const check = cleaned.slice(-1);
     return 'RUT_****-' + check;
-  },
-
-  pseudonymize: function (value) {
-    const str = String(value).toUpperCase().replace(/[\s.\-]/g, '');
-    let hash = 0;
-    for (let i = 0; i < str.length; i++) {
-      hash = (hash * 31 + str.charCodeAt(i)) >>> 0;
-    }
-    return 'ANON-' + hash.toString(36).toUpperCase();
   },
 
   redactText: function (text) {

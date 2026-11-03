@@ -12,12 +12,13 @@ Aplicación web progresiva para orientación ante amenazas de embargo, seguros n
 Dentro de `index.html`, la app cambia entre vistas que se muestran u ocultan:
 
 - **authGate**: acceso, con información del servicio y espacios de publicidad.
-- **homeView**: asistente, búsqueda y categorías recomendadas.
-- **categoryView**: entrada de datos de una categoría, con asistente propio.
+- **asistenteView**: vista principal. Selector con los tres temas reales (embargo, seguros, cambio de plan) y la auditoría del tema en dos pasos: datos del caso y diagnóstico (nivel de riesgo, fundamento, acciones recomendadas y siguientes pasos).
 - **formView**: formulario de orientación personalizada.
 - **mapView**, **apiView**, **dashboardView**, **configView**, **verifyView**: secciones del menú lateral.
 
 El menú lateral (Asistente, Pasaporte Digital, Mapa, Portal API, Dashboard y Configuración) se abre con el botón de la esquina superior izquierda.
+
+El **Asistente ServicIA** es flotante: un botón en la esquina inferior derecha abre el chat, que consulta el backend (`POST /v1/consultas`) filtrando la normativa por el tema activo. El botón "Resolver mis dudas con IA" del diagnóstico lo abre con el relato del caso ya escrito, para que el usuario decida si lo envía.
 
 ## Estructura
 
@@ -26,13 +27,13 @@ El menú lateral (Asistente, Pasaporte Digital, Mapa, Portal API, Dashboard y Co
 | `index.html` | Estructura de todas las vistas |
 | `onboarding/index.html` | Flujo de bienvenida |
 | `css/styles.css` | Estilos de toda la aplicación |
-| `js/app.js` | Lógica principal: vistas, menú, asistente y categorías |
+| `js/app.js` | Lógica principal: vistas, menú, auditoría por tema y asistente flotante |
 | `js/core/auth.js` | Sesión: login, registro, perfil y verificación del token |
 | `js/core/security.js` | Validación de RUT y redacción de datos personales en el navegador |
-| `js/compliance.js` | Consentimientos y banner de cookies |
-| `js/services/api.js` | Llamadas a la API (asistente y orientación) |
+| `js/compliance.js` | Aviso de cookies y registro local de incidentes de seguridad |
+| `js/services/api.js` | Llamadas a la API: asistente (real) y orientación (simulada) |
 | `js/modules/history.js` | Historial local de consultas |
-| `js/data/categorias.js` | Categorías, preguntas recomendadas e iconos |
+| `js/data/categorias.js` | Temas, casos y diagnóstico de cada caso, e iconos |
 | `js/data/pasaporte.js` | Datos de demostración (mock) del Pasaporte Digital |
 | `js/modules/pasaporte.js` | Render del Pasaporte Digital: selector de rubro y tarjeta |
 | `js/onboarding.js` | Lógica del flujo de bienvenida |

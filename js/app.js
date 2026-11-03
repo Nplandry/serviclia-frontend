@@ -1,6 +1,12 @@
 const App = {
   ASSISTANT_MIN_CHARS: 5,
-  state: { currentCategory: null, currentItem: null, voices: [] },
+  ADJUNTOS: {
+    max: 5,
+    maxBytes: 10 * 1024 * 1024,
+    accept: '.pdf,.jpg,.jpeg,.png',
+    extensiones: ['pdf', 'jpg', 'jpeg', 'png']
+  },
+  state: { currentCategory: null },
   elements: {},
 
   init() {
@@ -8,9 +14,7 @@ const App = {
     App.cacheElements();
     App.bindEvents();
     App.bindAuthEvents();
-    App.setGreeting();
-    App.renderCategories(CATEGORIAS);
-    App.loadVoices();
+    App.renderCategoryTabs();
     Pasaporte.init();
     App.applyAuthState();
     if (typeof Compliance !== 'undefined') Compliance.initCookieBanner();
@@ -23,7 +27,7 @@ const App = {
   },
 
   cacheElements() {
-    const ids = ['homeView','categoryView','detailView','formView','searchInput','categoryList','zeroResults','backFromCategory','backFromDetail','backFromForm','categoryTitle','categoryDescription','categoryContent','detailArticle','speakBtn','stopSpeakBtn','orientationForm','formRut','rutError','submitForm','formStatus','greeting','logoutBtn','chatForm','chatInput','chatSend','chatMessages','chatStatus','mainChatForm','mainChatInput','mainChatSend','mainChatMessages','mainChatStatus','authGate','tabLogin','tabRegister','loginForm','registerForm','loginStatus','registerStatus','historyBtn','historyPanel','historyOverlay','historyClose','historyList','historyClear','carruselList','historyMenu','mapView','apiView','dashboardView','configView','mapContainer','mapStatus','apiInput','apiRun','apiOutput','dashKpis','dashBars','configUser','configClear','configLogout','verifyView'];
+    const ids = ['asistenteView','formView','categoryList','backFromForm','orientationForm','formRut','rutError','submitForm','formStatus','logoutBtn','chatForm','chatInput','chatSend','chatMessages','chatStatus','authGate','tabLogin','tabRegister','loginForm','registerForm','loginStatus','registerStatus','historyBtn','historyPanel','historyOverlay','historyClose','historyList','historyClear','historyMenu','mapView','apiView','dashboardView','configView','mapContainer','mapStatus','apiInput','apiRun','apiOutput','dashKpis','dashBars','configUser','configClear','configLogout','verifyView','auditoria','asistenteFab','asistentePanel','asistenteClose','asistenteTema'];
     ids.forEach(id => App.elements[id] = document.getElementById(id));
     App.elements.appHeader = document.querySelector('.app-header');
     App.elements.appMain = document.getElementById('main');
@@ -41,7 +45,7 @@ const App = {
     App.elements.historyOverlay.addEventListener('click', App.closeHistory);
     App.elements.historyClear.addEventListener('click', App.handleHistoryClear);
     App.elements.historyMenu.addEventListener('click', App.handleMenuClick);
-    document.querySelectorAll('[data-back]').forEach(btn => btn.addEventListener('click', App.showHome));
+    document.querySelectorAll('[data-back]').forEach(btn => btn.addEventListener('click', App.showAsistente));
     App.elements.apiRun.addEventListener('click', App.runApiAnonymize);
     App.elements.configClear.addEventListener('click', App.handleConfigClear);
     App.elements.configLogout.addEventListener('click', App.handleLogout);
@@ -55,7 +59,7 @@ const App = {
 
   openSection(name) {
     App.closeHistory();
-    if (name === 'asistente') return App.showHome();
+    if (name === 'asistente') return App.showAsistente();
     if (name === 'mapa') { App.showView('mapView'); return App.initMap(); }
     if (name === 'api') return App.showView('apiView');
     if (name === 'dashboard') { App.renderDashboard(); return App.showView('dashboardView'); }
@@ -199,17 +203,18 @@ const App = {
     if (App.elements.appFooter) App.elements.appFooter.hidden = !authed;
     App.elements.logoutBtn.hidden = !authed;
     App.elements.historyBtn.hidden = !authed;
+    App.elements.asistenteFab.hidden = !authed;
 
     if (authed) {
       const user = Auth.getCurrentUser();
       Historial.init(user.email);
       App.renderHistory();
-      App.setGreeting();
-      App.renderRecomendados();
-      App.renderCategories(CATEGORIAS);
-      App.showHome();
+      App.showAsistente();
     } else {
       App.closeHistory();
+      App.cerrarAsistente();
+      App.state.currentCategory = null;
+      App.resetChat();
     }
   },
 
@@ -255,10 +260,12 @@ const App = {
       head.textContent = it.caso;
       card.appendChild(head);
 
-      const rut = document.createElement('p');
-      rut.className = 'history__item-rut';
-      rut.textContent = it.rut;
-      card.appendChild(rut);
+      if (it.rut) {
+        const rut = document.createElement('p');
+        rut.className = 'history__item-rut';
+        rut.textContent = it.rut;
+        card.appendChild(rut);
+      }
 
       const resumen = document.createElement('p');
       resumen.className = 'history__item-resumen';
@@ -334,709 +341,366 @@ const App = {
   },
 
   bindEvents() {
-    App.elements.searchInput.addEventListener('input', App.handleSearch);
-    App.elements.backFromCategory.addEventListener('click', App.showHome);
-    App.elements.backFromDetail.addEventListener('click', App.showCategory);
-    App.elements.backFromForm.addEventListener('click', App.showHome);
-    App.elements.speakBtn.addEventListener('click', App.speakCurrent);
-    App.elements.stopSpeakBtn.addEventListener('click', App.stopSpeaking);
+    App.elements.backFromForm.addEventListener('click', App.showAsistente);
     App.elements.orientationForm.addEventListener('submit', App.handleFormSubmit);
     App.elements.formRut.addEventListener('blur', App.handleRutBlur);
-    App.bindAssistant('main', App.elements.mainChatForm, App.elements.mainChatInput, App.elements.mainChatSend, App.elements.mainChatMessages, App.elements.mainChatStatus);
-    App.bindAssistant('categoria', App.elements.chatForm, App.elements.chatInput, App.elements.chatSend, App.elements.chatMessages, App.elements.chatStatus);
-    if (window.speechSynthesis) window.speechSynthesis.onvoiceschanged = App.loadVoices;
-  },
-
-  setGreeting() {
-    const h = new Date().getHours();
-    let t = h < 12 ? 'Buenos días' : h < 20 ? 'Buenas tardes' : 'Buenas noches';
-    t += ', bienvenido a ServicIA';
-    App.elements.greeting.textContent = t;
-    const heroText = document.querySelector('.hero__text');
-    if (heroText) heroText.textContent = 'Seleccione un tema para recibir orientación paso a paso.';
+    App.bindAssistant();
   },
 
   clearChildren(el) { while (el.firstChild) el.removeChild(el.firstChild); },
 
-  renderRecomendados() {
-    const list = App.elements.carruselList;
+  // Selector de temas: el tema elegido define la auditoría y el filtro de normativa del asistente.
+  renderCategoryTabs() {
+    const list = App.elements.categoryList;
     App.clearChildren(list);
-
-    RECOMENDADOS.forEach(rec => {
-      const card = document.createElement('button');
-      card.className = 'recomendado';
-      card.type = 'button';
-      card.addEventListener('click', () => {
-        const cat = CATEGORIAS.find(c => c.id === rec.categoria);
-        if (cat) App.openCategory(cat.id);
-      });
-
-      const icono = document.createElement('div');
-      icono.className = 'recomendado__icono';
-      icono.setAttribute('aria-hidden', 'true');
-      icono.innerHTML = ICONOS_SVG[rec.icono] || ICONOS_SVG['document'];
-      card.appendChild(icono);
-
-      const titulo = document.createElement('p');
-      titulo.className = 'recomendado__titulo';
-      titulo.textContent = rec.titulo;
-      card.appendChild(titulo);
-
-      const desc = document.createElement('p');
-      desc.className = 'recomendado__desc';
-      desc.textContent = rec.descripcion;
-      card.appendChild(desc);
-
-      list.appendChild(card);
-    });
-  },
-
-  renderCategories(categories) {
-    App.clearChildren(App.elements.categoryList);
-    App.elements.zeroResults.hidden = categories.length > 0;
-
-    categories.forEach(c => {
+    CATEGORIAS.forEach(c => {
       const li = document.createElement('li');
       const btn = document.createElement('button');
-      btn.className = 'category-card';
       btn.type = 'button';
-      const tema = c.short.split(/\s+-\s+/).pop();
-      const iconoSvg = ICONOS_SVG[ICONO_CATEGORIA[c.id]] || ICONOS_SVG['document'];
-      btn.innerHTML = `<span class="category-card__header"><span class="category-card__icono" aria-hidden="true">${iconoSvg}</span><span class="category-card__title">${c.title}</span></span>` +
-        `<span class="category-card__topic">${tema}</span>`;
+      btn.className = 'category-card';
+      btn.dataset.categoria = c.id;
+      btn.setAttribute('aria-pressed', 'false');
+
+      const header = document.createElement('span');
+      header.className = 'category-card__header';
+      const icono = document.createElement('span');
+      icono.className = 'category-card__icono';
+      icono.setAttribute('aria-hidden', 'true');
+      icono.innerHTML = ICONOS_SVG[ICONO_CATEGORIA[c.id]];
+      const titulo = document.createElement('span');
+      titulo.className = 'category-card__title';
+      titulo.textContent = c.title;
+      header.append(icono, titulo);
+
+      const tema = document.createElement('span');
+      tema.className = 'category-card__topic';
+      tema.textContent = c.short;
+
+      btn.append(header, tema);
       btn.addEventListener('click', () => App.openCategory(c.id));
       li.appendChild(btn);
-      App.elements.categoryList.appendChild(li);
+      list.appendChild(li);
     });
   },
 
-  handleSearch() {
-    const q = Security.sanitizeText(App.elements.searchInput.value).toLowerCase();
-    App.renderCategories(q ? CATEGORIAS.filter(c => c.title.toLowerCase().includes(q) || c.short.toLowerCase().includes(q) || c.description.toLowerCase().includes(q) || c.items.some(i => i.title.toLowerCase().includes(q))) : CATEGORIAS);
+  showAsistente() {
+    App.openCategory((App.state.currentCategory || CATEGORIAS[0]).id);
   },
 
   openCategory(id) {
     const c = CATEGORIAS.find(x => x.id === id);
     if (!c) return;
+    if (App.state.currentCategory !== c) {
+      App.resetChat();
+      App.renderAuditoria(c);
+    }
     App.state.currentCategory = c;
-    App.elements.categoryTitle.textContent = c.title;
-    App.elements.categoryDescription.textContent = c.description;
-
-    const content = App.elements.categoryContent;
-    App.clearChildren(content);
-    content.className = 'wizard';
-
-    const diagStep = App.buildDiagnosticoStep(c);
-    const mainCol = document.createElement('div');
-    mainCol.className = 'wizard__main';
-    mainCol.appendChild(App.buildPreliminarStep(c));
-    mainCol.appendChild(App.buildEntradaStep(c, diagStep));
-
-    const diagCol = document.createElement('div');
-    diagCol.className = 'wizard__diag';
-    diagCol.appendChild(diagStep);
-    diagCol.appendChild(App.buildOrientacionStep());
-
-    content.appendChild(mainCol);
-    content.appendChild(diagCol);
-    App.showView('categoryView');
+    App.elements.asistenteTema.textContent = 'Tema: ' + c.title;
+    App.elements.categoryList.querySelectorAll('[data-categoria]').forEach(btn => {
+      const activo = btn.dataset.categoria === id;
+      btn.classList.toggle('category-card--activo', activo);
+      btn.setAttribute('aria-pressed', String(activo));
+    });
+    App.showView('asistenteView');
   },
 
-  buildStepHeader(num, title) {
+  // Auditoría del tema en dos pasos: datos del caso y diagnóstico en cuatro bloques.
+  renderAuditoria(c) {
+    const raiz = App.elements.auditoria;
+    App.clearChildren(raiz);
+    const resultado = document.createElement('section');
+    resultado.className = 'auditoria__card';
+    resultado.setAttribute('aria-live', 'polite');
+    resultado.hidden = true;
+    raiz.append(App.buildPasoCaso(c, resultado), resultado);
+  },
+
+  buildPasoHead(paso, titulo, lead) {
     const head = document.createElement('div');
-    head.className = 'step__head';
+    head.className = 'auditoria__head';
     const badge = document.createElement('span');
-    badge.className = 'step__badge';
-    badge.setAttribute('aria-hidden', 'true');
-    badge.textContent = num;
-    const h = document.createElement('h3');
-    h.className = 'step__title';
-    h.textContent = title;
-    head.appendChild(badge);
-    head.appendChild(h);
+    badge.className = 'auditoria__paso';
+    badge.textContent = 'Paso ' + paso + ' de 2';
+    const h = document.createElement('h2');
+    h.className = 'auditoria__titulo';
+    h.textContent = titulo;
+    head.append(badge, h);
+    if (lead) {
+      const p = document.createElement('p');
+      p.className = 'auditoria__lead';
+      p.textContent = lead;
+      head.appendChild(p);
+    }
     return head;
   },
 
-  buildPreliminarStep(c) {
-    const step = document.createElement('section');
-    step.className = 'step';
-    step.setAttribute('aria-label', 'Paso 1: Información preliminar');
-    step.appendChild(App.buildStepHeader(1, 'Información preliminar'));
+  buildPasoCaso(c, resultado) {
+    const card = document.createElement('section');
+    card.className = 'auditoria__card';
+    card.appendChild(App.buildPasoHead(1, 'Auditoría express: ' + c.title, c.description));
 
-    const resumen = document.createElement('p');
-    resumen.className = 'step__lead';
-    resumen.textContent = c.preliminar.resumen;
-    step.appendChild(resumen);
-
-    const sub = document.createElement('p');
-    sub.className = 'step__subtitle';
-    sub.textContent = 'Riesgos a considerar:';
-    step.appendChild(sub);
-
-    const ul = document.createElement('ul');
-    ul.className = 'step__list';
-    c.preliminar.riesgos.forEach(r => {
-      const li = document.createElement('li');
-      li.textContent = r;
-      ul.appendChild(li);
-    });
-    step.appendChild(ul);
-    return step;
-  },
-
-  buildEntradaStep(c, diagStep) {
-    const step = document.createElement('section');
-    step.className = 'step';
-    step.setAttribute('aria-label', 'Paso 2: Entrada de datos');
-    step.appendChild(App.buildStepHeader(2, 'Entrada de datos'));
-
-    const intro = document.createElement('p');
-    intro.className = 'step__lead';
-    intro.textContent = 'Complete estos datos para encontrar la respuesta más adecuada a su caso.';
-    step.appendChild(intro);
-
-    const caseField = document.createElement('fieldset');
-    caseField.className = 'step__cases';
+    const tipos = document.createElement('fieldset');
+    tipos.className = 'auditoria__grupo';
     const legend = document.createElement('legend');
     legend.className = 'field__label';
-    legend.textContent = '¿Qué situación se acerca más a su caso?';
-    caseField.appendChild(legend);
+    legend.textContent = c.preguntaCaso;
+    const opciones = document.createElement('div');
+    opciones.className = 'auditoria__tipos';
+    let seleccionado = c.items[0];
     c.items.forEach(item => {
-      const opt = document.createElement('label');
-      opt.className = 'step__case';
-      const radio = document.createElement('input');
-      radio.type = 'radio';
-      radio.name = 'dcCase-' + c.id;
-      radio.value = item.id;
-      const txt = document.createElement('span');
-      txt.textContent = item.title;
-      opt.appendChild(radio);
-      opt.appendChild(txt);
-      caseField.appendChild(opt);
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'auditoria__tipo';
+      btn.textContent = item.title;
+      btn.setAttribute('aria-pressed', String(item === seleccionado));
+      btn.addEventListener('click', () => {
+        seleccionado = item;
+        opciones.querySelectorAll('.auditoria__tipo').forEach(b => b.setAttribute('aria-pressed', String(b === btn)));
+      });
+      opciones.appendChild(btn);
     });
-    step.appendChild(caseField);
+    tipos.append(legend, opciones);
 
-    const rutField = document.createElement('div');
-    rutField.className = 'field';
-    const rutLabel = document.createElement('label');
-    rutLabel.className = 'field__label';
-    const rutId = 'dcRut-' + c.id;
-    rutLabel.setAttribute('for', rutId);
-    rutLabel.textContent = 'Su RUT';
-    const rutInput = document.createElement('input');
-    rutInput.className = 'field__input';
-    rutInput.id = rutId;
-    rutInput.type = 'text';
-    rutInput.placeholder = '12.345.678-9';
-    rutInput.maxLength = 12;
-    rutInput.addEventListener('blur', () => {
-      if (rutInput.value.trim()) rutInput.value = Security.formatRut(rutInput.value);
+    const campo = document.createElement('div');
+    campo.className = 'field';
+    const label = document.createElement('label');
+    label.className = 'field__label';
+    label.htmlFor = 'relato-' + c.id;
+    label.textContent = 'Cuéntenos qué pasó';
+    const relato = document.createElement('textarea');
+    relato.className = 'field__textarea';
+    relato.id = 'relato-' + c.id;
+    relato.rows = 3;
+    relato.maxLength = 300;
+    relato.placeholder = c.placeholder;
+    campo.append(label, relato);
+
+    const adjuntos = App.buildAdjuntos(c);
+
+    const auditar = document.createElement('button');
+    auditar.type = 'button';
+    auditar.className = 'submit-btn';
+    auditar.textContent = 'Auditar ahora';
+    auditar.addEventListener('click', () => {
+      App.renderDiagnostico(resultado, c, seleccionado, relato.value.trim(), adjuntos.archivos());
+      Historial.add({ caso: c.title, casoId: c.id, resumen: seleccionado.diagnostico.etiqueta, ok: seleccionado.diagnostico.nivel !== 'alto' });
+      App.renderHistory();
     });
-    rutField.appendChild(rutLabel);
-    rutField.appendChild(rutInput);
-    step.appendChild(rutField);
 
-    const relatoField = document.createElement('div');
-    relatoField.className = 'field';
-    const relatoLabel = document.createElement('label');
-    relatoLabel.className = 'field__label';
-    const relatoId = 'dcRelato-' + c.id;
-    relatoLabel.setAttribute('for', relatoId);
-    relatoLabel.textContent = 'Lo que usted sabe sobre el caso';
-    const relatoInput = document.createElement('textarea');
-    relatoInput.className = 'field__textarea';
-    relatoInput.id = relatoId;
-    relatoInput.rows = 3;
-    relatoInput.maxLength = 500;
-    relatoInput.placeholder = 'Ej: me llamaron ayer diciendo que debo una deuda de...';
-    relatoField.appendChild(relatoLabel);
-    relatoField.appendChild(relatoInput);
-    step.appendChild(relatoField);
+    card.append(tipos, campo, adjuntos.nodo, auditar);
+    return card;
+  },
 
-    const docsField = document.createElement('div');
-    docsField.className = 'field';
-    
-    const docsLabel = document.createElement('label');
-    docsLabel.className = 'field__label';
-    docsLabel.textContent = 'Documentos adjuntos (opcional)';
-    docsField.appendChild(docsLabel);
+  // Documentos del caso (PDF o fotos). Se validan y listan en el navegador; no se suben al servidor.
+  buildAdjuntos(c) {
+    const cfg = App.ADJUNTOS;
+    const archivos = [];
+    const campo = document.createElement('div');
+    campo.className = 'field';
 
-    const docsHelp = document.createElement('p');
-    docsHelp.className = 'field__help';
-    docsHelp.textContent = 'Adjunte documentos que respalden su caso (PDF, imágenes, etc.)';
-    docsField.appendChild(docsHelp);
+    const titulo = document.createElement('p');
+    titulo.className = 'field__label';
+    titulo.textContent = 'Documentos del caso';
 
-    const dropZone = document.createElement('div');
-    dropZone.className = 'docs__drop-zone';
-    dropZone.setAttribute('role', 'region');
-    dropZone.setAttribute('aria-label', 'Zona para soltar documentos');
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.id = 'adjuntos-' + c.id;
+    input.className = 'u-visually-hidden';
+    input.multiple = true;
+    input.accept = cfg.accept;
 
-    const dropIcon = document.createElement('div');
-    dropIcon.className = 'docs__drop-icon';
-    dropIcon.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>';
-    dropZone.appendChild(dropIcon);
+    const zona = document.createElement('label');
+    zona.className = 'adjuntos__zona';
+    zona.htmlFor = input.id;
+    const zonaTexto = document.createElement('span');
+    zonaTexto.className = 'adjuntos__zona-texto';
+    zonaTexto.textContent = 'Adjunte la carta, el SMS o su cartola';
+    const zonaAyuda = document.createElement('span');
+    zonaAyuda.className = 'adjuntos__zona-ayuda';
+    zonaAyuda.textContent = 'Arrastre o toque para elegir. PDF, JPG o PNG, hasta ' + cfg.max + ' archivos de 10 MB.';
+    zona.append(zonaTexto, zonaAyuda);
 
-    const dropText = document.createElement('p');
-    dropText.className = 'docs__drop-text';
-    dropText.textContent = 'Arrastra archivos aquí o ';
-    const dropLink = document.createElement('span');
-    dropLink.className = 'docs__drop-link';
-    dropLink.textContent = 'selecciona';
-    dropText.appendChild(dropLink);
-    dropZone.appendChild(dropText);
+    const lista = document.createElement('ul');
+    lista.className = 'adjuntos__lista';
+    lista.hidden = true;
 
-    const fileInput = document.createElement('input');
-    fileInput.type = 'file';
-    fileInput.multiple = true;
-    fileInput.className = 'u-visually-hidden';
-    fileInput.id = 'dcDocs-' + c.id;
-    fileInput.accept = '.pdf,.jpg,.jpeg,.png,.doc,.docx,.txt';
-    dropZone.appendChild(fileInput);
+    const error = document.createElement('p');
+    error.className = 'error-text';
+    error.setAttribute('role', 'alert');
+    error.hidden = true;
 
-    docsField.appendChild(dropZone);
-
-    const docsList = document.createElement('ul');
-    docsList.className = 'docs__list';
-    docsList.setAttribute('aria-label', 'Archivos adjuntos');
-    docsField.appendChild(docsList);
-
-    const docsStatus = document.createElement('p');
-    docsStatus.className = 'docs__status';
-    docsStatus.hidden = true;
-    docsField.appendChild(docsStatus);
-
-    step.appendChild(docsField);
-
-    const attachedFiles = [];
-
-    const renderDocsList = () => {
-      App.clearChildren(docsList);
-      if (attachedFiles.length === 0) {
-        docsList.hidden = true;
-        return;
-      }
-      docsList.hidden = false;
-      attachedFiles.forEach((file, idx) => {
+    const renderLista = () => {
+      App.clearChildren(lista);
+      lista.hidden = archivos.length === 0;
+      archivos.forEach((archivo, i) => {
         const li = document.createElement('li');
-        li.className = 'docs__item';
-        li.innerHTML = `<span class="docs__item-name">${file.name}</span><span class="docs__item-size">${(file.size / 1024).toFixed(1)} KB</span>`;
-        const removeBtn = document.createElement('button');
-        removeBtn.type = 'button';
-        removeBtn.className = 'docs__item-remove';
-        removeBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>';
-        removeBtn.addEventListener('click', () => {
-          attachedFiles.splice(idx, 1);
-          renderDocsList();
+        li.className = 'adjuntos__item';
+        const nombre = document.createElement('span');
+        nombre.className = 'adjuntos__nombre';
+        nombre.textContent = archivo.name;
+        const peso = document.createElement('span');
+        peso.className = 'adjuntos__peso';
+        peso.textContent = App.formatBytes(archivo.size);
+        const quitar = document.createElement('button');
+        quitar.type = 'button';
+        quitar.className = 'adjuntos__quitar';
+        quitar.textContent = 'Quitar';
+        quitar.setAttribute('aria-label', 'Quitar ' + archivo.name);
+        quitar.addEventListener('click', () => {
+          archivos.splice(i, 1);
+          renderLista();
         });
-        li.appendChild(removeBtn);
-        docsList.appendChild(li);
+        li.append(nombre, peso, quitar);
+        lista.appendChild(li);
       });
     };
 
-    const handleFiles = (files) => {
-      const maxSize = 10 * 1024 * 1024; // 10MB
-      const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'text/plain', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
-      
-      Array.from(files).forEach(file => {
-        if (!allowedTypes.includes(file.type)) {
-          docsStatus.textContent = `Tipo de archivo no permitido: ${file.type}. Use PDF, imágenes, TXT o DOC.`;
-          docsStatus.hidden = false;
-          setTimeout(() => docsStatus.hidden = true, 5000);
-          return;
-        }
-        if (file.size > maxSize) {
-          docsStatus.textContent = `Archivo "${file.name}" es muy grande (máximo 10MB).`;
-          docsStatus.hidden = false;
-          setTimeout(() => docsStatus.hidden = true, 5000);
-          return;
-        }
-        if (!attachedFiles.find(f => f.name === file.name)) {
-          attachedFiles.push(file);
-        }
+    const agregar = files => {
+      const rechazos = [];
+      Array.from(files).forEach(f => {
+        const ext = f.name.split('.').pop().toLowerCase();
+        if (!cfg.extensiones.includes(ext)) rechazos.push(f.name + ': formato no permitido');
+        else if (f.size > cfg.maxBytes) rechazos.push(f.name + ': supera 10 MB');
+        else if (archivos.some(a => a.name === f.name && a.size === f.size)) rechazos.push(f.name + ': ya está adjunto');
+        else if (archivos.length >= cfg.max) rechazos.push(f.name + ': máximo ' + cfg.max + ' archivos');
+        else archivos.push(f);
       });
-      renderDocsList();
-      fileInput.value = '';
+      error.textContent = rechazos.join('. ');
+      error.hidden = rechazos.length === 0;
+      renderLista();
+      input.value = '';
     };
 
-    fileInput.addEventListener('change', (e) => handleFiles(e.target.files));
-
-    dropZone.addEventListener('dragover', (e) => {
+    input.addEventListener('change', () => agregar(input.files));
+    zona.addEventListener('dragover', e => { e.preventDefault(); zona.classList.add('adjuntos__zona--activa'); });
+    zona.addEventListener('dragleave', () => zona.classList.remove('adjuntos__zona--activa'));
+    zona.addEventListener('drop', e => {
       e.preventDefault();
-      dropZone.classList.add('docs__drop-zone--active');
+      zona.classList.remove('adjuntos__zona--activa');
+      agregar(e.dataTransfer.files);
     });
 
-    dropZone.addEventListener('dragleave', () => {
-      dropZone.classList.remove('docs__drop-zone--active');
-    });
+    campo.append(titulo, input, zona, lista, error);
+    return { nodo: campo, archivos: () => archivos.slice() };
+  },
 
-    dropZone.addEventListener('drop', (e) => {
-      e.preventDefault();
-      dropZone.classList.remove('docs__drop-zone--active');
-      handleFiles(e.dataTransfer.files);
-    });
+  formatBytes(bytes) {
+    return bytes < 1024 * 1024 ? Math.max(1, Math.round(bytes / 1024)) + ' KB' : (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+  },
 
-    dropLink.addEventListener('click', () => fileInput.click());
+  renderDiagnostico(card, c, item, relato, archivos) {
+    const d = item.diagnostico;
+    App.clearChildren(card);
+    card.appendChild(App.buildPasoHead(2, 'Diagnóstico: ' + item.title));
 
-    let consentBlock = null;
-    if (c.id === 'embargo-falso' && typeof Compliance !== 'undefined') {
-      consentBlock = Compliance.buildConsentBlock(c);
-      step.appendChild(consentBlock.node);
+    const semaforo = document.createElement('div');
+    semaforo.className = 'diag__semaforo diag__semaforo--' + d.nivel;
+    const etiqueta = document.createElement('span');
+    etiqueta.className = 'diag__etiqueta';
+    etiqueta.textContent = d.etiqueta;
+    const titulo = document.createElement('p');
+    titulo.className = 'diag__resumen';
+    titulo.textContent = d.titulo;
+    const nivel = document.createElement('span');
+    nivel.className = 'diag__nivel';
+    nivel.textContent = d.nivel === 'alto' ? 'Riesgo alto' : 'Riesgo medio';
+    semaforo.append(etiqueta, titulo, nivel);
+
+    const fundamento = App.buildDiagBloque('Fundamento');
+    const texto = document.createElement('p');
+    texto.className = 'diag__texto';
+    texto.textContent = c.fundamento;
+    fundamento.append(texto);
+
+    const acciones = App.buildDiagBloque('Acciones recomendadas');
+    acciones.appendChild(App.buildLista('ul', item.content));
+    const cita = document.createElement('p');
+    cita.className = 'diag__cita';
+    cita.textContent = '“' + item.queDecir + '”';
+    acciones.append(App.buildSubtitulo('Qué decir si vuelven a contactarle:'), cita, App.buildSubtitulo('Dónde acudir:'), App.buildEscalamiento(c.escalamiento));
+
+    const bloques = [semaforo, fundamento, acciones];
+    if (archivos.length) {
+      const docs = App.buildDiagBloque('Documentos del caso');
+      docs.append(
+        App.buildLista('ul', archivos.map(a => a.name + ' (' + App.formatBytes(a.size) + ')')),
+        App.buildSubtitulo('Guárdelos: le servirán como evidencia si presenta un reclamo.')
+      );
+      bloques.push(docs);
     }
 
-    const err = document.createElement('p');
-    err.className = 'error-text';
-    err.setAttribute('role', 'alert');
-    err.hidden = true;
-    step.appendChild(err);
+    const siguientes = document.createElement('div');
+    siguientes.className = 'diag__siguientes';
+    siguientes.append(
+      App.buildBotonSecundario('Ver Pasaporte Digital', () => App.openSection('verificacion')),
+      App.buildBotonSecundario('Solicitar orientador personalizado', App.showForm)
+    );
 
-    const runBtn = document.createElement('button');
-    runBtn.type = 'button';
-    runBtn.className = 'datacheck__run';
-    runBtn.textContent = 'Ejecutar Auditoría';
-    step.appendChild(runBtn);
+    const ia = document.createElement('button');
+    ia.type = 'button';
+    ia.className = 'diag__ia';
+    ia.textContent = 'Resolver mis dudas con IA';
+    ia.addEventListener('click', () => App.abrirAsistente(relato));
 
-    runBtn.addEventListener('click', async () => {
-      err.hidden = true;
-      const rawRut = rutInput.value.trim();
-      const selected = caseField.querySelector('input[type="radio"]:checked');
-      if (!selected) {
-        err.textContent = 'Seleccione la situación que más se acerca a su caso.';
-        err.hidden = false;
-        return;
-      }
-      if (!Security.validateRut(rawRut)) {
-        err.textContent = 'Ingrese un RUT válido para analizar su caso.';
-        err.hidden = false;
-        rutInput.focus();
-        return;
-      }
-
-      let consentResult = null;
-      if (consentBlock) {
-        consentResult = consentBlock.validate();
-        if (!consentResult.ok) {
-          err.textContent = consentResult.error;
-          err.hidden = false;
-          return;
-        }
-      }
-
-      runBtn.disabled = true;
-      runBtn.textContent = 'Ejecutando auditoría...';
-      try {
-        const item = c.items.find(i => i.id === selected.value);
-
-        if (consentResult && typeof Compliance !== 'undefined') {
-          const user = (typeof Auth !== 'undefined' && Auth.getCurrentUser) ? Auth.getCurrentUser() : null;
-          Compliance.grantConsent({
-            owner: user ? user.email : 'anon',
-            casoId: c.id,
-            finalidades: consentResult.finalidades,
-            titularidad: consentResult.titularidad,
-            tercero: consentResult.tercero
-          });
-        }
-
-        const auditData = {
-          casoId: c.id,
-          rut: rawRut,
-          relato: relatoInput.value,
-          archivos: attachedFiles.map(f => ({ nombre: f.name, tamaño: f.size, tipo: f.type }))
-        };
-
-        const r = await API.executeDataCheck(c.id, rawRut, relatoInput.value, auditData);
-        const summary = App.renderDiagnostico(diagStep, c, item, r);
-        Historial.add({
-          caso: c.title,
-          casoId: c.id,
-          rut: r.sent.rut,
-          resumen: summary.resumen,
-          ok: summary.ok,
-          archivos: attachedFiles.length
-        });
-        App.renderHistory();
-      } catch (e) {
-        if (typeof Compliance !== 'undefined') {
-          Compliance.logSecurityIncident({
-            tipo: 'error_auditoria',
-            descripcion: 'Fallo durante el cruce de datos del caso ' + c.id,
-            severidad: 'media'
-          });
-        }
-        err.textContent = 'No se pudo completar el análisis. Intente nuevamente.';
-        err.hidden = false;
-      } finally {
-        runBtn.disabled = false;
-        runBtn.textContent = 'Ejecutar Auditoría';
-      }
-    });
-
-    return step;
+    card.append(...bloques, siguientes, ia);
+    card.hidden = false;
+    card.scrollIntoView({ behavior: 'smooth', block: 'start' });
   },
 
-  buildOrientacionStep() {
-    const step = document.createElement('section');
-    step.className = 'step step--orientacion step--pending';
-    step.setAttribute('aria-label', 'Paso 4: Solicitar orientación personalizada');
-    step.appendChild(App.buildStepHeader(4, 'Si es necesario: Solicitar orientación personalizada'));
-
-    const lead = document.createElement('p');
-    lead.className = 'step__lead';
-    lead.textContent = 'Si su caso necesita atención de un orientador, complete el formulario y lo contactaremos.';
-    step.appendChild(lead);
-
-    const btn = document.createElement('button');
-    btn.type = 'button';
-    btn.className = 'datacheck__run';
-    btn.textContent = 'Solicitar orientación personalizada';
-    btn.disabled = true;
-    btn.addEventListener('click', App.showForm);
-    step.appendChild(btn);
-    return step;
+  buildDiagBloque(titulo) {
+    const bloque = document.createElement('div');
+    bloque.className = 'diag__bloque';
+    const h = document.createElement('h3');
+    h.className = 'diag__bloque-titulo';
+    h.textContent = titulo;
+    bloque.appendChild(h);
+    return bloque;
   },
 
-  buildDiagnosticoStep(c) {
-    const step = document.createElement('section');
-    step.className = 'step step--diag step--pending';
-    step.setAttribute('aria-label', 'Paso 3: Diagnóstico y respuesta');
-    step.setAttribute('aria-live', 'polite');
-    step.appendChild(App.buildStepHeader(3, 'Diagnóstico y respuesta'));
-
-    const placeholder = document.createElement('div');
-    placeholder.className = 'step__placeholder';
-    const icon = document.createElement('span');
-    icon.className = 'step__placeholder-icon';
-    icon.setAttribute('aria-hidden', 'true');
-    icon.innerHTML = '<svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><line x1="16.5" y1="16.5" x2="21" y2="21"></line></svg>';
-    const msg = document.createElement('p');
-    msg.className = 'step__placeholder-text';
-    msg.textContent = 'Complete los datos a la izquierda y presione "Ejecutar Auditoría" para desplegar la respuesta en los 4 bloques oficiales.';
-    placeholder.appendChild(icon);
-    placeholder.appendChild(msg);
-    step.appendChild(placeholder);
-    return step;
+  buildSubtitulo(texto) {
+    const p = document.createElement('p');
+    p.className = 'diag__subtitulo';
+    p.textContent = texto;
+    return p;
   },
 
-  buildDiagBlock(titleText, contentEl) {
-    const block = document.createElement('div');
-    block.className = 'step__block';
-    const title = document.createElement('p');
-    title.className = 'step__subtitle';
-    title.textContent = titleText;
-    block.appendChild(title);
-    block.appendChild(contentEl);
-    return block;
-  },
-
-  renderDiagnostico(step, c, item, r) {
-    App.clearChildren(step);
-    step.classList.remove('step--pending');
-    step.appendChild(App.buildStepHeader(3, 'Diagnóstico y respuesta'));
-
-    const caso = document.createElement('p');
-    caso.className = 'step__case-title';
-    caso.textContent = item.title;
-    step.appendChild(caso);
-
-    const diagBox = document.createElement('div');
-    const summary = App.renderDataCheckResult(diagBox, c, r);
-    step.appendChild(App.buildDiagBlock('Diagnóstico del cruce de datos:', diagBox));
-
-    const quote = document.createElement('p');
-    quote.className = 'step__quote';
-    quote.textContent = '“' + item.queDecir + '”';
-    step.appendChild(App.buildDiagBlock('Qué decir ante este caso:', quote));
-
-    const ol = document.createElement('ol');
-    ol.className = 'step__list';
-    item.content.forEach(s => {
+  buildLista(tag, items, titulo) {
+    const lista = document.createElement(tag);
+    lista.className = 'diag__lista';
+    items.forEach(t => {
       const li = document.createElement('li');
-      li.textContent = s;
-      ol.appendChild(li);
+      li.textContent = t;
+      lista.appendChild(li);
     });
-    step.appendChild(App.buildDiagBlock('Cómo abordarlo paso a paso:', ol));
+    if (!titulo) return lista;
+    const grupo = document.createDocumentFragment();
+    grupo.append(App.buildSubtitulo(titulo), lista);
+    return grupo;
+  },
 
+  buildEscalamiento(destinos) {
     const ul = document.createElement('ul');
-    ul.className = 'step__list step__escalation';
-    c.escalamiento.forEach(e => {
+    ul.className = 'diag__lista diag__escalamiento';
+    destinos.forEach(e => {
       const li = document.createElement('li');
       const a = document.createElement('a');
       a.href = e.url;
       a.target = '_blank';
       a.rel = 'noopener noreferrer';
       a.textContent = e.nombre;
-      li.appendChild(a);
-      li.appendChild(document.createTextNode(' ' + e.detalle));
+      li.append(a, document.createTextNode(': ' + e.detalle));
       ul.appendChild(li);
     });
-    step.appendChild(App.buildDiagBlock('Si la situación continúa, escale aquí:', ul));
-
-    const orient = step.parentElement ? step.parentElement.querySelector('.step--orientacion') : null;
-    if (orient) {
-      orient.classList.remove('step--pending');
-      const orientBtn = orient.querySelector('button');
-      if (orientBtn) orientBtn.disabled = false;
-    }
-
-    step.hidden = false;
-    step.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    return summary;
+    return ul;
   },
 
-  renderDataCheckResult(container, categoria, r) {
-    App.clearChildren(container);
-    container.className = 'datacheck__result';
-    container.hidden = false;
-    const h = r.hallazgos;
-
-    const iconMap = {
-      'default': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>',
-      'money': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"></circle><path d="M4 12h16M12 4c-4.418 0-8 1.79-8 4v4c0 2.21 3.582 4 8 4s8-1.79 8-4v-4c0-2.21-3.582-4-8-4z"></path></svg>',
-      'home': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>',
-      'car': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 17h2c.55 0 1-.45 1-1v-3c0-.55-.45-1-1-1h-.99M5 17H3c-.55 0-1-.45-1-1v-3c0-.55.45-1 1-1h.99M6 5h12l1 6H5l1-6z"></path><circle cx="9" cy="17" r="2"></circle><circle cx="15" cy="17" r="2"></circle></svg>',
-      'briefcase': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"></path></svg>',
-      'alert': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3.05h16.94a2 2 0 0 0 1.71-3.05L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>',
-      'check': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>',
-      'credit': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>',
-      'document': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="13" x2="8" y2="13"></line><line x1="12" y1="17" x2="8" y2="17"></line></svg>',
-      'idcard': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="2" y1="10" x2="22" y2="10"></line></svg>',
-    };
-
-    const getIcon = (key) => {
-      const svg = document.createElement('div');
-      svg.className = 'datacheck__info-icon';
-      svg.innerHTML = iconMap[key] || iconMap['default'];
-      return svg;
-    };
-
-    const alert = document.createElement('div');
-    let alertText = '';
-    let alertOk = true;
-    if (categoria.id === 'embargo-falso') {
-      const sinBienes = h.bienesRaices === 0 && h.vehiculos === 0;
-      alertOk = sinBienes;
-      alertText = sinBienes
-        ? 'Alerta de inexistencia de garantía: no registra bienes embargables.'
-        : 'Registra bienes a su nombre. Verifique la legitimidad de la deuda antes de responder.';
-    } else if (categoria.id === 'solvencia') {
-      const score = (h.bienesRaices * 30) + (h.vehiculos * 15) + (h.laboralActivo ? 40 : 0);
-      alertOk = score >= 50;
-      alertText = 'Score de Garantía Real: ' + Math.min(score, 100) + '/100 - Estado laboral ' + (h.laboralActivo ? 'activo' : 'sin registro');
-    } else if (categoria.id === 'compliance') {
-      alertOk = !h.pep && !h.interpol && h.vigente;
-      alertText = alertOk
-        ? 'Debida diligencia aprobada: sin alertas PEP ni Interpol, cédula vigente.'
-        : 'Requiere revisión: ' + [h.pep ? 'PEP' : '', h.interpol ? 'Interpol' : '', !h.vigente ? 'cédula no vigente' : ''].filter(Boolean).join(', ') + '.';
-    } else {
-      alertText = 'Cruce completado. Información registrada y validada.';
-    }
-    alert.className = 'datacheck__alert ' + (alertOk ? 'datacheck__alert--ok' : 'datacheck__alert--warn');
-    alert.textContent = alertText;
-    container.appendChild(alert);
-
-    const list = document.createElement('ul');
-    list.className = 'datacheck__findings';
-    const rows = [
-      ['Bienes raíces (SII)', h.bienesRaices, 'home'],
-      ['Vehículos (Registro Civil)', h.vehiculos, 'car'],
-      ['Estado laboral activo (AFC y AFP)', h.laboralActivo ? 'Sí' : 'No', 'briefcase'],
-      ['Cédula vigente (Registro Civil)', h.vigente ? 'Sí' : 'No', 'idcard'],
-      ['Persona Políticamente Expuesta', h.pep ? 'Sí' : 'No', 'alert'],
-      ['Alerta Interpol', h.interpol ? 'Sí' : 'No', 'alert']
-    ];
-    rows.forEach(([k, v, icon]) => {
-      const li = document.createElement('li');
-      li.className = 'datacheck__finding';
-      li.innerHTML = '<span class="datacheck__finding-icon">' + (iconMap[icon] || iconMap['default']) + '</span><div class="datacheck__finding-content"><span class="datacheck__finding-label">' + k + '</span><strong class="datacheck__finding-value">' + v + '</strong></div>';
-      list.appendChild(li);
-    });
-    container.appendChild(list);
-
-    const helper = (title, detail, variant = '', icon = 'default') => {
-      const card = document.createElement('div');
-      const classes = 'datacheck__info-block' + (variant ? ' datacheck__info-block--' + variant : '');
-      card.className = classes;
-
-      const iconDiv = document.createElement('div');
-      iconDiv.className = 'datacheck__info-icon';
-      iconDiv.innerHTML = iconMap[icon] || iconMap['default'];
-      card.appendChild(iconDiv);
-
-      const content = document.createElement('div');
-      content.className = 'datacheck__info-block-content';
-
-      const lbl = document.createElement('p');
-      lbl.className = 'datacheck__info-label';
-      lbl.textContent = title;
-      content.appendChild(lbl);
-
-      const det = document.createElement('p');
-      det.className = 'datacheck__info-detail';
-      det.textContent = detail;
-      content.appendChild(det);
-
-      card.appendChild(content);
-      container.appendChild(card);
-    };
-
-    if (h.afiliacionAFP) {
-      helper('Afiliación a AFP', 'AFP: ' + h.afpNombre + ' - Fondo: ' + h.fondoAFP + ' - Estado: ' + h.estadoPrevisional + ' (desde ' + h.ultimoIngreso + '). Antigüedad laboral: ' + h.antiguedadLaboral, '', 'briefcase');
-    }
-
-    if (h.deudaTributaria > 0) {
-      helper('Deuda tributaria registrada', 'Monto pendiente: $' + h.deudaTributaria.toLocaleString() + '. Se recomienda contactar al SII para plan de pago.', 'alert', 'alert');
-    }
-
-    if (h.multas > 0 || h.deudaCoactiva > 0) {
-      const detalles = [];
-      if (h.multas > 0) detalles.push('Multas: $' + h.multas.toLocaleString());
-      if (h.deudaCoactiva > 0) detalles.push('Deuda coactiva: $' + h.deudaCoactiva.toLocaleString());
-      helper('Multas y deuda coactiva', detalles.join(' | ') + '. Consulte con SII sobre opciones de pago.', 'alert', 'alert');
-    }
-
-    if (h.carteraVencida) {
-      helper('Cartera vencida detectada', 'Hay cuentas vencidas en registro crediticio. Verifique con DICOM y considere regularizar deudas.', 'alert', 'alert');
-    }
-
-    if (h.protestosCheques > 0) {
-      helper('Cheques protestados', h.protestosCheques + ' cheque(s) en protesto. Esto afecta su historial bancario. Contacte a los acreedores para regularizar.', 'alert', 'document');
-    }
-
-    if (!h.creafAntecedentes) {
-      helper('Antecedentes CREAF', 'Sin registro negativo. Su historial crediticio es limpio ante instituciones financieras.', 'good', 'check');
-    }
-
-    if (h.institucionesFinancieras > 0) {
-      helper('Relaciones con instituciones financieras', h.institucionesFinancieras + ' institución(es) registrada(s). Verifique que todos los créditos o tarjetas sean autorizados.', '', 'credit');
-    }
-
-    if (h.bienesRaices > 0) {
-      helper('Propiedad(es) registrada(s)', h.bienesRaices + ' bien(es) inmueble(s) en SII. Verifique hipotecas, cargas y situación legal de cada propiedad.', '', 'home');
-    }
-
-    if (h.vehiculos > 0) {
-      helper('Vehículo(s) registrado(s)', h.vehiculos + ' vehículo(s) en Registro Civil. Permiso de circulación ' + (h.boletaVigencia ? 'vigente' : 'vencido') + '. Verifique multas y revisión técnica.', '', 'car');
-    }
-
-    if (h.vigente && h.derechoChileAtiende) {
-      helper('Identidad validada', 'Cédula vigente y validada. Tiene acceso a servicios digitales (ChileAtiende, Pago de Impuestos, etc.).', 'good', 'check');
-    }
-
-    return { resumen: alertText, ok: alertOk };
-  },
-
-  showHome() {
-    App.state.currentCategory = null;
-    App.state.currentItem = null;
-    App.elements.searchInput.value = '';
-    App.renderRecomendados();
-    App.renderCategories(CATEGORIAS);
-    App.showView('homeView');
-  },
-
-  showCategory() {
-    App.state.currentItem = null;
-    App.state.currentCategory ? App.openCategory(App.state.currentCategory.id) : App.showHome();
+  buildBotonSecundario(texto, accion) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'diag__secundario';
+    btn.textContent = texto;
+    btn.addEventListener('click', accion);
+    return btn;
   },
 
   showForm() {
@@ -1082,35 +746,9 @@ const App = {
 
   showView(name) {
     const sectionByView = { mapView: 'mapa', apiView: 'api', dashboardView: 'dashboard', configView: 'configuracion', verifyView: 'verificacion' };
-    ['homeView','categoryView','detailView','formView','mapView','apiView','dashboardView','configView','verifyView'].forEach(n => App.elements[n].hidden = n !== name);
+    ['asistenteView','formView','mapView','apiView','dashboardView','configView','verifyView'].forEach(n => App.elements[n].hidden = n !== name);
     App.setMenuActive(sectionByView[name] || 'asistente');
     window.scrollTo(0, 0);
-  },
-
-  loadVoices() {
-    if (window.speechSynthesis) App.state.voices = window.speechSynthesis.getVoices();
-  },
-
-  speakCurrent() {
-    if (!App.state.currentItem) return;
-    App.speakText(`${App.state.currentItem.title}. ${App.state.currentItem.content.join('. ')}`);
-  },
-
-  speakText(text) {
-    if (!window.speechSynthesis) return;
-    App.stopSpeaking();
-    const u = new SpeechSynthesisUtterance(text);
-    u.lang = 'es-CL'; u.rate = 0.9; u.pitch = 1;
-    const v = App.state.voices.find(x => x.lang.startsWith('es'));
-    if (v) u.voice = v;
-    u.onstart = () => App.elements.stopSpeakBtn.hidden = false;
-    u.onend = () => App.elements.stopSpeakBtn.hidden = true;
-    window.speechSynthesis.speak(u);
-  },
-
-  stopSpeaking() {
-    if (window.speechSynthesis) window.speechSynthesis.cancel();
-    App.elements.stopSpeakBtn.hidden = true;
   },
 
   addChatMessage(text, sender, messages) {
@@ -1122,18 +760,58 @@ const App = {
     messages.scrollTop = messages.scrollHeight;
   },
 
-  // Asistente ServicIA: envía la pregunta al backend RAG y muestra la respuesta con sus fuentes.
-  // El chat de inicio consulta toda la normativa; el de una categoría filtra por esa categoría.
-  bindAssistant(tipo, form, input, send, messages, status) {
-    // El botón Enviar queda deshabilitado hasta que la pregunta tenga el mínimo de caracteres.
-    const refrescar = () => { send.disabled = input.value.trim().length < App.ASSISTANT_MIN_CHARS; };
-    input.addEventListener('input', refrescar);
-    refrescar();
-    form.addEventListener('submit', e => App.handleAssistantSubmit(e, { tipo, input, send, messages, status, refrescar }));
+  // Asistente ServicIA flotante: consulta el backend RAG filtrando por el tema elegido.
+  bindAssistant() {
+    App.elements.chatInput.addEventListener('input', App.refreshChatSend);
+    App.elements.chatForm.addEventListener('submit', App.handleAssistantSubmit);
+    App.elements.asistenteFab.addEventListener('click', () => App.abrirAsistente());
+    App.elements.asistenteClose.addEventListener('click', App.cerrarAsistente);
+    App.elements.asistentePanel.addEventListener('keydown', e => { if (e.key === 'Escape') App.cerrarAsistente(); });
+    App.refreshChatSend();
   },
 
-  async handleAssistantSubmit(e, { tipo, input, send, messages, status, refrescar }) {
+  // Abre el panel. Si llega un texto (el relato del caso), lo deja escrito para que el usuario decida enviarlo.
+  abrirAsistente(texto) {
+    const { asistentePanel: panel, asistenteFab: fab, chatInput: input, chatMessages: messages } = App.elements;
+    if (!messages.children.length) {
+      App.addChatMessage('¡Hola! Soy tu asistente para ' + App.state.currentCategory.title + '. ¿En qué te puedo ayudar hoy?', 'bot', messages);
+    }
+    if (texto && !input.value) input.value = texto;
+    App.refreshChatSend();
+    panel.hidden = false;
+    fab.hidden = true;
+    fab.setAttribute('aria-expanded', 'true');
+    input.focus();
+  },
+
+  cerrarAsistente() {
+    const { asistentePanel: panel, asistenteFab: fab } = App.elements;
+    if (panel.hidden) return;
+    panel.hidden = true;
+    fab.setAttribute('aria-expanded', 'false');
+    if (Auth.isAuthenticated()) {
+      fab.hidden = false;
+      fab.focus();
+    }
+  },
+
+  // El botón Enviar queda deshabilitado hasta que la pregunta tenga el mínimo de caracteres.
+  refreshChatSend() {
+    App.elements.chatSend.disabled = App.elements.chatInput.value.trim().length < App.ASSISTANT_MIN_CHARS;
+  },
+
+  resetChat() {
+    const messages = App.elements.chatMessages;
+    App.clearChildren(messages);
+    messages.classList.remove('chat__messages--has-messages');
+    App.elements.chatStatus.textContent = '';
+    App.elements.chatInput.value = '';
+    App.refreshChatSend();
+  },
+
+  async handleAssistantSubmit(e) {
     e.preventDefault();
+    const { chatInput: input, chatSend: send, chatMessages: messages, chatStatus: status } = App.elements;
     const msg = Security.sanitizeText(input.value);
     if (msg.length < App.ASSISTANT_MIN_CHARS) return;
     status.textContent = '';
@@ -1149,11 +827,10 @@ const App = {
     messages.appendChild(espera);
     messages.scrollTop = messages.scrollHeight;
 
-    const categoria = tipo === 'categoria' && App.state.currentCategory ? App.state.currentCategory.id : null;
-    const res = await API.consultarAsistente(msg, categoria);
+    const res = await API.consultarAsistente(msg, App.state.currentCategory.id);
     espera.remove();
     input.disabled = false;
-    refrescar();  // el botón vuelve según el contenido del campo (vacío queda deshabilitado)
+    App.refreshChatSend();
 
     if (!res.ok) {
       App.addChatMessage(res.error || 'No se pudo obtener respuesta. Intente de nuevo.', 'bot', messages);

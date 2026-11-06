@@ -115,23 +115,19 @@
       </button>
       <button class="history-menu__item" type="button" data-view="verificacion">
         <svg class="history-menu__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>
-        <span>Pasaporte Digital</span>
+        <span>Pasaporte de Confianza</span>
       </button>
       <button class="history-menu__item" type="button" data-view="mapa">
         <svg class="history-menu__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M1 6l7-3 8 3 7-3v15l-7 3-8-3-7 3z"/><path d="M8 3v15M16 6v15"/></svg>
         <span>Mapa</span>
       </button>
-      <button class="history-menu__item" type="button" data-view="api">
-        <svg class="history-menu__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M16 18l6-6-6-6M8 6l-6 6 6 6"/></svg>
-        <span>Portal API</span>
-      </button>
       <button class="history-menu__item" type="button" data-view="dashboard">
         <svg class="history-menu__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18M7 16v-5M12 16V8M17 16v-9"/></svg>
         <span>Dashboard</span>
       </button>
-      <button class="history-menu__item" type="button" data-view="configuracion">
-        <svg class="history-menu__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/></svg>
-        <span>Configuración</span>
+      <button class="history-menu__item" type="button" data-view="perfil">
+        <svg class="history-menu__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <span>Perfil</span>
       </button>
     </nav>
     <h3 class="history__section">Historial de consultas</h3>
@@ -183,19 +179,6 @@
       <p id="mapStatus" class="status-text" aria-live="polite"></p>
     </section>
 
-    <section id="apiView" class="view" hidden>
-      <h2 class="section-heading">Portal API: anonimizar datos personales</h2>
-      <p class="section-lead">Quita RUT, correos y teléfonos de un texto antes de compartirlo.</p>
-      <div class="form">
-        <div class="field">
-          <label class="field__label" for="apiInput">Texto a anonimizar</label>
-          <textarea id="apiInput" class="field__textarea" rows="4" maxlength="2000"></textarea>
-        </div>
-        <button id="apiRun" class="submit-btn" type="button">Anonimizar</button>
-      </div>
-      <pre id="apiOutput" class="api-output" aria-live="polite" hidden></pre>
-    </section>
-
     <section id="dashboardView" class="view" hidden>
       <h2 class="section-heading">Dashboard</h2>
       <p class="section-lead">Resumen de sus consultas guardadas en este dispositivo.</p>
@@ -204,17 +187,64 @@
       <div id="dashBars" class="dash-bars"></div>
     </section>
 
-    <section id="configView" class="view" hidden>
-      <h2 class="section-heading">Configuración</h2>
+    <section id="perfilView" class="view" hidden>
+      <h2 class="section-heading">Mi perfil</h2>
+      <p class="section-lead">Sus datos de cuenta y el estado de su Pasaporte de Confianza.</p>
+      <div id="perfilStatus" class="status-text" aria-live="polite"></div>
+
+      <form id="perfilForm" class="form config-card">
+        <h3 class="section-heading">Datos de cuenta</h3>
+
+        <div class="field">
+          <label class="field__label" for="perfilNombre">Nombre</label>
+          <input id="perfilNombre" class="field__input" type="text" disabled />
+        </div>
+        <div class="field">
+          <label class="field__label" for="perfilCorreo">Correo</label>
+          <input id="perfilCorreo" class="field__input" type="email" disabled />
+        </div>
+        <div class="field">
+          <label class="field__label" for="perfilEdad">Edad</label>
+          <input id="perfilEdad" class="field__input" type="number" min="14" max="120" inputmode="numeric" />
+        </div>
+        <div class="field">
+          <label class="field__label" for="perfilTelefono">Teléfono</label>
+          <input id="perfilTelefono" class="field__input" type="tel" maxlength="30" placeholder="+56 9 1234 5678" />
+        </div>
+        <div class="field">
+          <label class="field__label" for="perfilRut">RUT</label>
+          <input id="perfilRut" class="field__input" type="text" maxlength="15" placeholder="12.345.678-5" />
+          <p id="perfilRutHint" class="field__hint">Una vez verificado, el RUT no se puede cambiar.</p>
+        </div>
+
+        <button id="perfilGuardar" class="submit-btn" type="submit" disabled>Guardar cambios</button>
+        <p id="perfilFormStatus" class="status-text" role="alert" aria-live="assertive"></p>
+      </form>
+
       <div class="config-card">
-        <p id="configUser" class="section-lead"></p>
-        <button id="configClear" class="history__clear" type="button">Borrar historial</button>
-        <button id="configLogout" class="submit-btn" type="button">Cerrar sesión</button>
+        <h3 class="section-heading">Pasaporte de Confianza</h3>
+        <dl id="perfilPasaporte" class="perfil-datos"></dl>
+      </div>
+
+      <form id="perfilDocForm" class="form">
+        <h3 class="section-heading">Verificación de arriendo (Nivel 2)</h3>
+        <p class="field__hint">Suba su liquidación de sueldo o certificado Dicom en PDF (máximo 1 MB) para obtener su score de arriendo. El archivo se procesa en memoria y no se guarda.</p>
+        <div class="field">
+          <input id="perfilDoc" class="field__input" type="file" accept="application/pdf" />
+        </div>
+        <button id="perfilDocSubir" class="submit-btn" type="submit">Subir PDF</button>
+        <p id="perfilDocStatus" class="status-text" role="alert" aria-live="assertive"></p>
+      </form>
+
+      <div class="config-card">
+        <h3 class="section-heading">Cuenta</h3>
+        <button id="perfilClear" class="history__clear" type="button">Borrar historial de consultas</button>
+        <button id="perfilLogout" class="submit-btn" type="button">Cerrar sesión</button>
       </div>
     </section>
 
     <section id="verifyView" class="view" hidden>
-      <h2 class="section-heading">Pasaporte Digital de Integridad Patrimonial</h2>
+      <h2 class="section-heading">Pasaporte de Confianza</h2>
       <p class="section-lead">Credencial verificada en fuentes oficiales. Seleccione el rubro para ver los indicadores de solvencia y certeza jurídica.</p>
       <div id="pasaporteRaiz" class="pasaporte"></div>
       <h3 class="pasaporte__subtitulo">Cómo confirmar que un mensaje o documento es real</h3>
@@ -279,7 +309,6 @@
 </script>
   <script src="js/modules/history.js">
 </script>
-  <script src="js/data/pasaporte.js"></script>
   <script src="js/modules/pasaporte.js"></script>
   <script src="js/app.js">
 </script>

@@ -1313,25 +1313,61 @@ body {
   overflow: hidden;
 }
 
-.api-output {
-  margin-top: var(--space-md);
-  padding: var(--space-md);
-  white-space: pre-wrap;
-  word-break: break-word;
-  font-family: var(--font-mono);
-  font-size: 0.95rem;
-  color: var(--color-text);
-  background-color: var(--color-secondary);
-  border: 2px solid var(--color-border);
-  border-radius: var(--radius);
-}
-
 .config-card {
   display: grid;
   gap: var(--space-sm);
   padding: var(--space-md);
   border: 2px solid var(--color-border);
   border-radius: var(--radius);
+}
+
+.perfil-datos {
+  display: grid;
+  grid-template-columns: minmax(8rem, auto) 1fr;
+  gap: var(--space-xs) var(--space-md);
+  margin: 0;
+}
+
+.perfil-datos dt {
+  font-weight: 600;
+  color: var(--color-text-muted, #555);
+}
+
+.perfil-datos dd {
+  margin: 0;
+  text-align: right;
+}
+
+.field__hint {
+  margin: var(--space-xs) 0 0;
+  font-size: 0.85rem;
+  color: var(--color-text-muted, #555);
+}
+
+.perfil-form__acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+}
+
+.perfil-form__acciones[hidden] {
+  display: none;
+}
+
+.perfil-form__acciones .submit-btn {
+  flex: 1 1 auto;
+}
+
+/* Campos bloqueados (nombre, correo y RUT verificado) se ven como texto, no como inputs vacíos. */
+.perfil-form .field__input:disabled {
+  color: var(--color-text, #1a1a1a);
+  background: transparent;
+  border-color: transparent;
+  border-bottom: 1px solid var(--color-border);
+  border-radius: 0;
+  padding-left: 0;
+  opacity: 1;
+  -webkit-text-fill-color: var(--color-text, #1a1a1a);
 }
 
 .menu-toggle {
@@ -1846,36 +1882,6 @@ input[type="file"]:focus-visible + .adjuntos__zona {
   margin-bottom: var(--space-xl);
 }
 
-.pasaporte__rubros {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: var(--space-xs);
-}
-
-.pasaporte__rubro {
-  min-height: var(--touch-min);
-  padding: var(--space-sm) var(--space-md);
-  font-size: var(--font-size-base);
-  font-weight: 600;
-  color: var(--color-primary);
-  background-color: var(--color-bg);
-  border: 2px solid var(--color-border);
-  border-radius: var(--radius);
-  cursor: pointer;
-  text-align: left;
-}
-
-.pasaporte__rubro--activo {
-  color: #ffffff;
-  background-color: var(--color-primary);
-  border-color: var(--color-primary);
-}
-
-.pasaporte__rubro:focus-visible {
-  outline: 3px solid var(--color-primary);
-  outline-offset: 2px;
-}
-
 .pasaporte__tarjeta {
   display: grid;
   gap: var(--space-md);
@@ -1940,114 +1946,45 @@ input[type="file"]:focus-visible + .adjuntos__zona {
   font-weight: 700;
 }
 
-.pasaporte__rut,
-.pasaporte__score-fila {
+.pasaporte__rut {
   margin: var(--space-xs) 0 0;
   font-size: 0.875rem;
   color: var(--color-muted);
 }
 
-.pasaporte__score {
-  color: var(--color-success);
-}
-
-.pasaporte__lista {
+/* Cada sección del Pasaporte: confiabilidad (nivel 1) y arriendo (nivel 2). */
+.pasaporte__bloque {
   display: grid;
   gap: var(--space-xs);
-  margin: 0;
   padding: var(--space-md);
-  list-style: none;
   background-color: var(--color-secondary);
   border-radius: var(--radius);
 }
 
-.pasaporte__item {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: var(--space-md);
-  font-size: 0.875rem;
-}
-
-.pasaporte__item > span:first-child {
-  min-width: 0;
-}
-
-.pasaporte__estado {
-  flex: 0 0 auto;
+.pasaporte__score {
+  font-size: var(--font-size-lg);
   font-weight: 700;
-  text-align: right;
-}
-
-.pasaporte__estado--ok {
   color: var(--color-success);
 }
 
-.pasaporte__estado--info {
-  color: var(--color-primary);
-}
-
-.pasaporte__pie {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-md);
-  padding-top: var(--space-md);
-  border-top: 2px solid var(--color-border);
-}
-
-.pasaporte__token-etiqueta,
-.pasaporte__validez {
-  display: block;
-  font-size: 0.75rem;
-  color: var(--color-muted);
-}
-
-.pasaporte__token {
-  display: block;
-  font-family: var(--font-mono);
+.pasaporte__estado {
   font-weight: 700;
 }
 
-.pasaporte__qr {
+/* Formularios de verificación de RUT y de carga de PDF dentro del Pasaporte. */
+.pasaporte__formulario {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 2px;
-  flex: 0 0 auto;
-  width: 4.5rem;
-  height: 4.5rem;
-  padding: 0.35rem;
-  background-color: #ffffff;
+  gap: var(--space-sm);
+  margin-top: var(--space-md);
+  padding: var(--space-md);
   border: 2px solid var(--color-border);
-  border-radius: var(--radius-sm);
-}
-
-.pasaporte__qr-celda {
-  background-color: transparent;
-}
-
-.pasaporte__qr-celda--on {
-  background-color: var(--color-text);
-}
-
-.pasaporte__descarga {
-  width: 100%;
-  min-height: var(--touch-min);
-  padding: var(--space-sm) var(--space-md);
-  font-size: var(--font-size-base);
-  font-weight: 600;
-  color: var(--color-muted);
-  background-color: var(--color-warn-soft);
-  border: none;
   border-radius: var(--radius);
-  cursor: not-allowed;
 }
 
 .pasaporte__nota {
   margin: 0;
   font-size: 0.8rem;
   color: var(--color-muted);
-  text-align: center;
 }
 
 .pasaporte__subtitulo {
@@ -2058,10 +1995,6 @@ input[type="file"]:focus-visible + .adjuntos__zona {
 }
 
 @media (min-width: 40rem) {
-  .pasaporte__rubros {
-    grid-template-columns: repeat(4, 1fr);
-  }
-
   .pasaporte__tarjeta {
     max-width: 30rem;
     margin: 0 auto;

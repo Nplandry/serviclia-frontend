@@ -51,13 +51,5 @@ const Security = {
     }
     const check = cleaned.slice(-1);
     return 'RUT_****-' + check;
-  },
-
-  redactText: function (text) {
-    return String(text)
-      .replace(/\b\d{1,2}\.?\d{3}\.?\d{3}-?[0-9kK]\b/g, '[RUT]')
-      .replace(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g, '[EMAIL]')
-      .replace(/\+?56\s?9\s?\d{4}\s?\d{4}/g, '[TELEFONO]')
-      .trim();
   }
 };

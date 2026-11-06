@@ -6,7 +6,7 @@ const App = {
     accept: '.pdf,.jpg,.jpeg,.png',
     extensiones: ['pdf', 'jpg', 'jpeg', 'png']
   },
-  state: { currentCategory: null },
+  state: { currentCategory: null, rutVerificado: false, perfilGuardado: null },
   elements: {},
 
   init() {
@@ -27,7 +27,7 @@ const App = {
   },
 
   cacheElements() {
-    const ids = ['asistenteView','formView','categoryList','backFromForm','orientationForm','formRut','rutError','submitForm','formStatus','logoutBtn','chatForm','chatInput','chatSend','chatMessages','chatStatus','authGate','tabLogin','tabRegister','loginForm','registerForm','loginStatus','registerStatus','historyBtn','historyPanel','historyOverlay','historyClose','historyList','historyClear','historyMenu','mapView','apiView','dashboardView','configView','mapContainer','mapStatus','apiInput','apiRun','apiOutput','dashKpis','dashBars','configUser','configClear','configLogout','verifyView','auditoria','asistenteFab','asistentePanel','asistenteClose','asistenteTema'];
+    const ids = ['asistenteView','formView','categoryList','backFromForm','orientationForm','formRut','rutError','submitForm','formStatus','logoutBtn','chatForm','chatInput','chatSend','chatMessages','chatStatus','authGate','tabLogin','tabRegister','loginForm','registerForm','loginStatus','registerStatus','historyBtn','historyPanel','historyOverlay','historyClose','historyList','historyClear','historyMenu','mapView','dashboardView','perfilView','mapContainer','mapStatus','dashKpis','dashBars','perfilStatus','perfilPasaporte','perfilForm','perfilNombre','perfilCorreo','perfilEdad','perfilTelefono','perfilRut','perfilGuardar','perfilFormStatus','perfilDocForm','perfilDoc','perfilDocSubir','perfilDocStatus','perfilClear','perfilLogout','verifyView','auditoria','asistenteFab','asistentePanel','asistenteClose','asistenteTema'];
     ids.forEach(id => App.elements[id] = document.getElementById(id));
     App.elements.appHeader = document.querySelector('.app-header');
     App.elements.appMain = document.getElementById('main');
@@ -45,9 +45,12 @@ const App = {
     App.elements.historyOverlay.addEventListener('click', App.closeHistory);
     App.elements.historyClear.addEventListener('click', App.handleHistoryClear);
     App.elements.historyMenu.addEventListener('click', App.handleMenuClick);
-    App.elements.apiRun.addEventListener('click', App.runApiAnonymize);
-    App.elements.configClear.addEventListener('click', App.handleConfigClear);
-    App.elements.configLogout.addEventListener('click', App.handleLogout);
+    App.elements.perfilForm.addEventListener('submit', App.handlePerfilGuardar);
+    ['perfilEdad', 'perfilTelefono', 'perfilRut'].forEach(id =>
+      App.elements[id].addEventListener('input', App.actualizarBotonGuardarPerfil));
+    App.elements.perfilDocForm.addEventListener('submit', App.handlePerfilDocumento);
+    App.elements.perfilClear.addEventListener('click', App.handleConfigClear);
+    App.elements.perfilLogout.addEventListener('click', App.handleLogout);
   },
 
   handleMenuClick(e) {
@@ -60,10 +63,9 @@ const App = {
     App.closeHistory();
     if (name === 'asistente') return App.showAsistente();
     if (name === 'mapa') { App.showView('mapView'); return App.initMap(); }
-    if (name === 'api') return App.showView('apiView');
     if (name === 'dashboard') { App.renderDashboard(); return App.showView('dashboardView'); }
-    if (name === 'configuracion') { App.renderConfig(); return App.showView('configView'); }
-    if (name === 'verificacion') return App.showView('verifyView');
+    if (name === 'perfil') { App.renderPerfil(); return App.showView('perfilView'); }
+    if (name === 'verificacion') { Pasaporte.init(); return App.showView('verifyView'); }
   },
 
   setMenuActive(name) {
@@ -139,23 +141,115 @@ const App = {
     });
   },
 
-  renderConfig() {
-    const user = Auth.getCurrentUser() || {};
-    const partes = [user.nombre, user.email].filter(Boolean);
-    App.elements.configUser.textContent = partes.length ? 'Sesión: ' + partes.join(' ') : 'Sin sesión activa.';
+  // Rellena la vista de perfil con los datos de la sesión. Los campos quedan editables y el botón
+  // "Guardar cambios" aparece solo cuando algún valor difiere de lo guardado.
+  renderPerfil() {
+    const user = Auth.getCurrentUser();
+    if (!user) {
+      App.elements.perfilStatus.textContent = 'Inicie sesión para ver su perfil.';
+      return;
+    }
+    App.elements.perfilStatus.textContent = '';
+    const perfil = user.perfil || {};
+
+    App.elements.perfilNombre.value = user.nombre || '';
+    App.elements.perfilCorreo.value = user.email || '';
+    App.elements.perfilEdad.value = perfil.edad != null ? perfil.edad : '';
+    App.elements.perfilTelefono.value = perfil.telefono || '';
+    // Un RUT verificado no se puede cambiar: el campo queda bloqueado y muestra su estado.
+    App.state.rutVerificado = !!perfil.rut_verificado;
+    App.elements.perfilRut.value = App.state.rutVerificado ? 'Verificado' : '';
+    App.elements.perfilRut.placeholder = App.state.rutVerificado ? 'Verificado' : '12.345.678-5';
+    App.elements.perfilRut.disabled = App.state.rutVerificado;
+    // Valores guardados, para comparar con lo que escribe el usuario.
+    App.state.perfilGuardado = { edad: App.elements.perfilEdad.value, telefono: App.elements.perfilTelefono.value };
+
+    const scoring = perfil.inmobiliaria_scoring;
+    App.renderDefinitionList(App.elements.perfilPasaporte, [
+      ['Nivel', 'Nivel ' + (perfil.nivel_pasaporte || 1)],
+      ['Estado', App.etiquetaEstadoPasaporte(perfil.estado_pasaporte)],
+      ['Confiabilidad', perfil.score_confiabilidad == null ? 'Sin reservas cerradas' : perfil.score_confiabilidad + ' / 100'],
+      ['Score de arriendo', scoring && scoring.score_financiero != null ? scoring.score_financiero + ' / 1000' : 'Sin verificar']
+    ]);
+
+    App.actualizarBotonGuardarPerfil();
+    App.elements.perfilDocStatus.textContent = '';
+    // El formulario de arriendo solo tiene sentido si aún no se verificó.
+    App.elements.perfilDocForm.hidden = perfil.estado_pasaporte === 'verificado';
+  },
+
+  // Guardar siempre está visible; se habilita solo si edad, teléfono o RUT difieren de lo guardado.
+  actualizarBotonGuardarPerfil() {
+    const cambios = App.cambiosPerfil();
+    App.elements.perfilGuardar.disabled = Object.keys(cambios).length === 0;
+  },
+
+  // Devuelve solo los campos que cambiaron respecto a lo guardado.
+  cambiosPerfil() {
+    const guardado = App.state.perfilGuardado || {};
+    const cambios = {};
+    const edad = App.elements.perfilEdad.value.trim();
+    const telefono = App.elements.perfilTelefono.value.trim();
+    const rut = App.elements.perfilRut.value.trim();
+    if (edad !== '' && edad !== guardado.edad) cambios.edad = Number(edad);
+    if (edad === '' && guardado.edad !== '') cambios.edad = null;
+    if (telefono !== guardado.telefono) cambios.telefono = telefono === '' ? null : telefono;
+    if (!App.state.rutVerificado && rut !== '') cambios.rut = rut;
+    return cambios;
+  },
+
+  etiquetaEstadoPasaporte(estado) {
+    const mapa = { basico: 'Básico', pendiente: 'En revisión', verificado: 'Verificado', rechazado: 'Rechazado' };
+    return mapa[estado] || 'Básico';
+  },
+
+  renderDefinitionList(dl, filas) {
+    while (dl.firstChild) dl.removeChild(dl.firstChild);
+    filas.forEach(([k, v]) => {
+      const dt = document.createElement('dt');
+      dt.textContent = k;
+      const dd = document.createElement('dd');
+      dd.textContent = v;
+      dl.append(dt, dd);
+    });
+  },
+
+  // Guarda solo los campos que cambiaron. Si no hay cambios, no hace nada.
+  async handlePerfilGuardar(e) {
+    e.preventDefault();
+    const cambios = App.cambiosPerfil();
+    if (Object.keys(cambios).length === 0) {
+      App.actualizarBotonGuardarPerfil();
+      return;
+    }
+    App.elements.perfilGuardar.disabled = true;
+    const res = await Auth.actualizarPerfil(cambios);
+    App.elements.perfilGuardar.disabled = false;
+    if (!res.ok) {
+      App.elements.perfilFormStatus.textContent = res.error;
+      return;
+    }
+    App.renderPerfil();  // oculta Guardar de nuevo y toma los valores nuevos como guardados
+    App.elements.perfilFormStatus.textContent = 'Perfil actualizado.';
+  },
+
+  // Sube el PDF de arriendo (Nivel 2) y refresca la vista con el nuevo score.
+  async handlePerfilDocumento(e) {
+    e.preventDefault();
+    App.elements.perfilDocSubir.disabled = true;
+    const res = await Auth.subirDocumentoArriendo(App.elements.perfilDoc.files[0]);
+    App.elements.perfilDocSubir.disabled = false;
+    if (!res.ok) {
+      App.elements.perfilDocStatus.textContent = res.error;
+      return;
+    }
+    App.renderPerfil();
+    App.elements.perfilDocStatus.textContent = 'Documento verificado. Score de arriendo: ' + res.scoring.score_financiero + ' / 1000.';
   },
 
   handleConfigClear() {
     if (!window.confirm('¿Borrar todo el historial de consultas de este dispositivo?')) return;
     App.handleHistoryClear();
-  },
-
-  runApiAnonymize() {
-    const texto = App.elements.apiInput.value;
-    App.elements.apiOutput.textContent = texto.trim()
-      ? Security.redactText(texto)
-      : 'Ingrese un texto para anonimizar.';
-    App.elements.apiOutput.hidden = false;
   },
 
   initMap() {
@@ -658,7 +752,7 @@ const App = {
     const siguientes = document.createElement('div');
     siguientes.className = 'diag__siguientes';
     siguientes.append(
-      App.buildBotonSecundario('Ver Pasaporte Digital', () => App.openSection('verificacion')),
+      App.buildBotonSecundario('Ver Pasaporte de Confianza', () => App.openSection('verificacion')),
       App.buildBotonSecundario('Solicitar orientador personalizado', App.showForm)
     );
 
@@ -771,8 +865,8 @@ const App = {
   },
 
   showView(name) {
-    const sectionByView = { mapView: 'mapa', apiView: 'api', dashboardView: 'dashboard', configView: 'configuracion', verifyView: 'verificacion' };
-    ['asistenteView','formView','mapView','apiView','dashboardView','configView','verifyView'].forEach(n => App.elements[n].hidden = n !== name);
+    const sectionByView = { mapView: 'mapa', dashboardView: 'dashboard', perfilView: 'perfil', verifyView: 'verificacion' };
+    ['asistenteView','formView','mapView','dashboardView','perfilView','verifyView'].forEach(n => App.elements[n].hidden = n !== name);
     App.setMenuActive(sectionByView[name] || 'asistente');
     window.scrollTo(0, 0);
   },

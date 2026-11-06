@@ -14,9 +14,10 @@ Dentro de `index.html`, la app cambia entre vistas que se muestran u ocultan:
 - **authGate**: acceso, con información del servicio y espacios de publicidad.
 - **asistenteView**: vista principal. Selector con los tres temas reales (embargo, seguros, cambio de plan) y la auditoría del tema en dos pasos: datos del caso y diagnóstico (nivel de riesgo, fundamento, acciones recomendadas y siguientes pasos).
 - **formView**: formulario de orientación personalizada.
-- **mapView**, **apiView**, **dashboardView**, **configView**, **verifyView**: secciones del menú lateral.
+- **mapView**, **dashboardView**, **perfilView**, **verifyView**: secciones del menú lateral.
+- **perfilView**: datos de cuenta, estado del Pasaporte de Confianza, edición de edad/teléfono/RUT, subida del PDF de arriendo (Nivel 2) y acciones de cuenta (borrar historial, cerrar sesión).
 
-El menú lateral (Asistente, Pasaporte Digital, Mapa, Portal API, Dashboard y Configuración) se abre con el botón de la esquina superior izquierda.
+El menú lateral (Asistente, Pasaporte de Confianza, Mapa, Dashboard y Perfil) se abre con el botón de la esquina superior izquierda.
 
 El **Asistente ServicIA** es flotante: un botón en la esquina inferior derecha abre el chat, que consulta el backend (`POST /v1/consultas`) filtrando la normativa por el tema activo. El botón "Resolver mis dudas con IA" del diagnóstico lo abre con el relato del caso ya escrito, para que el usuario decida si lo envía.
 

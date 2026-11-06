@@ -46,32 +46,6 @@ const Onboarding = {
       inputType: 'password'
     },
     {
-      id: 'preocupacion',
-      type: 'choice',
-      campo: 'preocupacion',
-      titulo: '¿Qué te preocupa hoy?',
-      texto: 'Puedes cambiarlo después.',
-      opciones: [
-        { value: 'embargo', label: 'Amenazas de embargo' },
-        { value: 'seguros', label: 'Cobros o seguros extraños' },
-        { value: 'telecom', label: 'Cambios de plan o portabilidad' },
-        { value: 'otro', label: 'Otra cosa' }
-      ]
-    },
-    {
-      id: 'proposito',
-      type: 'choice',
-      campo: 'proposito',
-      titulo: '¿Para qué vas a usar ServicIA?',
-      texto: 'Nos ayuda a adaptar la orientación a tus necesidades.',
-      opciones: [
-        { value: 'autoinformarse', label: 'Para auto-informarme sobre mis derechos' },
-        { value: 'asesorar', label: 'Para asesorar a familiares o amigos' },
-        { value: 'investigar', label: 'Para investigar información sobre finanzas, créditos o bienes raíces' },
-        { value: 'trabajo', label: 'Para capacitarme y ayudar en mi trabajo' }
-      ]
-    },
-    {
       id: 'fin',
       type: 'summary',
       titulo: 'Todo listo',
@@ -261,9 +235,7 @@ const Onboarding = {
     const campos = [
       ['Nombre', Onboarding.datos.nombre],
       ['Edad', Onboarding.datos.edad],
-      ['Correo', Onboarding.datos.email],
-      ['Preocupación principal', Onboarding.labelFor('preocupacion', Onboarding.datos.preocupacion)],
-      ['Propósito de uso', Onboarding.labelFor('proposito', Onboarding.datos.proposito)]
+      ['Correo', Onboarding.datos.email]
     ];
     campos.forEach(([k, v]) => {
       const dt = document.createElement('dt');
@@ -278,15 +250,6 @@ const Onboarding = {
     const btn = Onboarding.makeButton(paso.cta || 'Finalizar');
     btn.addEventListener('click', () => Onboarding.finish(btn));
     card.appendChild(btn);
-  },
-
-  labelFor(campo, value) {
-    const paso = Onboarding.pasos.find(p => p.campo === campo);
-    if (!paso || !paso.opciones) {
-      return value;
-    }
-    const op = paso.opciones.find(o => o.value === value);
-    return op ? op.label : value;
   },
 
   makeButton(text) {
@@ -327,9 +290,7 @@ const Onboarding = {
       nombre: Onboarding.datos.nombre,
       email: Onboarding.datos.email,
       password: Onboarding.datos.password,
-      edad: Onboarding.datos.edad,
-      preocupacion: Onboarding.datos.preocupacion,
-      proposito: Onboarding.datos.proposito
+      edad: Onboarding.datos.edad
     });
 
     if (!res.ok) {

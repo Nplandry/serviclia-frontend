@@ -89,6 +89,18 @@ const Auth = {
     return Object.keys(limpio).length ? limpio : null;
   },
 
+  // Borra la cuenta en el servidor (confirmada con la contraseña) y cierra la sesión local.
+  async eliminarCuenta(password) {
+    if (!Auth.sesion) return { ok: false, error: 'Inicie sesión para continuar.' };
+    const res = await Auth.request('/v1/auth/yo', { method: 'DELETE', body: { password: String(password || '') }, token: Auth.sesion.token });
+    if (res.status === 404 || res.status === 405) {
+      return { ok: false, error: 'El servidor no tiene esta función. Reinicie el backend con la versión nueva.' };
+    }
+    if (!res.ok) return { ok: false, error: res.error };
+    Auth.logout();
+    return { ok: true };
+  },
+
   // Sube el PDF de liquidaciones o Dicom para el Nivel 2. El archivo no se guarda en el dispositivo.
   async subirDocumentoArriendo(archivo) {
     if (!Auth.sesion) return { ok: false, error: 'Inicie sesión para continuar.' };

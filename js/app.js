@@ -27,7 +27,7 @@ const App = {
   },
 
   cacheElements() {
-    const ids = ['asistenteView','formView','categoryList','backFromForm','orientationForm','formRut','rutError','submitForm','formStatus','logoutBtn','chatForm','chatInput','chatSend','chatMessages','chatStatus','authGate','tabLogin','tabRegister','loginForm','registerForm','loginStatus','registerStatus','historyBtn','historyPanel','historyOverlay','historyClose','historyList','historyClear','historyMenu','mapView','dashboardView','perfilView','dashKpis','dashBars','perfilStatus','perfilPasaporte','perfilForm','perfilNombre','perfilCorreo','perfilEdad','perfilTelefono','perfilRut','perfilGuardar','perfilFormStatus','perfilDocForm','perfilDoc','perfilDocSubir','perfilDocStatus','perfilClear','perfilLogout','verifyView','auditoria','asistenteFab','asistentePanel','asistenteClose','asistenteTema'];
+    const ids = ['asistenteView','formView','categoryList','backFromForm','orientationForm','formRut','rutError','submitForm','formStatus','logoutBtn','chatForm','chatInput','chatSend','chatMessages','chatStatus','authGate','tabLogin','tabRegister','loginForm','registerForm','loginStatus','registerStatus','historyBtn','historyPanel','historyOverlay','historyClose','historyList','historyClear','historyMenu','mapView','dashboardView','perfilView','dashKpis','dashBars','perfilStatus','perfilPasaporte','perfilForm','perfilNombre','perfilCorreo','perfilEdad','perfilTelefono','perfilRut','perfilGuardar','perfilFormStatus','perfilDocForm','perfilDoc','perfilDocSubir','perfilDocStatus','perfilClear','perfilLogout','perfilEliminar','perfilEliminarForm','perfilEliminarPass','perfilEliminarCancelar','perfilEliminarStatus','verifyView','auditoria','asistenteFab','asistentePanel','asistenteClose','asistenteTema'];
     ids.forEach(id => App.elements[id] = document.getElementById(id));
     App.elements.appHeader = document.querySelector('.app-header');
     App.elements.appMain = document.getElementById('main');
@@ -51,6 +51,9 @@ const App = {
     App.elements.perfilDocForm.addEventListener('submit', App.handlePerfilDocumento);
     App.elements.perfilClear.addEventListener('click', App.handleConfigClear);
     App.elements.perfilLogout.addEventListener('click', App.handleLogout);
+    App.elements.perfilEliminar.addEventListener('click', App.mostrarEliminarCuenta);
+    App.elements.perfilEliminarCancelar.addEventListener('click', App.ocultarEliminarCuenta);
+    App.elements.perfilEliminarForm.addEventListener('submit', App.handleEliminarCuenta);
   },
 
   handleMenuClick(e) {
@@ -250,6 +253,39 @@ const App = {
   handleConfigClear() {
     if (!window.confirm('¿Borrar todo el historial de consultas de este dispositivo?')) return;
     App.handleHistoryClear();
+  },
+
+  mostrarEliminarCuenta() {
+    App.elements.perfilEliminarForm.hidden = false;
+    App.elements.perfilEliminarPass.value = '';
+    App.elements.perfilEliminarStatus.textContent = '';
+    // La vista de perfil es larga: el formulario debe quedar a la vista al abrirse.
+    App.elements.perfilEliminarForm.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    App.elements.perfilEliminarPass.focus({ preventScroll: true });
+  },
+
+  ocultarEliminarCuenta() {
+    App.elements.perfilEliminarForm.hidden = true;
+    App.elements.perfilEliminarPass.value = '';
+    App.elements.perfilEliminarStatus.textContent = '';
+  },
+
+  // Borra la cuenta en el servidor y, si sale bien, limpia el historial local del dispositivo.
+  async handleEliminarCuenta(e) {
+    e.preventDefault();
+    const boton = App.elements.perfilEliminarForm.querySelector('button[type="submit"]');
+    boton.disabled = true;
+    const res = await Auth.eliminarCuenta(App.elements.perfilEliminarPass.value);
+    boton.disabled = false;
+    if (!res.ok) {
+      App.elements.perfilEliminarStatus.textContent = res.error;
+      return;
+    }
+    try {
+      localStorage.removeItem(Historial.storageKey());
+    } catch {}
+    App.ocultarEliminarCuenta();
+    App.handleLogout();
   },
 
   applyAuthState() {

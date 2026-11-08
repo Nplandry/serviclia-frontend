@@ -249,6 +249,17 @@
         <h3 class="section-heading">Cuenta</h3>
         <button id="perfilClear" class="history__clear" type="button">Borrar historial de consultas</button>
         <button id="perfilLogout" class="submit-btn" type="button">Cerrar sesión</button>
+        <button id="perfilEliminar" class="perfil-danger" type="button">Cerrar cuenta</button>
+        <form id="perfilEliminarForm" class="perfil-eliminar" hidden>
+          <p class="field__hint">Se borran su cuenta, su perfil, sus reservas y sus consultas. No se puede deshacer.</p>
+          <div class="field">
+            <label class="field__label" for="perfilEliminarPass">Confirme su contraseña</label>
+            <input id="perfilEliminarPass" class="field__input" type="password" autocomplete="current-password" maxlength="128" required />
+          </div>
+          <button class="perfil-danger" type="submit">Eliminar mi cuenta</button>
+          <button id="perfilEliminarCancelar" class="history__clear" type="button">No eliminar</button>
+          <p id="perfilEliminarStatus" class="status-text" role="alert" aria-live="assertive"></p>
+        </form>
       </div>
     </section>
 

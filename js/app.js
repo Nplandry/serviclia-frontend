@@ -27,7 +27,7 @@ const App = {
   },
 
   cacheElements() {
-    const ids = ['asistenteView','formView','categoryList','backFromForm','orientationForm','formRut','rutError','submitForm','formStatus','logoutBtn','chatForm','chatInput','chatSend','chatMessages','chatStatus','authGate','tabLogin','tabRegister','loginForm','registerForm','loginStatus','registerStatus','historyBtn','historyPanel','historyOverlay','historyClose','historyList','historyClear','historyMenu','mapView','dashboardView','perfilView','mapContainer','mapStatus','dashKpis','dashBars','perfilStatus','perfilPasaporte','perfilForm','perfilNombre','perfilCorreo','perfilEdad','perfilTelefono','perfilRut','perfilGuardar','perfilFormStatus','perfilDocForm','perfilDoc','perfilDocSubir','perfilDocStatus','perfilClear','perfilLogout','verifyView','auditoria','asistenteFab','asistentePanel','asistenteClose','asistenteTema'];
+    const ids = ['asistenteView','formView','categoryList','backFromForm','orientationForm','formRut','rutError','submitForm','formStatus','logoutBtn','chatForm','chatInput','chatSend','chatMessages','chatStatus','authGate','tabLogin','tabRegister','loginForm','registerForm','loginStatus','registerStatus','historyBtn','historyPanel','historyOverlay','historyClose','historyList','historyClear','historyMenu','mapView','dashboardView','perfilView','dashKpis','dashBars','perfilStatus','perfilPasaporte','perfilForm','perfilNombre','perfilCorreo','perfilEdad','perfilTelefono','perfilRut','perfilGuardar','perfilFormStatus','perfilDocForm','perfilDoc','perfilDocSubir','perfilDocStatus','perfilClear','perfilLogout','verifyView','auditoria','asistenteFab','asistentePanel','asistenteClose','asistenteTema'];
     ids.forEach(id => App.elements[id] = document.getElementById(id));
     App.elements.appHeader = document.querySelector('.app-header');
     App.elements.appMain = document.getElementById('main');
@@ -62,7 +62,7 @@ const App = {
   openSection(name) {
     App.closeHistory();
     if (name === 'asistente') return App.showAsistente();
-    if (name === 'mapa') { App.showView('mapView'); return App.initMap(); }
+    if (name === 'mapa') { App.showView('mapView'); return Market.init(); }
     if (name === 'dashboard') { App.renderDashboard(); return App.showView('dashboardView'); }
     if (name === 'perfil') { App.renderPerfil(); return App.showView('perfilView'); }
     if (name === 'verificacion') { Pasaporte.init(); return App.showView('verifyView'); }
@@ -250,42 +250,6 @@ const App = {
   handleConfigClear() {
     if (!window.confirm('¿Borrar todo el historial de consultas de este dispositivo?')) return;
     App.handleHistoryClear();
-  },
-
-  initMap() {
-    const status = App.elements.mapStatus;
-    if (App.state.map) {
-      setTimeout(() => App.state.map.invalidateSize(), 0);
-      return;
-    }
-    status.textContent = 'Cargando mapa...';
-    App.loadMapAssets()
-      .then(() => {
-        App.state.map = L.map(App.elements.mapContainer).setView([-35.6, -71.5], 4);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          attribution: '© OpenStreetMap'
-        }).addTo(App.state.map);
-        status.textContent = '';
-      })
-      .catch(() => {
-        status.style.color = 'var(--color-error)';
-        status.textContent = 'No se pudo cargar el mapa. Revise su conexión a internet.';
-      });
-  },
-
-  loadMapAssets() {
-    if (window.L) return Promise.resolve();
-    const css = document.createElement('link');
-    css.rel = 'stylesheet';
-    css.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
-    document.head.appendChild(css);
-    return new Promise((resolve, reject) => {
-      const js = document.createElement('script');
-      js.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
-      js.onload = resolve;
-      js.onerror = reject;
-      document.head.appendChild(js);
-    });
   },
 
   applyAuthState() {

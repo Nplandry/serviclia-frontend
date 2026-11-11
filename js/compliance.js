@@ -45,8 +45,8 @@ const Compliance = {
 
     const text = document.createElement('p');
     text.className = 'cookie-banner__text';
-    text.innerHTML = 'Usamos almacenamiento local necesario para el funcionamiento de la app y, con su permiso, '
-      + 'para recordar sus consultas.';
+    text.innerHTML = 'Usamos almacenamiento local necesario para el funcionamiento de la app '
+      + '(sesión y preferencias).';
     banner.appendChild(text);
 
     const actions = document.createElement('div');

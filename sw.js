@@ -1,4 +1,4 @@
-const CACHE_NAME = 'servicia-v33';
+const CACHE_NAME = 'servicia-v50';
 const ASSETS = [
   './',
   './index.html',
@@ -9,8 +9,6 @@ const ASSETS = [
   './js/core/security.js',
   './js/compliance.js',
   './js/core/auth.js',
-  './js/services/api.js',
-  './js/modules/history.js',
   './js/modules/pasaporte.js',
   './js/modules/market.js',
   './js/app.js',

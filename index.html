@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="ServicIA orientación legal-financiera para adultos mayores chilenos">
+  <meta name="description" content="ServicIA marketplace y Niveles de Confianza">
   <meta name="theme-color" content="#0f4c81">
   <title>ServicIA</title>
   <link rel="manifest" href="manifest.json">
@@ -19,10 +19,10 @@
             <span class="brand__mark">S</span>
             <h1 class="auth__title">ServicIA</h1>
           </div>
-          <p class="auth__subtitle">Defensa patrimonial y prevención de fraudes</p>
+          <p class="auth__subtitle">Marketplace y Niveles de Confianza</p>
           <ul class="auth__beneficios">
-            <li>Orientación paso a paso ante amenazas de embargo, seguros no consentidos y cambios de plan.</li>
-            <li>Respuestas basadas en normativa oficial chilena, con sus fuentes.</li>
+            <li>Comercios, arriendos y eventos cerca de ti, con índice de transparencia.</li>
+            <li>Niveles de Confianza para acceder a beneficios verificados.</li>
             <li>Sus datos personales se protegen según la Ley 21.719.</li>
           </ul>
         </div>
@@ -82,7 +82,7 @@
 
   <header class="app-header">
     <div class="app-header__columna">
-    <button id="historyBtn" class="menu-toggle" type="button" aria-label="Abrir historial de consultas" aria-controls="historyPanel" aria-expanded="false" hidden>
+    <button id="historyBtn" class="menu-toggle" type="button" aria-label="Abrir menú" aria-controls="historyPanel" aria-expanded="false" hidden>
       <span class="menu-toggle__icon" aria-hidden="true">
         <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
           <line x1="3" y1="6" x2="21" y2="6"></line>
@@ -95,7 +95,7 @@
         <span class="brand__mark">S</span>
         <h1 class="brand__title">ServicIA</h1>
       </div>
-      <p class="brand__subtitle">Defensa patrimonial y prevención de fraudes</p>
+      <p class="brand__subtitle">Marketplace y Niveles de Confianza</p>
       <div class="header-actions">
         <button id="logoutBtn" class="install-btn" type="button" hidden>Cerrar sesión</button>
       </div>
@@ -103,77 +103,34 @@
   </header>
 
   <div id="historyOverlay" class="history-overlay" hidden></div>
-  <aside id="historyPanel" class="history" aria-label="Menú y historial de consultas" aria-hidden="true">
+  <aside id="historyPanel" class="history" aria-label="Menú principal" aria-hidden="true">
     <div class="history__head">
       <h2 class="history__title">Menú</h2>
       <button id="historyClose" class="history__close" type="button" aria-label="Cerrar menú">×</button>
     </div>
     <nav id="historyMenu" class="history-menu" aria-label="Menú principal">
-      <button class="history-menu__item history-menu__item--active" type="button" data-view="asistente" aria-current="page">
-        <svg class="history-menu__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-        <span>Asistente</span>
-      </button>
-      <button class="history-menu__item" type="button" data-view="verificacion">
-        <svg class="history-menu__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>
-        <span>Pasaporte de Confianza</span>
-      </button>
-      <button class="history-menu__item" type="button" data-view="mapa">
+      <button class="history-menu__item history-menu__item--active" type="button" data-view="mapa" aria-current="page">
         <svg class="history-menu__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M1 6l7-3 8 3 7-3v15l-7 3-8-3-7 3z"/><path d="M8 3v15M16 6v15"/></svg>
         <span>Marketplace</span>
       </button>
-      <button class="history-menu__item" type="button" data-view="dashboard">
-        <svg class="history-menu__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18M7 16v-5M12 16V8M17 16v-9"/></svg>
-        <span>Dashboard</span>
+      <button class="history-menu__item" type="button" data-view="verificacion">
+        <svg class="history-menu__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>
+        <span>Niveles de Confianza</span>
+      </button>
+      <button class="history-menu__item" type="button" data-view="subir-confianza">
+        <svg class="history-menu__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5"/><path d="M5 12l7-7 7 7"/><path d="M4 19h16"/></svg>
+        <span>Subir Confianza</span>
       </button>
       <button class="history-menu__item" type="button" data-view="perfil">
         <svg class="history-menu__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
         <span>Perfil</span>
       </button>
     </nav>
-    <h3 class="history__section">Historial de consultas</h3>
-    <div id="historyList" class="history__list"></div>
-    <div class="history__foot">
-      <button id="historyClear" class="history__clear" type="button">Borrar historial</button>
-    </div>
   </aside>
 
   <main id="main" class="main">
-    <section id="asistenteView" class="view">
-      <nav aria-label="Temas de orientación">
-        <ul id="categoryList" class="category-list"></ul>
-      </nav>
-      <div id="auditoria" class="auditoria"></div>
-    </section>
-
-    <section id="formView" class="view" hidden>
-      <button id="backFromForm" class="back-btn" type="button">Volver</button>
-      <h2 id="formTitle" class="section-heading">Solicitar orientación personalizada</h2>
-      <form id="orientationForm" class="form" novalidate>
-        <div class="field">
-          <label class="field__label" for="formName">Nombre</label>
-          <input id="formName" class="field__input" name="nombre" type="text" required minlength="2" maxlength="60">
-        </div>
-        <div class="field">
-          <label class="field__label" for="formRut">RUT</label>
-          <input id="formRut" class="field__input" name="rut" type="text" required minlength="8" maxlength="12" placeholder="12.345.678-9" aria-describedby="rutHelp">
-          <p id="rutHelp" class="help-text">Ingrese el RUT con puntos y guión.</p>
-          <p id="rutError" class="error-text" role="alert" aria-live="assertive"></p>
-        </div>
-        <div class="field">
-          <label class="field__label" for="formTopic">Tema</label>
-          <input id="formTopic" class="field__input" name="tema" type="text" required minlength="3" maxlength="80">
-        </div>
-        <div class="field">
-          <label class="field__label" for="formMessage">Mensaje</label>
-          <textarea id="formMessage" class="field__textarea" name="mensaje" required minlength="10" maxlength="500" rows="4"></textarea>
-        </div>
-        <button id="submitForm" class="submit-btn" type="submit">Analizar mi caso</button>
-        <p id="formStatus" class="status-text" aria-live="polite"></p>
-      </form>
-    </section>
-
-    <section id="mapView" class="view" hidden>
-      <div class="market">
+    <section id="mapView" class="view">
+      <div id="marketList" class="market">
         <div class="market__head">
           <h2 class="section-heading">Marketplace</h2>
           <p class="section-lead">Comercios, arriendos y eventos cerca de ti, ordenados por cercanía.</p>
@@ -186,19 +143,12 @@
         <div id="marketGrid" class="market__grid"></div>
         <p id="marketStatus" class="status-text" aria-live="polite"></p>
       </div>
-    </section>
-
-    <section id="dashboardView" class="view" hidden>
-      <h2 class="section-heading">Dashboard</h2>
-      <p class="section-lead">Resumen de sus consultas guardadas en este dispositivo.</p>
-      <div id="dashKpis" class="dash-kpis"></div>
-      <h3 class="section-heading">Consultas por tema</h3>
-      <div id="dashBars" class="dash-bars"></div>
+      <div id="marketDetail" class="market-detalle" hidden></div>
     </section>
 
     <section id="perfilView" class="view" hidden>
       <h2 class="section-heading">Mi perfil</h2>
-      <p class="section-lead">Sus datos de cuenta y el estado de su Pasaporte de Confianza.</p>
+      <p class="section-lead">Sus datos de cuenta y el estado de sus Niveles de Confianza.</p>
       <div id="perfilStatus" class="status-text" aria-live="polite"></div>
 
       <form id="perfilForm" class="form config-card">
@@ -231,27 +181,16 @@
       </form>
 
       <div class="config-card">
-        <h3 class="section-heading">Pasaporte de Confianza</h3>
+        <h3 class="section-heading">Niveles de Confianza</h3>
         <dl id="perfilPasaporte" class="perfil-datos"></dl>
       </div>
 
-      <form id="perfilDocForm" class="form">
-        <h3 class="section-heading">Verificación de arriendo (Nivel 2)</h3>
-        <p class="field__hint">Suba su liquidación de sueldo o certificado Dicom en PDF (máximo 1 MB) para obtener su score de arriendo. El archivo se procesa en memoria y no se guarda.</p>
-        <div class="field">
-          <input id="perfilDoc" class="field__input" type="file" accept="application/pdf" />
-        </div>
-        <button id="perfilDocSubir" class="submit-btn" type="submit">Subir PDF</button>
-        <p id="perfilDocStatus" class="status-text" role="alert" aria-live="assertive"></p>
-      </form>
-
       <div class="config-card">
         <h3 class="section-heading">Cuenta</h3>
-        <button id="perfilClear" class="history__clear" type="button">Borrar historial de consultas</button>
         <button id="perfilLogout" class="submit-btn" type="button">Cerrar sesión</button>
         <button id="perfilEliminar" class="perfil-danger" type="button">Cerrar cuenta</button>
         <form id="perfilEliminarForm" class="perfil-eliminar" hidden>
-          <p class="field__hint">Se borran su cuenta, su perfil, sus reservas y sus consultas. No se puede deshacer.</p>
+          <p class="field__hint">Se borran su cuenta, su perfil y sus reservas. No se puede deshacer.</p>
           <div class="field">
             <label class="field__label" for="perfilEliminarPass">Confirme su contraseña</label>
             <input id="perfilEliminarPass" class="field__input" type="password" autocomplete="current-password" maxlength="128" required />
@@ -264,49 +203,15 @@
     </section>
 
     <section id="verifyView" class="view" hidden>
-      <h2 class="section-heading">Pasaporte de Confianza</h2>
-      <p class="section-lead">Credencial verificada en fuentes oficiales. Seleccione el rubro para ver los indicadores de solvencia y certeza jurídica.</p>
-      <div id="pasaporteRaiz" class="pasaporte"></div>
-      <h3 class="pasaporte__subtitulo">Cómo confirmar que un mensaje o documento es real</h3>
-      <div class="config-card">
-        <ol class="verify-steps">
-          <li>No pague ni entregue su RUT, claves o datos bancarios por teléfono, SMS o correo.</li>
-          <li>Busque el número de causa o de expediente en el sitio oficial de la institución, no en el enlace que le enviaron.</li>
-          <li>Un embargo o notificación judicial se entrega por escrito, por un receptor judicial.</li>
-          <li>Si tiene dudas, consulte en los canales oficiales de abajo.</li>
-        </ol>
-      </div>
-      <nav class="config-card" aria-label="Canales oficiales">
-        <a class="app-footer__link" href="https://www.sernac.cl" target="_blank" rel="noopener noreferrer">SERNAC</a>
-        <a class="app-footer__link" href="https://www.sernamyp.cl" target="_blank" rel="noopener noreferrer">SERNAMYP</a>
-        <a class="app-footer__link" href="https://www.chileatiende.gob.cl" target="_blank" rel="noopener noreferrer">ChileAtiende</a>
-      </nav>
-      <p class="help-text">Esta sección orienta, pero no verifica documentos ni sellos de forma automática.</p>
+      <h2 class="section-heading">Niveles de Confianza</h2>
+      <div id="pasaporteRaiz" class="niveles"></div>
+    </section>
+
+    <section id="subirConfianzaView" class="view" hidden>
+      <h2 class="section-heading">Subir Confianza</h2>
+      <div id="subirConfianzaRaiz" class="confianza"></div>
     </section>
   </main>
-
-  <button id="asistenteFab" class="asistente-fab" type="button" aria-controls="asistentePanel" aria-expanded="false" hidden>
-    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-    <span class="u-visually-hidden">Abrir Asistente ServicIA</span>
-  </button>
-
-  <section id="asistentePanel" class="asistente-panel" role="dialog" aria-labelledby="asistenteTitulo" hidden>
-    <header class="asistente-panel__head">
-      <div>
-        <h2 id="asistenteTitulo" class="asistente-panel__title">Asistente ServicIA</h2>
-        <p id="asistenteTema" class="asistente-panel__tema"></p>
-      </div>
-      <button id="asistenteClose" class="asistente-panel__close" type="button" aria-label="Cerrar asistente">&times;</button>
-    </header>
-    <div id="chatMessages" class="chat__messages asistente-panel__messages" role="log" aria-live="polite" aria-label="Mensajes del asistente"></div>
-    <form id="chatForm" class="chat__form">
-      <label for="chatInput" class="u-visually-hidden">Escriba su pregunta</label>
-      <input id="chatInput" class="chat__input" type="text" placeholder="Escriba su pregunta..." autocomplete="off" maxlength="300">
-      <button id="chatSend" class="chat__send" type="submit" aria-label="Enviar mensaje" disabled>Enviar</button>
-    </form>
-    <p id="chatStatus" class="chat__status" aria-live="polite"></p>
-    <p class="asistente-panel__nota">Respuestas basadas en normativa oficial. Es orientación, no asesoría legal.</p>
-  </section>
 
   <footer class="app-footer">
     <p class="app-footer__note">ServicIA es una orientación inicial, no reemplaza asesoría profesional.</p>
@@ -317,25 +222,18 @@
     </nav>
   </footer>
 
-  <script src="js/data/categorias.js">
-</script>
-  <script src="js/core/security.js">
-</script>
-  <script src="js/compliance.js">
-</script>
-  <script src="js/core/auth.js">
-</script>
-  <script src="js/services/api.js">
-</script>
-  <script src="js/modules/history.js">
-</script>
+  <script src="js/data/categorias.js"></script>
+  <script src="js/core/security.js"></script>
+  <script src="js/compliance.js"></script>
+  <script src="js/core/auth.js"></script>
   <script src="js/modules/pasaporte.js"></script>
+  <script src="js/modules/subir-confianza.js"></script>
   <script src="js/modules/market.js"></script>
-  <script src="js/app.js">
-</script>
-  <script>    if ('serviceWorker' in navigator) {
+  <script src="js/app.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('sw.js').catch(function () {});
     }
-</script>
+  </script>
 </body>
 </html>

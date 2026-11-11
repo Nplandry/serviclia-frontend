@@ -123,7 +123,7 @@ const Auth = {
       data = await res.json();
     } catch {}
     if (!res.ok) return { ok: false, error: Auth.mensajeError(res.status, data) };
-    // El estado del Pasaporte cambió: se vuelve a leer desde el servidor.
+    // El estado de Niveles de Confianza cambió: se vuelve a leer desde el servidor.
     await Auth.verificarSesion();
     return { ok: true, scoring: data };
   },

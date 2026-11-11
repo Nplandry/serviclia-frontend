@@ -1,6 +1,6 @@
 # ServicIA PWA
 
-Aplicación web progresiva para orientación ante amenazas de embargo, seguros no consentidos y cambios de plan. Se conecta al backend `servicia-backend` (FastAPI) para la autenticación, el perfil del usuario y el asistente con normativa.
+Aplicación web progresiva con marketplace de comercios, arriendos y eventos, y Niveles de Confianza. Se conecta al backend `servicia-backend` (FastAPI) para autenticación, perfil y negocios.
 
 ## Pantallas
 
@@ -12,14 +12,11 @@ Aplicación web progresiva para orientación ante amenazas de embargo, seguros n
 Dentro de `index.html`, la app cambia entre vistas que se muestran u ocultan:
 
 - **authGate**: acceso, con información del servicio y espacios de publicidad.
-- **asistenteView**: vista principal. Selector con los tres temas reales (embargo, seguros, cambio de plan) y la auditoría del tema en dos pasos: datos del caso y diagnóstico (nivel de riesgo, fundamento, acciones recomendadas y siguientes pasos).
-- **formView**: formulario de orientación personalizada.
-- **mapView**, **dashboardView**, **perfilView**, **verifyView**: secciones del menú lateral.
-- **perfilView**: datos de cuenta, estado del Pasaporte de Confianza, edición de edad/teléfono/RUT, subida del PDF de arriendo (Nivel 2) y acciones de cuenta (borrar historial, cerrar sesión).
+- **mapView**: vista principal (Marketplace). Comercios, arriendos y eventos ordenados por cercanía.
+- **perfilView**: datos de cuenta, estado de Niveles de Confianza, edición de edad/teléfono/RUT y acciones de cuenta.
+- **verifyView**: Niveles de Confianza (mockup informativo de gamificación, niveles 1–4).
 
-El menú lateral (Asistente, Pasaporte de Confianza, Marketplace, Dashboard y Perfil) se abre con el botón de la esquina superior izquierda.
-
-El **Asistente ServicIA** es flotante: un botón en la esquina inferior derecha abre el chat, que consulta el backend (`POST /v1/consultas`) filtrando la normativa por el tema activo. El botón "Resolver mis dudas con IA" del diagnóstico lo abre con el relato del caso ya escrito, para que el usuario decida si lo envía.
+El menú lateral (Marketplace, Niveles de Confianza y Perfil) se abre con el botón de la esquina superior izquierda.
 
 ## Estructura
 
@@ -28,15 +25,13 @@ El **Asistente ServicIA** es flotante: un botón en la esquina inferior derecha 
 | `index.html` | Estructura de todas las vistas |
 | `onboarding/index.html` | Flujo de bienvenida |
 | `css/styles.css` | Estilos de toda la aplicación |
-| `js/app.js` | Lógica principal: vistas, menú, auditoría por tema y asistente flotante |
+| `js/app.js` | Lógica principal: vistas, menú y perfil |
 | `js/core/auth.js` | Sesión: login, registro, perfil y verificación del token |
 | `js/core/security.js` | Validación de RUT y redacción de datos personales en el navegador |
 | `js/compliance.js` | Aviso de cookies y registro local de incidentes de seguridad |
-| `js/services/api.js` | Llamadas a la API: asistente (real) y orientación (simulada) |
-| `js/modules/history.js` | Historial local de consultas |
-| `js/data/categorias.js` | Temas, casos y diagnóstico de cada caso, e iconos |
-| `js/data/pasaporte.js` | Datos de demostración (mock) del Pasaporte Digital |
-| `js/modules/pasaporte.js` | Render del Pasaporte Digital: selector de rubro y tarjeta |
+| `js/data/categorias.js` | Iconos del marketplace |
+| `js/modules/market.js` | Marketplace: grilla, filtros y cercanía |
+| `js/modules/pasaporte.js` | Mockup de Niveles de Confianza (progreso y detalle por nivel) |
 | `js/onboarding.js` | Lógica del flujo de bienvenida |
 | `sw.js` | Service Worker: caché de la app. No guarda respuestas de la API. |
 | `manifest.json` | Configuración de la PWA |
@@ -47,17 +42,11 @@ El **Asistente ServicIA** es flotante: un botón en la esquina inferior derecha 
 2. `js/core/security.js`
 3. `js/compliance.js`
 4. `js/core/auth.js`
-5. `js/services/api.js`
-6. `js/modules/history.js`
-7. `js/data/pasaporte.js`
-8. `js/modules/pasaporte.js`
-9. `js/app.js`
+5. `js/modules/pasaporte.js`
+6. `js/modules/market.js`
+7. `js/app.js`
 
 `sw.js` se registra al final de la página.
-
-## Pasaporte Digital
-
-La vista `verifyView` muestra la credencial de integridad patrimonial. Sus datos (titular, rubros, indicadores, token) están en `js/data/pasaporte.js` como mock. Para conectarla al backend, reemplace ese objeto por la respuesta de la API; el render no cambia. El botón de descarga está deshabilitado mientras la función no exista.
 
 ## Conexión con el backend
 
@@ -72,7 +61,3 @@ python3 -m http.server 5500
 ```
 
 Luego abra `http://localhost:5500/index.html`. El backend debe estar corriendo en el puerto 8000.
-
-## Pruebas
-
-Las pruebas de navegador no están versionadas en este repositorio. Cubren acceso, onboarding, asistente, menú, bordes de columnas y botón Enviar, y se ejecutaron con Playwright contra el backend real.

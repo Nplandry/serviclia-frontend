@@ -1,206 +1,188 @@
-// Mockup visual de Niveles de Confianza.
+// Mi QR: código mock que el comercio escaneará para validar al usuario.
 const Pasaporte = {
-  NIVELES: [
-    {
-      id: 1,
-      nombre: 'Básico',
-      pide: 'Cédula y registro',
-      abre: 'Eventos, reservas, comercios',
-      especial: false
-    },
-    {
-      id: 2,
-      nombre: 'Disciplina',
-      pide: 'Asistencia y puntualidad',
-      abre: 'Descuentos y prioridad',
-      especial: false
-    },
-    {
-      id: 3,
-      nombre: 'Cívico',
-      pide: 'Antecedentes, biometría y aval',
-      abre: 'Galas y preventas',
-      especial: false
-    },
-    {
-      id: 4,
-      nombre: 'Financiero',
-      pide: 'Liquidación o AFP',
-      abre: 'Solo arriendos',
-      especial: true
-    }
-  ],
-
   init() {
     const raiz = document.getElementById('pasaporteRaiz');
     if (!raiz) return;
-    Pasaporte.render(raiz);
-  },
-
-  nivelActual() {
-    const sesion = Auth.getCurrentUser();
-    const nivel = sesion && sesion.perfil ? Number(sesion.perfil.nivel_pasaporte) : 1;
-    if (!Number.isFinite(nivel) || nivel < 1) return 1;
-    return Math.min(4, Math.max(1, Math.floor(nivel)));
-  },
-
-  estadoArriendo() {
-    const sesion = Auth.getCurrentUser();
-    return sesion && sesion.perfil ? sesion.perfil.estado_pasaporte : 'basico';
-  },
-
-  render(raiz) {
     Pasaporte.limpiar(raiz);
-    const actual = Pasaporte.nivelActual();
-    const info = Pasaporte.NIVELES.find(n => n.id === actual) || Pasaporte.NIVELES[0];
-
-    raiz.append(
-      Pasaporte.heroNivel(info),
-      Pasaporte.barraProgreso(actual),
-      Pasaporte.listaNiveles(actual)
-    );
+    raiz.appendChild(Pasaporte.render());
   },
 
-  heroNivel(info) {
-    const hero = document.createElement('div');
-    hero.className = 'niveles__hero' + (info.especial ? ' niveles__hero--especial' : '');
-    hero.setAttribute('aria-live', 'polite');
-
-    const etiqueta = document.createElement('p');
-    etiqueta.className = 'niveles__hero-etiqueta';
-    etiqueta.textContent = 'Tu nivel ahora';
-
-    const fila = document.createElement('div');
-    fila.className = 'niveles__hero-fila';
-
-    const num = document.createElement('span');
-    num.className = 'niveles__hero-num';
-    num.textContent = String(info.id);
-
-    const texto = document.createElement('div');
-    texto.className = 'niveles__hero-texto';
-
-    const nombre = document.createElement('p');
-    nombre.className = 'niveles__hero-nombre';
-    nombre.textContent = info.nombre;
-
-    const pista = document.createElement('p');
-    pista.className = 'niveles__hero-pista';
-    pista.textContent = 'Subes de nivel con tu conducta.';
-
-    texto.append(nombre, pista);
-    fila.append(num, texto);
-    hero.append(etiqueta, fila);
-    return hero;
+  datosMock() {
+    const sesion = typeof Auth !== 'undefined' ? Auth.getCurrentUser() : null;
+    const perfil = (sesion && sesion.perfil) || {};
+    const nombre = (sesion && sesion.nombre) || 'Usuario ServiChile';
+    const email = (sesion && sesion.email) || 'usuario@servichile.cl';
+    const nivel = Number(perfil.nivel_pasaporte) || 1;
+    const score =
+      perfil.score_confiabilidad == null || perfil.score_confiabilidad === ''
+        ? null
+        : Number(perfil.score_confiabilidad);
+    const token = Pasaporte.tokenMock(email, nivel);
+    return {
+      nombre,
+      email,
+      nivel: Math.min(4, Math.max(1, Math.floor(nivel))),
+      score: Number.isFinite(score) ? score : null,
+      estado: perfil.estado_pasaporte || 'basico',
+      token,
+      payload: 'servichile://checkin/' + token,
+      emitido: new Date().toISOString()
+    };
   },
 
-  barraProgreso(actual) {
+  tokenMock(email, nivel) {
+    const base = String(email || 'anon') + '|' + String(nivel || 1);
+    let h = 2166136261;
+    for (let i = 0; i < base.length; i++) {
+      h ^= base.charCodeAt(i);
+      h = Math.imul(h, 16777619);
+    }
+    const hex = (h >>> 0).toString(16).padStart(8, '0').toUpperCase();
+    return 'QR-MOCK-' + hex + '-' + String(nivel || 1);
+  },
+
+  render() {
+    const d = Pasaporte.datosMock();
     const wrap = document.createElement('div');
-    wrap.className = 'niveles__progreso';
-    wrap.setAttribute('aria-label', 'Mapa de niveles');
+    wrap.className = 'mi-qr';
 
-    const pista = document.createElement('ol');
-    pista.className = 'niveles__pista';
+    const lead = document.createElement('p');
+    lead.className = 'section-lead';
+    lead.textContent =
+      'Muestre este carnet en el comercio. Lo escanearán para validar su identidad y nivel (datos mock).';
 
-    Pasaporte.NIVELES.forEach(n => {
-      const li = document.createElement('li');
-      li.className = 'niveles__paso';
-      if (n.id < actual) li.classList.add('niveles__paso--hecho');
-      if (n.id === actual) li.classList.add('niveles__paso--actual');
-      if (n.id > actual) li.classList.add('niveles__paso--bloqueado');
-      if (n.especial) li.classList.add('niveles__paso--especial');
+    const card = document.createElement('section');
+    card.className = 'mi-qr__carnet';
+    card.setAttribute('aria-label', 'Carnet de validación ServiChile');
 
-      const num = document.createElement('span');
-      num.className = 'niveles__paso-num';
-      num.textContent = String(n.id);
+    const cabezal = document.createElement('header');
+    cabezal.className = 'mi-qr__cabezal';
+    const marca = document.createElement('p');
+    marca.className = 'mi-qr__marca';
+    marca.textContent = 'ServiChile';
+    const sub = document.createElement('p');
+    sub.className = 'mi-qr__sub';
+    sub.textContent = 'Carnet de confianza';
+    cabezal.append(marca, sub);
 
-      const label = document.createElement('span');
-      label.className = 'niveles__paso-label';
-      label.textContent = n.nombre;
+    const cuerpo = document.createElement('div');
+    cuerpo.className = 'mi-qr__cuerpo';
 
-      li.append(num, label);
+    const qrCol = document.createElement('div');
+    qrCol.className = 'mi-qr__qr';
+    const qrBox = document.createElement('div');
+    qrBox.className = 'mi-qr__frame';
+    qrBox.appendChild(Pasaporte.svgQr(d.payload));
+    const token = document.createElement('code');
+    token.className = 'mi-qr__token';
+    token.textContent = d.token;
+    qrCol.append(qrBox, token);
 
-      if (n.id === actual) {
-        const aqui = document.createElement('span');
-        aqui.className = 'niveles__aqui';
-        aqui.textContent = 'Aquí';
-        li.appendChild(aqui);
-      }
-
-      pista.appendChild(li);
+    const datos = document.createElement('dl');
+    datos.className = 'mi-qr__datos';
+    [
+      ['Titular', d.nombre],
+      ['Correo', d.email],
+      ['Nivel', 'Nivel ' + d.nivel],
+      ['Estado', Pasaporte.etiquetaEstado(d.estado)],
+      ['Confiabilidad', d.score == null ? 'Sin reservas cerradas' : d.score + ' / 100'],
+      ['Emitido', Pasaporte.formatoFecha(d.emitido)]
+    ].forEach(([k, v]) => {
+      const dt = document.createElement('dt');
+      dt.textContent = k;
+      const dd = document.createElement('dd');
+      dd.textContent = v;
+      datos.append(dt, dd);
     });
 
-    wrap.appendChild(pista);
+    cuerpo.append(qrCol, datos);
+
+    const pie = document.createElement('footer');
+    pie.className = 'mi-qr__pie';
+    pie.textContent = 'Mock · el comercio escaneará este QR para validarlo';
+
+    card.append(cabezal, cuerpo, pie);
+    wrap.append(lead, card);
     return wrap;
   },
 
-  listaNiveles(actual) {
-    const lista = document.createElement('div');
-    lista.className = 'niveles__lista';
-    lista.setAttribute('role', 'list');
+  // QR visual mock (patrón determinista + finders). No es un QR ISO real.
+  svgQr(payload) {
+    const n = 25;
+    const bits = Pasaporte.matrizMock(payload, n);
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('viewBox', '0 0 ' + n + ' ' + n);
+    svg.setAttribute('class', 'mi-qr__svg');
+    svg.setAttribute('role', 'img');
+    svg.setAttribute('aria-label', 'Código QR mock de validación');
 
-    Pasaporte.NIVELES.forEach((n, i) => {
-      const item = document.createElement('article');
-      item.className = 'niveles__item';
-      item.setAttribute('role', 'listitem');
-      item.style.setProperty('--niveles-i', String(i));
-      if (n.id === actual) item.classList.add('niveles__item--actual');
-      if (n.id < actual) item.classList.add('niveles__item--hecho');
-      if (n.id > actual) item.classList.add('niveles__item--bloqueado');
-      if (n.especial) item.classList.add('niveles__item--especial');
+    const bg = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+    bg.setAttribute('width', String(n));
+    bg.setAttribute('height', String(n));
+    bg.setAttribute('fill', '#ffffff');
+    svg.appendChild(bg);
 
-      const head = document.createElement('header');
-      head.className = 'niveles__item-head';
-
-      const num = document.createElement('span');
-      num.className = 'niveles__badge';
-      num.textContent = String(n.id);
-
-      const nombre = document.createElement('h3');
-      nombre.className = 'niveles__nombre';
-      nombre.textContent = n.nombre;
-
-      const estado = document.createElement('span');
-      estado.className = 'niveles__estado';
-      estado.textContent = Pasaporte.etiquetaEstado(n, actual);
-
-      head.append(num, nombre, estado);
-
-      const meta = document.createElement('ul');
-      meta.className = 'niveles__meta';
-      [
-        ['Pide', n.pide],
-        ['Abre', n.abre]
-      ].forEach(([k, v]) => {
-        const li = document.createElement('li');
-        const key = document.createElement('span');
-        key.className = 'niveles__meta-key';
-        key.textContent = k;
-        const val = document.createElement('span');
-        val.className = 'niveles__meta-val';
-        val.textContent = v;
-        li.append(key, val);
-        meta.appendChild(li);
-      });
-
-      item.append(head, meta);
-      lista.appendChild(item);
-    });
-
-    return lista;
+    for (let y = 0; y < n; y++) {
+      for (let x = 0; x < n; x++) {
+        if (!bits[y][x]) continue;
+        const cell = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        cell.setAttribute('x', String(x));
+        cell.setAttribute('y', String(y));
+        cell.setAttribute('width', '1');
+        cell.setAttribute('height', '1');
+        cell.setAttribute('fill', '#000000');
+        svg.appendChild(cell);
+      }
+    }
+    return svg;
   },
 
-  etiquetaEstado(nivel, actual) {
-    if (nivel.especial) {
-      const arriendo = Pasaporte.estadoArriendo();
-      if (arriendo === 'verificado') return 'Activo';
-      if (arriendo === 'pendiente') return 'En revisión';
-      if (arriendo === 'rechazado') return 'Rechazado';
-      return 'Opcional';
+  matrizMock(payload, n) {
+    const m = Array.from({ length: n }, () => Array(n).fill(false));
+    let h = 2166136261;
+    const s = String(payload || '');
+    for (let i = 0; i < s.length; i++) {
+      h ^= s.charCodeAt(i);
+      h = Math.imul(h, 16777619);
     }
-    if (nivel.id < actual) return 'Listo';
-    if (nivel.id === actual) return 'Estás aquí';
-    return 'Bloqueado';
+    for (let y = 0; y < n; y++) {
+      for (let x = 0; x < n; x++) {
+        h = Math.imul(h ^ (x * 374761393 + y * 668265263), 2246822519);
+        m[y][x] = (h >>> 0) % 3 !== 0;
+      }
+    }
+    Pasaporte.dibujarFinder(m, 0, 0);
+    Pasaporte.dibujarFinder(m, n - 7, 0);
+    Pasaporte.dibujarFinder(m, 0, n - 7);
+    return m;
+  },
+
+  dibujarFinder(m, ox, oy) {
+    for (let y = 0; y < 7; y++) {
+      for (let x = 0; x < 7; x++) {
+        const borde = x === 0 || y === 0 || x === 6 || y === 6;
+        const centro = x >= 2 && x <= 4 && y >= 2 && y <= 4;
+        m[oy + y][ox + x] = borde || centro;
+      }
+    }
+  },
+
+  etiquetaEstado(estado) {
+    const mapa = {
+      basico: 'Básico',
+      pendiente: 'En revisión',
+      verificado: 'Verificado',
+      rechazado: 'Rechazado'
+    };
+    return mapa[estado] || 'Básico';
+  },
+
+  formatoFecha(iso) {
+    try {
+      return new Date(iso).toLocaleString('es-CL', { dateStyle: 'short', timeStyle: 'short' });
+    } catch {
+      return iso;
+    }
   },
 
   limpiar(el) {

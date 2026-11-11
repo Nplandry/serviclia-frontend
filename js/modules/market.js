@@ -28,7 +28,8 @@ const Market = {
       filters: document.getElementById('marketFilters'),
       count: document.getElementById('marketCount'),
       grid: document.getElementById('marketGrid'),
-      status: document.getElementById('marketStatus')
+      status: document.getElementById('marketStatus'),
+      progreso: document.getElementById('marketProgreso')
     };
     if (!Market.el.grid) return;
     if (!Market.el.bound) {
@@ -36,9 +37,20 @@ const Market = {
       Market.el.bound = true;
     }
     Market.cerrarDetalle();
+    Market.renderProgreso();
     Market.renderFiltros();
     Market.pedirUbicacion();
     Market.cargar();
+  },
+
+  // El marketplace solo monta el widget; la lógica de progreso vive en SubirConfianza.
+  renderProgreso() {
+    if (!Market.el.progreso || typeof SubirConfianza === 'undefined') return;
+    SubirConfianza.montarIndicador(Market.el.progreso, {
+      onAbrir: () => {
+        if (typeof App !== 'undefined' && App.openSection) App.openSection('subir-confianza');
+      }
+    });
   },
 
   pedirUbicacion() {
@@ -423,7 +435,7 @@ const Market = {
 
   async accion(n, bloqueado, boton, estadoEl) {
     if (bloqueado) {
-      App.openSection('verificacion');
+      App.openSection('subir-confianza');
       return;
     }
     const sesion = Auth.getCurrentUser();

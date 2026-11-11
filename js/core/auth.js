@@ -1,9 +1,9 @@
 // Sesion contra la API v1 auth. El token JWT queda en localStorage, aceptable en desarrollo
 // en produccion conviene una cookie httpOnly.
 const Auth = {
-  // En produccion defina la variable SERVICIA API BASE antes de cargar este archivo, por ejemplo en un config.js.
-  API_BASE: (typeof window !== 'undefined' && window.SERVICIA_API_BASE) || 'http://localhost:8000',
-  STORAGE_KEY: 'servicia.session',
+  // En produccion defina la variable SERVICHILE API BASE antes de cargar este archivo, por ejemplo en un config.js.
+  API_BASE: (typeof window !== 'undefined' && window.SERVICHILE_API_BASE) || 'http://localhost:8000',
+  STORAGE_KEY: 'servichile.session',
   sesion: null,
 
   init() {
@@ -123,7 +123,7 @@ const Auth = {
       data = await res.json();
     } catch {}
     if (!res.ok) return { ok: false, error: Auth.mensajeError(res.status, data) };
-    // El estado de Niveles de Confianza cambió: se vuelve a leer desde el servidor.
+    // El estado de confianza cambió: se vuelve a leer desde el servidor.
     await Auth.verificarSesion();
     return { ok: true, scoring: data };
   },

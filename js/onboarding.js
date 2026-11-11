@@ -1,11 +1,11 @@
 const Onboarding = {
-  STORAGE_KEY: 'servicia.onboarding',
+  STORAGE_KEY: 'servichile.onboarding',
 
   pasos: [
     {
       id: 'intro',
       type: 'welcome',
-      titulo: 'Bienvenido a ServicIA',
+      titulo: 'Bienvenido a ServiChile',
       texto: 'Te haremos unas preguntas rápidas para conocerte. Desliza o toca para avanzar.',
       cta: 'Comenzar'
     },
@@ -312,7 +312,7 @@ const Onboarding = {
     title.textContent = '¡Bienvenido, ' + (res.user.nombre || '') + '!';
     const text = document.createElement('p');
     text.className = 'onboarding__card-text';
-    text.textContent = 'Tu cuenta quedó registrada. Entrando a ServicIA...';
+    text.textContent = 'Tu cuenta quedó registrada. Entrando a ServiChile...';
     done.appendChild(title);
     done.appendChild(text);
     Onboarding.elements.deck.appendChild(done);

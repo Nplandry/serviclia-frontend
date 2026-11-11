@@ -1,4 +1,4 @@
-const CACHE_NAME = 'servicia-v50';
+const CACHE_NAME = 'servichile-v51';
 const ASSETS = [
   './',
   './index.html',
@@ -10,6 +10,7 @@ const ASSETS = [
   './js/compliance.js',
   './js/core/auth.js',
   './js/modules/pasaporte.js',
+  './js/modules/subir-confianza.js',
   './js/modules/market.js',
   './js/app.js',
   './js/onboarding.js',

@@ -181,9 +181,57 @@ const SubirConfianza = {
   },
 
   etiquetaPunto(estado) {
-    if (estado === 'ok') return 'Requisito cumplido';
-    if (estado === 'progreso') return 'Requisito en progreso';
-    return 'Requisito pendiente';
+    if (estado === 'ok') return 'Cumplido';
+    if (estado === 'progreso') return 'En progreso';
+    return 'Pendiente';
+  },
+
+  // Texto corto con el porqué del color (métrica o acción faltante).
+  detallePunto(tareaId) {
+    const perfil = SubirConfianza.perfil();
+    const score = SubirConfianza.scoreConfiabilidad();
+    const estado = SubirConfianza.estadoPunto(tareaId);
+
+    switch (tareaId) {
+      case 'n1-registro':
+        return estado === 'ok'
+          ? 'Cuenta activa e iniciaste sesión.'
+          : 'Debes crear una cuenta e iniciar sesión.';
+      case 'n1-cedula':
+        if (perfil.rut_verificado) return 'RUT verificado en tu perfil.';
+        if (SubirConfianza.tieneDoc('cedula')) return 'Cédula cargada (mock Zero-Retention).';
+        return 'Falta verificar RUT en Perfil o subir la cédula.';
+      case 'n2-asistencias':
+        return estado === 'ok'
+          ? 'Ya tienes historial de reservas cerradas.'
+          : 'Aún no hay asistencias registradas en tus reservas.';
+      case 'n2-puntualidad':
+        if (score == null) return 'Sin score aún. Se calcula con tus asistencias.';
+        if (score >= 85) return 'behavior_score ' + score + '% · meta ≥ 85% alcanzada.';
+        return 'behavior_score ' + score + '% · faltan ' + (85 - score).toFixed(1) + ' puntos para la meta.';
+      case 'n2-noshow':
+        if (score == null) return 'Sin historial: la tasa de no-shows aún no se mide.';
+        if (score >= 85) return 'Tasa de no-shows controlada (score ' + score + '%).';
+        return 'Score ' + score + '%: baja la tasa de no-shows para llegar a 85%.';
+      case 'n3-antecedentes':
+        return estado === 'ok'
+          ? 'Certificado de antecedentes cargado.'
+          : 'Sube el certificado de antecedentes en Documentos.';
+      case 'n3-biometria':
+        return estado === 'ok'
+          ? 'Verificación biométrica completada.'
+          : 'Completa el flujo de biometría más abajo.';
+      case 'n4-liquidacion':
+        return estado === 'ok'
+          ? 'Liquidación procesada (Zero-Retention).'
+          : 'Solo para arriendos: sube liquidación de sueldo en PDF.';
+      case 'n4-afp':
+        return estado === 'ok'
+          ? 'Certificado AFP procesado (Zero-Retention).'
+          : 'Solo para arriendos: sube certificado AFP en PDF.';
+      default:
+        return SubirConfianza.etiquetaPunto(estado);
+    }
   },
 
   totalTareas() {
@@ -276,6 +324,27 @@ const SubirConfianza = {
     lead.textContent =
       'No se marca a mano: cada ítem se desbloquea solo cuando completas la acción real.';
 
+    const leyenda = document.createElement('ul');
+    leyenda.className = 'confianza-leyenda';
+    leyenda.setAttribute('aria-label', 'Leyenda de estados');
+    [
+      ['ok', 'Verde', 'Cumplido: el requisito ya está desbloqueado.'],
+      ['progreso', 'Naranjo', 'En progreso: hay avance, pero aún no llega a la meta.'],
+      ['pendiente', 'Gris', 'Pendiente: todavía no hay acción ni métrica.']
+    ].forEach(([estado, color, texto]) => {
+      const li = document.createElement('li');
+      li.className = 'confianza-leyenda__item';
+      const dot = document.createElement('span');
+      dot.className = 'confianza-todo__punto confianza-todo__punto--' + estado;
+      dot.setAttribute('aria-hidden', 'true');
+      const strong = document.createElement('strong');
+      strong.textContent = color;
+      const span = document.createElement('span');
+      span.textContent = ' — ' + texto;
+      li.append(dot, strong, span);
+      leyenda.appendChild(li);
+    });
+
     const lista = document.createElement('div');
     lista.className = 'confianza-todo__lista';
 
@@ -306,14 +375,22 @@ const SubirConfianza = {
 
       nivel.tareas.forEach(tarea => {
         const punto = SubirConfianza.estadoPunto(tarea.id);
+        const detalle = SubirConfianza.detallePunto(tarea.id);
         const li = document.createElement('li');
         li.className = 'confianza-todo__item confianza-todo__item--' + punto;
 
+        const estadoWrap = document.createElement('div');
+        estadoWrap.className = 'confianza-todo__estado';
+
         const estado = document.createElement('span');
         estado.className = 'confianza-todo__punto confianza-todo__punto--' + punto;
-        estado.setAttribute('aria-label', SubirConfianza.etiquetaPunto(punto));
-        estado.setAttribute('title', SubirConfianza.etiquetaPunto(punto));
-        estado.setAttribute('role', 'img');
+        estado.setAttribute('aria-hidden', 'true');
+
+        const estadoTxt = document.createElement('span');
+        estadoTxt.className = 'confianza-todo__estado-txt confianza-todo__estado-txt--' + punto;
+        estadoTxt.textContent = SubirConfianza.etiquetaPunto(punto);
+
+        estadoWrap.append(estado, estadoTxt);
 
         const cuerpo = document.createElement('div');
         cuerpo.className = 'confianza-todo__cuerpo';
@@ -322,12 +399,17 @@ const SubirConfianza = {
         label.className = 'confianza-todo__label';
         label.textContent = tarea.label;
 
+        const detalleEl = document.createElement('p');
+        detalleEl.className = 'confianza-todo__detalle';
+        detalleEl.textContent = detalle;
+
         const como = document.createElement('p');
         como.className = 'confianza-todo__como';
         como.textContent = tarea.como;
 
-        cuerpo.append(label, como);
-        li.append(estado, cuerpo);
+        cuerpo.append(label, detalleEl, como);
+        li.append(estadoWrap, cuerpo);
+        li.setAttribute('aria-label', SubirConfianza.etiquetaPunto(punto) + ': ' + tarea.label + '. ' + detalle);
         ul.appendChild(li);
       });
 
@@ -335,7 +417,7 @@ const SubirConfianza = {
       lista.appendChild(grupo);
     });
 
-    wrap.append(titulo, lead, lista);
+    wrap.append(titulo, lead, leyenda, lista);
     return wrap;
   },
 

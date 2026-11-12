@@ -42,10 +42,46 @@ const Auth = {
   },
 
   mensajeError(status, data) {
-    if (status === 422) return 'Revise los datos ingresados. La contraseña debe tener al menos 8 caracteres.';
     if (status === 429) return 'Demasiados intentos. Espere un minuto e intente de nuevo.';
     if (data && typeof data.detail === 'string') return data.detail;
+    if (status === 422) {
+      const msg = Auth.mensajeValidacion(data);
+      if (msg) return msg;
+      return 'Revise los datos ingresados.';
+    }
     return 'Ocurrió un error. Intente de nuevo.';
+  },
+
+  // Traduce errores 422 de Pydantic/FastAPI a un mensaje usable.
+  mensajeValidacion(data) {
+    const detalle = data && data.detail;
+    if (!Array.isArray(detalle) || !detalle.length) return '';
+    const primero = detalle[0] || {};
+    const loc = Array.isArray(primero.loc) ? primero.loc : [];
+    const campo = String(loc[loc.length - 1] || '');
+    const raw = String(primero.msg || '').toLowerCase();
+    if (campo === 'email' || raw.includes('email')) {
+      return 'Ingrese un correo electrónico válido (por ejemplo nombre@dominio.cl).';
+    }
+    if (campo === 'password' || raw.includes('password') || raw.includes('at least 8')) {
+      return 'La contraseña debe tener al menos 8 caracteres.';
+    }
+    if (campo === 'nombre') {
+      return 'Ingrese un nombre válido (mínimo 2 caracteres).';
+    }
+    if (campo === 'edad') {
+      return 'Ingrese una edad entre 14 y 120 años.';
+    }
+    if (campo === 'tipo_cuenta') {
+      return 'Elija si es persona o empresa.';
+    }
+    if (campo === 'telefono') {
+      return 'Ingrese un teléfono válido.';
+    }
+    if (campo === 'rut') {
+      return 'Ingrese un RUT válido.';
+    }
+    return 'Revise los datos ingresados.';
   },
 
   async login(email, password) {
@@ -58,13 +94,16 @@ const Auth = {
   },
 
   async register(data) {
+    const perfil = Auth.limpiarPerfil(data.perfil);
+    if (!perfil || !perfil.tipo_cuenta) {
+      return { ok: false, error: 'Elija si es persona o empresa.' };
+    }
     const payload = {
       email: String(data.email || '').trim(),
       nombre: String(data.nombre || '').trim(),
-      password: String(data.password || '')
+      password: String(data.password || ''),
+      perfil
     };
-    const perfil = Auth.limpiarPerfil(data.perfil);
-    if (perfil) payload.perfil = perfil;
     const res = await Auth.request('/v1/auth/registro', { method: 'POST', body: payload });
     if (!res.ok) return { ok: false, error: res.error };
     return Auth.login(payload.email, payload.password);
@@ -76,17 +115,24 @@ const Auth = {
       nombre: data.nombre,
       email: data.email,
       password: data.password,
-      perfil: { edad: data.edad }
+      perfil: {
+        edad: data.edad,
+        tipo_cuenta: data.tipo_cuenta
+      }
     });
   },
 
-  // Quita campos vacios y convierte la edad a numero. Devuelve null si no queda nada.
-  // preocupacion y proposito ya no se envian: fueron retirados del perfil.
+  // Quita campos vacíos y convierte la edad a número. tipo_cuenta es obligatorio.
   limpiarPerfil(perfil) {
     if (!perfil) return null;
     const limpio = {};
-    if (perfil.edad !== undefined && perfil.edad !== null && perfil.edad !== '') limpio.edad = Number(perfil.edad);
-    return Object.keys(limpio).length ? limpio : null;
+    if (perfil.tipo_cuenta === 'persona' || perfil.tipo_cuenta === 'empresa') {
+      limpio.tipo_cuenta = perfil.tipo_cuenta;
+    }
+    if (perfil.edad !== undefined && perfil.edad !== null && perfil.edad !== '') {
+      limpio.edad = Number(perfil.edad);
+    }
+    return limpio.tipo_cuenta ? limpio : null;
   },
 
   // Borra la cuenta en el servidor (confirmada con la contraseña) y cierra la sesión local.
@@ -99,6 +145,37 @@ const Auth = {
     if (!res.ok) return { ok: false, error: res.error };
     Auth.logout();
     return { ok: true };
+  },
+
+  // Selfie biométrica: cualquier imagen válida. El servidor no almacena la foto.
+  async verificarBiometria(archivo) {
+    if (!Auth.sesion) return { ok: false, error: 'Inicie sesión para continuar.' };
+    if (!archivo) return { ok: false, error: 'Seleccione o capture una foto.' };
+    if (!String(archivo.type || '').startsWith('image/')) {
+      return { ok: false, error: 'Suba una foto (JPEG, PNG, WebP o GIF).' };
+    }
+    if (archivo.size > 5 * 1024 * 1024) {
+      return { ok: false, error: 'La foto supera 5 MB. Use una imagen más liviana.' };
+    }
+    const formulario = new FormData();
+    formulario.append('foto', archivo);
+    let res;
+    try {
+      res = await fetch(Auth.API_BASE + '/v1/perfil/biometria', {
+        method: 'POST',
+        headers: { Authorization: 'Bearer ' + Auth.sesion.token },
+        body: formulario
+      });
+    } catch {
+      return { ok: false, error: 'No se pudo conectar con el servidor. Intente de nuevo.' };
+    }
+    let data = null;
+    try {
+      data = await res.json();
+    } catch {}
+    if (!res.ok) return { ok: false, error: Auth.mensajeError(res.status, data) };
+    await Auth.verificarSesion();
+    return { ok: true, biometria: data };
   },
 
   // Sube el PDF de liquidaciones o Dicom para el Nivel 2. El archivo no se guarda en el dispositivo.

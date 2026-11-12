@@ -13,7 +13,7 @@ Dentro de `index.html`, la app cambia entre vistas que se muestran u ocultan:
 
 - **authGate**: acceso, con información del servicio.
 - **mapView**: Marketplace (comercios, arriendos y eventos por cercanía) y widget de progreso.
-- **verifyView**: Mi QR (carnet mock para validación en el comercio).
+- **verifyView**: Mi QR (carnet real firmado + lector para validar QR de otras personas).
 - **subirConfianzaView**: requisitos por nivel, documentos mock y biometría mock.
 - **perfilView**: datos de cuenta, edición de edad/teléfono/RUT y acciones de cuenta.
 
@@ -32,7 +32,7 @@ El menú lateral (Marketplace, Mi QR, Subir Confianza y Perfil) se abre con el b
 | `js/compliance.js` | Aviso de cookies y registro local de incidentes de seguridad |
 | `js/data/categorias.js` | Iconos del marketplace |
 | `js/modules/market.js` | Marketplace: grilla, filtros y cercanía |
-| `js/modules/pasaporte.js` | Mi QR (carnet mock de validación) |
+| `js/modules/pasaporte.js` | Mi QR (carnet API + lector de validación) |
 | `js/modules/subir-confianza.js` | Subir Confianza (requisitos, documentos y biometría mock) |
 | `js/onboarding.js` | Lógica del flujo de bienvenida |
 | `sw.js` | Service Worker: caché de la app. No guarda respuestas de la API. |

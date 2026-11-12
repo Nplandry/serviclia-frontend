@@ -8,7 +8,7 @@
   <title>ServiChile</title>
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='48' fill='%232563EB'/%3E%3Ctext x='50' y='65' font-size='45' text-anchor='middle' fill='white' font-family='Arial'%3ES%3C/text%3E%3C/svg%3E">
-  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/styles.css?v=55">
 </head>
 <body>
   <div id="authGate" class="auth" hidden>
@@ -28,11 +28,6 @@
         </div>
 
         <div class="auth__card">
-          <div class="auth__tabs" role="tablist" aria-label="Acceso">
-            <button id="tabLogin" class="auth__tab auth__tab--active" type="button" role="tab" aria-selected="true">Iniciar sesión</button>
-            <button id="tabRegister" class="auth__tab" type="button" role="tab" aria-selected="false">Registrarse</button>
-          </div>
-
           <form id="loginForm" class="auth__form" novalidate>
             <div class="field">
               <label class="field__label" for="loginEmail">Correo electrónico</label>
@@ -44,24 +39,10 @@
             </div>
             <button class="submit-btn" type="submit">Entrar</button>
             <p id="loginStatus" class="error-text" role="alert" aria-live="assertive"></p>
-          </form>
-
-          <form id="registerForm" class="auth__form" novalidate hidden>
-            <div class="field">
-              <label class="field__label" for="registerName">Nombre</label>
-              <input id="registerName" class="field__input" name="nombre" type="text" autocomplete="name" required minlength="2" maxlength="60">
-            </div>
-            <div class="field">
-              <label class="field__label" for="registerEmail">Correo electrónico</label>
-              <input id="registerEmail" class="field__input" name="email" type="email" autocomplete="username" required placeholder="correo@ejemplo.cl">
-            </div>
-            <div class="field">
-              <label class="field__label" for="registerPassword">Contraseña</label>
-              <input id="registerPassword" class="field__input" name="password" type="password" autocomplete="new-password" required minlength="8">
-              <p class="help-text">Mínimo 8 caracteres.</p>
-            </div>
-            <button class="submit-btn" type="submit">Crear cuenta</button>
-            <p id="registerStatus" class="error-text" role="alert" aria-live="assertive"></p>
+            <p class="auth__alta">
+              ¿No tienes cuenta?
+              <a class="auth__alta-link" href="./onboarding/?v=54">Regístrate aquí</a>
+            </p>
           </form>
         </div>
       </div>
@@ -223,17 +204,18 @@
     </nav>
   </footer>
 
-  <script src="js/data/categorias.js"></script>
-  <script src="js/core/security.js"></script>
-  <script src="js/compliance.js"></script>
-  <script src="js/core/auth.js"></script>
-  <script src="js/modules/pasaporte.js"></script>
-  <script src="js/modules/subir-confianza.js"></script>
-  <script src="js/modules/market.js"></script>
-  <script src="js/app.js"></script>
+  <script src="js/vendor/qrcode.min.js?v=54"></script>
+  <script src="js/data/categorias.js?v=54"></script>
+  <script src="js/core/security.js?v=54"></script>
+  <script src="js/compliance.js?v=54"></script>
+  <script src="js/core/auth.js?v=54"></script>
+  <script src="js/modules/pasaporte.js?v=54"></script>
+  <script src="js/modules/subir-confianza.js?v=54"></script>
+  <script src="js/modules/market.js?v=54"></script>
+  <script src="js/app.js?v=55"></script>
   <script>
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('sw.js').catch(function () {});
+      navigator.serviceWorker.register('sw.js?v=55').catch(function () {});
     }
   </script>
 </body>

@@ -1,13 +1,18 @@
 const Onboarding = {
-  STORAGE_KEY: 'servichile.onboarding',
+  VERSION: 54,
+  STORAGE_KEY: 'servichile.onboarding.v54',
 
   pasos: [
     {
-      id: 'intro',
-      type: 'welcome',
-      titulo: 'Bienvenido a ServiChile',
-      texto: 'Te haremos unas preguntas rápidas para conocerte. Desliza o toca para avanzar.',
-      cta: 'Comenzar'
+      id: 'tipo_cuenta',
+      type: 'choice',
+      campo: 'tipo_cuenta',
+      titulo: '¿Eres persona o empresa?',
+      texto: 'Primero elige el tipo de cuenta. Así adaptamos el Pasaporte de Confianza.',
+      opciones: [
+        { value: 'persona', label: 'Persona' },
+        { value: 'empresa', label: 'Empresa' }
+      ]
     },
     {
       id: 'nombre',
@@ -72,10 +77,12 @@ const Onboarding = {
 
   restore() {
     try {
+      localStorage.removeItem('servichile.onboarding');
+    } catch {}
+    try {
       const raw = localStorage.getItem(Onboarding.STORAGE_KEY);
       if (raw) {
         Onboarding.datos = JSON.parse(raw) || {};
-        // Limpia borradores de versiones anteriores que guardaban la contrasena.
         if ('password' in Onboarding.datos) {
           delete Onboarding.datos.password;
           Onboarding.save();
@@ -83,6 +90,10 @@ const Onboarding = {
       }
     } catch (e) {
       Onboarding.datos = {};
+    }
+    // Sin tipo elegido: siempre empieza en persona/empresa.
+    if (!Onboarding.datos.tipo_cuenta) {
+      Onboarding.index = 0;
     }
   },
 
@@ -97,7 +108,7 @@ const Onboarding = {
 
   renderProgress() {
     Onboarding.clear(Onboarding.elements.progress);
-    Onboarding.pasos.forEach((p, i) => {
+    Onboarding.pasosVisibles().forEach((p, i) => {
       const dot = document.createElement('span');
       dot.className = 'onboarding__dot' + (i <= Onboarding.index ? ' onboarding__dot--done' : '');
       Onboarding.elements.progress.appendChild(dot);
@@ -110,8 +121,42 @@ const Onboarding = {
     }
   },
 
+  esEmpresa() {
+    return Onboarding.datos.tipo_cuenta === 'empresa';
+  },
+
+  // Oculta edad para empresa: no aplica a la razón social.
+  pasosVisibles() {
+    return Onboarding.pasos.filter((p) => {
+      if (p.id === 'edad' && Onboarding.esEmpresa()) return false;
+      return true;
+    });
+  },
+
+  pasoActual() {
+    return Onboarding.pasosVisibles()[Onboarding.index];
+  },
+
+  copyPaso(paso) {
+    if (!paso) return { titulo: '', texto: '' };
+    if (paso.id === 'nombre' && Onboarding.esEmpresa()) {
+      return {
+        titulo: '¿Cuál es el nombre de la empresa?',
+        texto: 'Usaremos la razón social o el nombre comercial en tu cuenta.'
+      };
+    }
+    if (paso.id === 'edad' && !Onboarding.esEmpresa()) {
+      return { titulo: paso.titulo, texto: paso.texto };
+    }
+    return { titulo: paso.titulo, texto: paso.texto };
+  },
+
   renderCard() {
-    const paso = Onboarding.pasos[Onboarding.index];
+    const visibles = Onboarding.pasosVisibles();
+    if (Onboarding.index >= visibles.length) {
+      Onboarding.index = Math.max(0, visibles.length - 1);
+    }
+    const paso = Onboarding.pasoActual();
     Onboarding.clear(Onboarding.elements.deck);
     Onboarding.elements.prevBtn.hidden = Onboarding.index === 0;
     Onboarding.elements.stepStatus.textContent = '';
@@ -119,15 +164,16 @@ const Onboarding = {
 
     const card = document.createElement('article');
     card.className = 'onboarding__card';
+    const copy = Onboarding.copyPaso(paso);
 
     const title = document.createElement('h1');
     title.className = 'onboarding__card-title';
-    title.textContent = paso.titulo;
+    title.textContent = copy.titulo;
     card.appendChild(title);
 
     const text = document.createElement('p');
     text.className = 'onboarding__card-text';
-    text.textContent = paso.texto;
+    text.textContent = copy.texto;
     card.appendChild(text);
 
     if (paso.type === 'text') {
@@ -156,9 +202,12 @@ const Onboarding = {
     const input = document.createElement('input');
     input.className = 'field__input';
     input.type = paso.inputType || 'text';
-    input.placeholder = paso.placeholder || '';
+    input.placeholder =
+      paso.id === 'nombre' && Onboarding.esEmpresa()
+        ? 'Nombre de la empresa'
+        : paso.placeholder || '';
     input.value = Onboarding.datos[paso.campo] || '';
-    input.maxLength = paso.inputType === 'password' ? 40 : 60;
+    input.maxLength = paso.inputType === 'password' ? 40 : 120;
     if (paso.inputType === 'number') {
       input.min = '0';
       input.max = '120';
@@ -193,8 +242,11 @@ const Onboarding = {
     if (!value) {
       return 'Por favor, completa este campo.';
     }
-    if (paso.campo === 'email' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
-      return 'Ingrese un correo electrónico válido.';
+    if (paso.campo === 'email') {
+      // Exige dominio con TLD de letras (evita typos tipo .cl2).
+      if (!/^[^\s@]+@[^\s@]+\.[a-zA-Z]{2,}$/.test(value)) {
+        return 'Ingrese un correo válido, por ejemplo nombre@dominio.cl';
+      }
     }
     if (paso.campo === 'edad') {
       const edad = Number(value);
@@ -229,14 +281,21 @@ const Onboarding = {
     card.appendChild(list);
   },
 
+  etiquetaTipoCuenta(valor) {
+    if (valor === 'empresa') return 'Empresa';
+    if (valor === 'persona') return 'Persona';
+    return valor || 'Sin responder';
+  },
+
   renderSummaryStep(card, paso) {
     const list = document.createElement('dl');
     list.className = 'onboarding__summary';
     const campos = [
-      ['Nombre', Onboarding.datos.nombre],
-      ['Edad', Onboarding.datos.edad],
+      ['Tipo', Onboarding.etiquetaTipoCuenta(Onboarding.datos.tipo_cuenta)],
+      [Onboarding.esEmpresa() ? 'Empresa' : 'Nombre', Onboarding.datos.nombre],
+      Onboarding.esEmpresa() ? null : ['Edad', Onboarding.datos.edad],
       ['Correo', Onboarding.datos.email]
-    ];
+    ].filter(Boolean);
     campos.forEach(([k, v]) => {
       const dt = document.createElement('dt');
       dt.textContent = k;
@@ -261,7 +320,7 @@ const Onboarding = {
   },
 
   goNext() {
-    if (Onboarding.index < Onboarding.pasos.length - 1) {
+    if (Onboarding.index < Onboarding.pasosVisibles().length - 1) {
       Onboarding.index += 1;
       Onboarding.renderCard();
     }
@@ -275,9 +334,15 @@ const Onboarding = {
   },
 
   async finish(btn) {
+    if (!Onboarding.datos.tipo_cuenta) {
+      Onboarding.index = Onboarding.pasosVisibles().findIndex((p) => p.campo === 'tipo_cuenta');
+      Onboarding.renderCard();
+      Onboarding.elements.stepStatus.textContent = 'Elija si es persona o empresa.';
+      return;
+    }
     // Si recargo la pagina, la contrasena ya no esta en memoria. No se guarda en el dispositivo.
     if (!Onboarding.datos.password) {
-      Onboarding.index = Onboarding.pasos.findIndex(p => p.campo === 'password');
+      Onboarding.index = Onboarding.pasosVisibles().findIndex((p) => p.campo === 'password');
       Onboarding.renderCard();
       Onboarding.elements.stepStatus.textContent = 'Por seguridad, vuelva a escribir su contraseña.';
       return;
@@ -290,7 +355,8 @@ const Onboarding = {
       nombre: Onboarding.datos.nombre,
       email: Onboarding.datos.email,
       password: Onboarding.datos.password,
-      edad: Onboarding.datos.edad
+      edad: Onboarding.esEmpresa() ? undefined : Onboarding.datos.edad,
+      tipo_cuenta: Onboarding.datos.tipo_cuenta
     });
 
     if (!res.ok) {
@@ -324,8 +390,8 @@ const Onboarding = {
   },
 
   enableSwipe(card) {
-    const paso = Onboarding.pasos[Onboarding.index];
-    if (paso.type === 'choice' || paso.type === 'text' || paso.type === 'summary') {
+    const paso = Onboarding.pasoActual();
+    if (!paso || paso.type === 'choice' || paso.type === 'text' || paso.type === 'summary') {
       return;
     }
     let startX = 0;

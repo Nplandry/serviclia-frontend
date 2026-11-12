@@ -1,19 +1,5 @@
-const CACHE_NAME = 'servichile-v51';
+const CACHE_NAME = 'servichile-v54';
 const ASSETS = [
-  './',
-  './index.html',
-  './onboarding/',
-  './onboarding/index.html',
-  './css/styles.css',
-  './js/data/categorias.js',
-  './js/core/security.js',
-  './js/compliance.js',
-  './js/core/auth.js',
-  './js/modules/pasaporte.js',
-  './js/modules/subir-confianza.js',
-  './js/modules/market.js',
-  './js/app.js',
-  './js/onboarding.js',
   './manifest.json'
 ];
 
@@ -36,9 +22,10 @@ self.addEventListener('activate', function (event) {
           return caches.delete(name);
         })
       );
+    }).then(function () {
+      return self.clients.claim();
     })
   );
-  self.clients.claim();
 });
 
 self.addEventListener('fetch', function (event) {
@@ -52,9 +39,28 @@ self.addEventListener('fetch', function (event) {
     return;
   }
 
+  const url = new URL(request.url);
+
   // Solo se cachean archivos de la propia app. Las respuestas de la API otro origen o con sesion
   // contienen datos personales y nunca se guardan en el dispositivo.
-  if (new URL(request.url).origin !== self.location.origin || request.headers.has('Authorization')) {
+  if (url.origin !== self.location.origin || request.headers.has('Authorization')) {
+    return;
+  }
+
+  // HTML y JS siempre de red: evita onboarding/perfil viejos por caché del SW.
+  const path = url.pathname;
+  if (
+    path.endsWith('.js') ||
+    path.endsWith('.html') ||
+    path.endsWith('/') ||
+    path.endsWith('/onboarding') ||
+    path.endsWith('/onboarding/')
+  ) {
+    event.respondWith(
+      fetch(request).catch(function () {
+        return caches.match(request);
+      })
+    );
     return;
   }
 

@@ -9,7 +9,8 @@ const Market = {
     { id: 'comercio', label: 'Comercio' },
     { id: 'arriendo', label: 'Arriendos' },
     { id: 'evento', label: 'Eventos' },
-    { id: 'automotriz', label: 'Automotriz' }
+    { id: 'automotriz', label: 'Automotriz' },
+    { id: 'otro', label: 'Educación y otros' }
   ],
   REF_DEFECTO: { lat: -33.4265, lng: -70.6190 },
 
@@ -264,6 +265,7 @@ const Market = {
 
     const negocioIndice = Object.assign({}, n, { indice_transparencia: indiceValor, is_verified_profile: verificado });
     raiz.appendChild(Market.bloqueIndice(negocioIndice, true));
+    raiz.appendChild(Market.bloqueDesgloseIndice(n, rep, indiceValor, verificado));
 
     if (rep && rep.descargo) {
       const descargo = document.createElement('p');
@@ -272,15 +274,8 @@ const Market = {
       raiz.appendChild(descargo);
     }
 
-    const descTitulo = document.createElement('h3');
-    descTitulo.className = 'market-detalle__subtitulo';
-    descTitulo.textContent = 'Descripción';
-
-    const desc = document.createElement('p');
-    desc.className = 'market-detalle__desc';
-    desc.textContent = n.descripcion || 'Sin descripción por ahora.';
-
     const filas = [
+      ['Descripción', n.descripcion || 'Sin descripción por ahora.'],
       ['Categoría', Market.etiquetaDe(n.categoria)],
       ['Dirección', n.direccion || 'Sin dirección'],
       ['Distancia', Market.distanciaTexto(n) || 'No disponible'],
@@ -302,11 +297,14 @@ const Market = {
     const datos = document.createElement('dl');
     datos.className = 'market-detalle__datos';
     filas.forEach(([k, v]) => {
+      const fila = document.createElement('div');
+      fila.className = 'market-detalle__fila';
       const dt = document.createElement('dt');
       dt.textContent = k;
       const dd = document.createElement('dd');
       dd.textContent = v;
-      datos.append(dt, dd);
+      fila.append(dt, dd);
+      datos.appendChild(fila);
     });
 
     const estado = document.createElement('p');
@@ -321,7 +319,7 @@ const Market = {
     cta.textContent = bloqueado ? 'Subir a nivel ' + pide : Market.textoCta(n);
     cta.addEventListener('click', () => Market.accion(n, bloqueado, cta, estado));
 
-    raiz.append(descTitulo, desc, datos, estado, cta);
+    raiz.append(datos, estado, cta);
   },
 
   estaBloqueado(n) {
@@ -374,6 +372,301 @@ const Market = {
       sello.textContent = 'Sin verificar';
     }
     return sello;
+  },
+
+  // Mock: solo datos por API oficial, registros del Estado o aporte del titular.
+  // Nada que requiera scrapeo con Puppeteer/Playwright u otros headless.
+  factoresIndiceMock(n, rep, indiceValor, verificado) {
+    const seed = Market.hashTexto(String(n.id || n.nombre || 'negocio'));
+    const pct = (base, spread) => Math.max(8, Math.min(98, Math.round(base + ((seed % 1000) / 1000) * spread)));
+    const google = rep && rep.google_rating_avg != null ? Number(rep.google_rating_avg) : 3.5 + (seed % 15) / 10;
+    const reviews = rep && rep.google_reviews_count != null ? Number(rep.google_reviews_count) : 40 + (seed % 260);
+    const googleNorm = Math.round((Math.max(0, Math.min(5, google)) / 5) * 100);
+    const volumenNorm = Math.round(Math.min(100, (Math.log1p(reviews) / Math.log1p(500)) * 100));
+
+    // Docs legales pesan más que el resto, pero sin aplastar el núcleo (24% vs ~14–16%).
+    const rutDeclarado = verificado ? pct(82, 14) : pct(45, 25);
+    const docsLegales = verificado ? pct(78, 10) : pct(28, 20);
+    const openDataSanciones = pct(70, 22);
+    const openDataListados = pct(66, 24);
+    const consistenciaPlaces = pct(58, 30);
+    const seoPlaces = pct(48, 42);
+    const ley21719 = pct(42, 40);
+    const verifNorm = verificado ? 100 : 40;
+    const indiceTxt = Number(indiceValor).toFixed(1);
+
+    return [
+      {
+        id: 'docs-legales',
+        grupo: 'identidad',
+        etiqueta: 'Documentos legales procesados',
+        valor: docsLegales + ' / 100',
+        pct: docsLegales,
+        peso: 'Núcleo · 24%',
+        detalle:
+          'Factor de mayor peso (moderado). PDF/metadata del comercio (constitución, patente, inicio de actividades) analizados en API propia.'
+      },
+      {
+        id: 'titularidad',
+        grupo: 'identidad',
+        etiqueta: 'Titularidad ServiChile',
+        valor: verificado ? 'Reclamado' : 'Sin reclamo',
+        pct: verifNorm,
+        peso: 'Núcleo · 16%',
+        detalle:
+          'Estado interno del claim: amarra identidad del dueño a la ficha sin crawlear terceros.'
+      },
+      {
+        id: 'rut-declarado',
+        grupo: 'identidad',
+        etiqueta: 'RUT y giro declarados',
+        valor: rutDeclarado + ' / 100',
+        pct: rutDeclarado,
+        peso: 'Núcleo · 14%',
+        detalle:
+          'Aporte del titular al reclamar/verificar (formulario ServiChile). Sin scrapeo de portales.'
+      },
+      {
+        id: 'open-data-sanciones',
+        grupo: 'estado',
+        etiqueta: 'Sanciones en registros del Estado',
+        valor: openDataSanciones + ' / 100',
+        pct: openDataSanciones,
+        peso: 'Núcleo · 12%',
+        detalle:
+          'Cruce por RUT/razón social contra registros oficiales publicados por organismos del Estado (archivos o API pública).'
+      },
+      {
+        id: 'open-data-listados',
+        grupo: 'estado',
+        etiqueta: 'Listados oficiales del Estado',
+        valor: openDataListados + ' / 100',
+        pct: openDataListados,
+        peso: 'Núcleo · 12%',
+        detalle:
+          'Presencia o ausencia en listados gubernamentales publicados para consulta (p. ej. inhabilidades, quiebras u otros boletines oficiales).'
+      },
+      {
+        id: 'ley-21719',
+        grupo: 'gobernanza',
+        etiqueta: 'Señal Ley 21.719',
+        valor: ley21719 + ' / 100',
+        pct: ley21719,
+        peso: 'Observable · 5%',
+        detalle:
+          'Mock: transparencia declarada sobre protección de datos personales (p. ej. política de privacidad visible). No certifica cumplimiento de la Ley 21.719.'
+      },
+      {
+        id: 'places-consistencia',
+        grupo: 'mercado',
+        etiqueta: 'Consistencia ficha Places',
+        valor: consistenciaPlaces + ' / 100',
+        pct: consistenciaPlaces,
+        peso: 'Observable · 7%',
+        detalle:
+          'Google Places API: nombre, dirección, categoría y estado del negocio. API oficial, sin headless.'
+      },
+      {
+        id: 'seo',
+        grupo: 'mercado',
+        etiqueta: 'Presencia SEO local',
+        valor: seoPlaces + ' / 100',
+        pct: seoPlaces,
+        peso: 'Observable · 5%',
+        detalle:
+          'Derivado de Places/Search APIs (completitud de ficha, sitio, fotos). No scrapeo de SERPs con bots.'
+      },
+      {
+        id: 'google',
+        grupo: 'mercado',
+        etiqueta: 'Calificación Google',
+        valor: google.toFixed(1) + ' / 5',
+        pct: googleNorm,
+        peso: 'Observable · 3%',
+        detalle: 'Places API (`rating`). Observable de mercado, no prueba legal.'
+      },
+      {
+        id: 'volumen',
+        grupo: 'mercado',
+        etiqueta: 'Volumen de reseñas',
+        valor: reviews + ' reseñas',
+        pct: volumenNorm,
+        peso: 'Observable · 2%',
+        detalle: 'Places API (`user_ratings_total`). Apoyo estadístico abierto.'
+      },
+      {
+        id: 'indice',
+        grupo: 'resumen',
+        etiqueta: 'Índice resultante',
+        valor: indiceTxt + ' / 10',
+        pct: Math.round((Number(indiceValor) / 10) * 100),
+        peso: 'Final',
+        detalle:
+          'Mock: documentos legales pesan más (24%); el resto del núcleo y observables completan el 100%.'
+      }
+    ];
+  },
+
+  filtrosIndiceGrupos() {
+    return [
+      { id: 'identidad', etiqueta: 'Identidad (docs, titularidad, RUT)' },
+      { id: 'estado', etiqueta: 'Registros del Estado' },
+      { id: 'gobernanza', etiqueta: 'Gobernanza de datos' },
+      { id: 'mercado', etiqueta: 'Presencia de mercado' }
+    ];
+  },
+
+  hashTexto(texto) {
+    let h = 2166136261;
+    const s = String(texto || '');
+    for (let i = 0; i < s.length; i++) {
+      h ^= s.charCodeAt(i);
+      h = Math.imul(h, 16777619);
+    }
+    return h >>> 0;
+  },
+
+  bloqueDesgloseIndice(n, rep, indiceValor, verificado) {
+    const factores = Market.factoresIndiceMock(n, rep, indiceValor, verificado);
+    const resumen = factores.find((f) => f.grupo === 'resumen');
+    const detalleFactores = factores.filter((f) => f.grupo !== 'resumen');
+    // Por defecto: docs, titularidad y RUT/giro.
+    const estado = { todos: false, activos: { identidad: true, estado: false, gobernanza: false, mercado: false } };
+
+    const sec = document.createElement('section');
+    sec.className = 'indice-desglose';
+    sec.setAttribute('aria-label', 'Por qué este índice');
+
+    const titulo = document.createElement('h3');
+    titulo.className = 'market-detalle__subtitulo';
+    titulo.textContent = 'Por qué este índice';
+
+    const cabecera = document.createElement('div');
+    cabecera.className = 'indice-desglose__cabecera';
+    if (resumen) {
+      const item = Market.itemFactorIndice(resumen);
+      item.classList.add('indice-desglose__item--cabecera');
+      cabecera.appendChild(item);
+    }
+
+    const lead = document.createElement('p');
+    lead.className = 'indice-desglose__lead';
+    lead.textContent =
+      'Filtro inicial: documentos, titularidad y RUT/giro. Un grupo a la vez, o Ver todos.';
+
+    const filtros = document.createElement('div');
+    filtros.className = 'indice-desglose__filtros';
+    filtros.setAttribute('role', 'group');
+    filtros.setAttribute('aria-label', 'Filtros del desglose');
+
+    const lista = document.createElement('ul');
+    lista.className = 'indice-desglose__lista';
+
+    const vacio = document.createElement('p');
+    vacio.className = 'indice-desglose__vacio';
+    vacio.hidden = true;
+    vacio.textContent = 'Ningún factor con los filtros actuales. Active un grupo o pulse Ver todos.';
+
+    const nota = document.createElement('p');
+    nota.className = 'indice-desglose__nota';
+
+    function gruposActivos() {
+      if (estado.todos) return null;
+      return Object.keys(estado.activos).filter((k) => estado.activos[k]);
+    }
+
+    function pintarFiltros() {
+      Market.limpiar(filtros);
+      Market.filtrosIndiceGrupos().forEach((g) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'indice-desglose__filtro';
+        btn.textContent = g.etiqueta;
+        const on = !estado.todos && !!estado.activos[g.id];
+        btn.classList.toggle('indice-desglose__filtro--on', on);
+        btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+        btn.addEventListener('click', () => {
+          estado.todos = false;
+          Object.keys(estado.activos).forEach((k) => {
+            estado.activos[k] = false;
+          });
+          estado.activos[g.id] = true;
+          pintarFiltros();
+          pintarLista();
+        });
+        filtros.appendChild(btn);
+      });
+
+      const todos = document.createElement('button');
+      todos.type = 'button';
+      todos.className = 'indice-desglose__filtro indice-desglose__filtro--todos';
+      todos.textContent = 'Ver todos';
+      todos.classList.toggle('indice-desglose__filtro--on', estado.todos);
+      todos.setAttribute('aria-pressed', estado.todos ? 'true' : 'false');
+      todos.addEventListener('click', () => {
+        estado.todos = true;
+        Object.keys(estado.activos).forEach((k) => {
+          estado.activos[k] = false;
+        });
+        pintarFiltros();
+        pintarLista();
+      });
+      filtros.appendChild(todos);
+    }
+
+    function pintarLista() {
+      Market.limpiar(lista);
+      const activos = gruposActivos();
+      const visibles = detalleFactores.filter((f) => !activos || activos.indexOf(f.grupo) !== -1);
+      vacio.hidden = visibles.length > 0;
+      visibles.forEach((f) => lista.appendChild(Market.itemFactorIndice(f)));
+      nota.textContent = estado.todos
+        ? 'Mostrando todos los factores (mock).'
+        : 'Filtros activos · mock sin scrapeo headless.';
+    }
+
+    pintarFiltros();
+    pintarLista();
+    sec.append(titulo, cabecera, lead, filtros, vacio, lista, nota);
+    return sec;
+  },
+
+  itemFactorIndice(f) {
+    const li = document.createElement('li');
+    li.className = 'indice-desglose__item';
+
+    const cabezal = document.createElement('div');
+    cabezal.className = 'indice-desglose__cabezal';
+    const nombre = document.createElement('span');
+    nombre.className = 'indice-desglose__nombre';
+    nombre.textContent = f.etiqueta;
+    const meta = document.createElement('span');
+    meta.className = 'indice-desglose__meta';
+    meta.textContent = f.valor + ' · ' + f.peso;
+    cabezal.append(nombre, meta);
+
+    const pista = document.createElement('div');
+    pista.className = 'indice-desglose__pista';
+    pista.setAttribute('role', 'meter');
+    pista.setAttribute('aria-valuemin', '0');
+    pista.setAttribute('aria-valuemax', '100');
+    pista.setAttribute('aria-valuenow', String(f.pct));
+    pista.setAttribute('aria-label', f.etiqueta + ': ' + f.pct + ' por ciento');
+    const barra = document.createElement('span');
+    barra.className = 'indice-desglose__barra';
+    if (String(f.peso).indexOf('Núcleo') === 0) barra.classList.add('indice-desglose__barra--nucleo');
+    if (f.id === 'docs-legales') barra.classList.add('indice-desglose__barra--docs');
+    if (f.id === 'seo') barra.classList.add('indice-desglose__barra--seo');
+    if (f.grupo === 'gobernanza') barra.classList.add('indice-desglose__barra--gob');
+    barra.style.width = f.pct + '%';
+    pista.appendChild(barra);
+
+    const detalle = document.createElement('p');
+    detalle.className = 'indice-desglose__detalle';
+    detalle.textContent = f.detalle;
+
+    li.append(cabezal, pista, detalle);
+    return li;
   },
 
   bloqueIndice(n, grande) {

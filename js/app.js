@@ -19,8 +19,8 @@ const App = {
 
   cacheElements() {
     const ids = [
-      'logoutBtn', 'authGate', 'tabLogin', 'tabRegister', 'loginForm', 'registerForm',
-      'loginStatus', 'registerStatus', 'historyBtn', 'historyPanel', 'historyOverlay',
+      'logoutBtn', 'authGate', 'loginForm', 'loginStatus',
+      'historyBtn', 'historyPanel', 'historyOverlay',
       'historyClose', 'historyMenu', 'mapView', 'perfilView', 'perfilStatus',
       'perfilPasaporte', 'perfilForm', 'perfilNombre', 'perfilCorreo', 'perfilEdad',
       'perfilTelefono', 'perfilRut', 'perfilGuardar', 'perfilFormStatus',
@@ -35,10 +35,7 @@ const App = {
   },
 
   bindAuthEvents() {
-    App.elements.tabLogin.addEventListener('click', () => App.switchAuthTab('login'));
-    App.elements.tabRegister.addEventListener('click', () => App.switchAuthTab('register'));
     App.elements.loginForm.addEventListener('submit', App.handleLogin);
-    App.elements.registerForm.addEventListener('submit', App.handleRegister);
     App.elements.logoutBtn.addEventListener('click', App.handleLogout);
     App.elements.historyBtn.addEventListener('click', App.openHistory);
     App.elements.historyClose.addEventListener('click', App.closeHistory);
@@ -96,8 +93,12 @@ const App = {
     App.state.perfilGuardado = { edad: App.elements.perfilEdad.value, telefono: App.elements.perfilTelefono.value };
 
     const scoring = perfil.inmobiliaria_scoring;
+    const tipoCuenta =
+      perfil.tipo_cuenta === 'empresa' ? 'Empresa' : perfil.tipo_cuenta === 'persona' ? 'Persona' : 'Sin indicar';
     App.renderDefinitionList(App.elements.perfilPasaporte, [
-      ['Nivel', 'Nivel ' + (perfil.nivel_pasaporte || 1)],
+      ['Tipo de cuenta', tipoCuenta],
+      ['Nivel pasaporte', 'Nivel ' + (perfil.nivel_pasaporte || 1)],
+      ['XP', (perfil.xp != null ? perfil.xp : 0) + ' · Nivel ' + (perfil.nivel_xp || 1)],
       ['Estado', App.etiquetaEstadoPasaporte(perfil.estado_pasaporte)],
       ['Confiabilidad', perfil.score_confiabilidad == null ? 'Sin reservas cerradas' : perfil.score_confiabilidad + ' / 100'],
       ['Score de arriendo', scoring && scoring.score_financiero != null ? scoring.score_financiero + ' / 1000' : 'Sin verificar']
@@ -216,18 +217,6 @@ const App = {
     App.elements.historyBtn.setAttribute('aria-expanded', 'false');
   },
 
-  switchAuthTab(tab) {
-    const login = tab === 'login';
-    App.elements.tabLogin.classList.toggle('auth__tab--active', login);
-    App.elements.tabRegister.classList.toggle('auth__tab--active', !login);
-    App.elements.tabLogin.setAttribute('aria-selected', String(login));
-    App.elements.tabRegister.setAttribute('aria-selected', String(!login));
-    App.elements.loginForm.hidden = !login;
-    App.elements.registerForm.hidden = login;
-    App.elements.loginStatus.textContent = '';
-    App.elements.registerStatus.textContent = '';
-  },
-
   async handleLogin(e) {
     e.preventDefault();
     const fd = new FormData(App.elements.loginForm);
@@ -244,25 +233,8 @@ const App = {
     App.applyAuthState();
   },
 
-  async handleRegister(e) {
-    e.preventDefault();
-    const fd = new FormData(App.elements.registerForm);
-    const submit = App.elements.registerForm.querySelector('button[type="submit"]');
-    if (submit) submit.disabled = true;
-    const res = await Auth.register({ nombre: fd.get('nombre'), email: fd.get('email'), password: fd.get('password') });
-    if (submit) submit.disabled = false;
-    if (!res.ok) {
-      App.elements.registerStatus.textContent = res.error;
-      return;
-    }
-    App.elements.registerForm.reset();
-    App.elements.registerStatus.textContent = '';
-    App.applyAuthState();
-  },
-
   handleLogout() {
     Auth.logout();
-    App.switchAuthTab('login');
     App.applyAuthState();
   },
 
@@ -273,6 +245,9 @@ const App = {
       verifyView: 'verificacion',
       subirConfianzaView: 'subir-confianza'
     };
+    if (name !== 'verifyView' && typeof Pasaporte !== 'undefined' && Pasaporte.detener) {
+      Pasaporte.detener();
+    }
     ['mapView', 'perfilView', 'verifyView', 'subirConfianzaView'].forEach(n => {
       App.elements[n].hidden = n !== name;
     });

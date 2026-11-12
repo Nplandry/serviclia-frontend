@@ -119,30 +119,59 @@ const SubirConfianza = {
     SubirConfianza.render(raiz);
   },
 
+  // Clave por usuario: evita que biometría/docs de otra cuenta queden “hechos”.
+  storageKey() {
+    const user = typeof Auth !== 'undefined' ? Auth.getCurrentUser() : null;
+    const quien = user && user.email ? String(user.email).toLowerCase() : 'anon';
+    return SubirConfianza.STORAGE_KEY + ':' + quien;
+  },
+
   cargar() {
+    // Limpia el mock global antiguo (sin email) que marcaba biometría a todos.
     try {
-      const raw = localStorage.getItem(SubirConfianza.STORAGE_KEY);
-      if (!raw) return;
-      const parsed = JSON.parse(raw);
-      SubirConfianza.state.docs = Array.isArray(parsed.docs) ? parsed.docs : [];
-      SubirConfianza.state.biometriaOk = !!parsed.biometriaOk;
+      localStorage.removeItem(SubirConfianza.STORAGE_KEY);
+    } catch {}
+    try {
+      const raw = localStorage.getItem(SubirConfianza.storageKey());
+      if (!raw) {
+        SubirConfianza.state = { docs: [], biometriaOk: false };
+      } else {
+        const parsed = JSON.parse(raw);
+        SubirConfianza.state.docs = Array.isArray(parsed.docs) ? parsed.docs : [];
+        SubirConfianza.state.biometriaOk = false;
+      }
     } catch {
       SubirConfianza.state = { docs: [], biometriaOk: false };
     }
+    SubirConfianza.sincronizarBiometria();
+  },
+
+  // La API es la fuente de verdad: biometria_verificada en usuarios.
+  sincronizarBiometria() {
+    const serverOk = !!SubirConfianza.perfil().biometria_verificada;
+    SubirConfianza.state.biometriaOk = serverOk;
+    SubirConfianza.guardar();
   },
 
   guardar() {
     try {
-      localStorage.setItem(SubirConfianza.STORAGE_KEY, JSON.stringify({
-        docs: SubirConfianza.state.docs,
-        biometriaOk: SubirConfianza.state.biometriaOk
-      }));
+      localStorage.setItem(
+        SubirConfianza.storageKey(),
+        JSON.stringify({
+          docs: SubirConfianza.state.docs
+          // biometriaOk no se persiste: siempre se lee del servidor.
+        })
+      );
     } catch {}
   },
 
   perfil() {
     const user = typeof Auth !== 'undefined' ? Auth.getCurrentUser() : null;
     return (user && user.perfil) || {};
+  },
+
+  biometriaHecha() {
+    return !!SubirConfianza.perfil().biometria_verificada;
   },
 
   tieneDoc(tipo) {
@@ -189,7 +218,7 @@ const SubirConfianza = {
       case 'n3-antecedentes':
         return SubirConfianza.tieneDoc('antecedentes') ? 'ok' : 'pendiente';
       case 'n3-biometria':
-        return SubirConfianza.state.biometriaOk ? 'ok' : 'pendiente';
+        return SubirConfianza.biometriaHecha() ? 'ok' : 'pendiente';
       case 'n3-aval':
         return SubirConfianza.tieneDoc('aval') ? 'ok' : 'pendiente';
       case 'n4-liquidacion':
@@ -293,6 +322,19 @@ const SubirConfianza = {
     return Math.max(1, nivel || (SubirConfianza.estaHecha('n1-registro') ? 1 : 0));
   },
 
+  xpActual() {
+    const perfil = SubirConfianza.perfil();
+    const n = Number(perfil && perfil.xp);
+    return Number.isFinite(n) && n >= 0 ? Math.floor(n) : 0;
+  },
+
+  nivelXp() {
+    const perfil = SubirConfianza.perfil();
+    const n = Number(perfil && perfil.nivel_xp);
+    if (Number.isFinite(n) && n >= 1) return Math.min(4, Math.floor(n));
+    return SubirConfianza.nivelSugerido();
+  },
+
   // Datos de progreso: la UI del marketplace (u otra vista) solo consume esto.
   resumenProgreso() {
     SubirConfianza.cargar();
@@ -302,7 +344,8 @@ const SubirConfianza = {
       hechas,
       total,
       pct: SubirConfianza.progresoPct(),
-      nivel: SubirConfianza.nivelSugerido()
+      nivel: SubirConfianza.nivelXp(),
+      xp: SubirConfianza.xpActual()
     };
   },
 
@@ -341,11 +384,14 @@ const SubirConfianza = {
     const meta = document.createElement('p');
     meta.className = 'confianza-indicador__meta';
     meta.textContent =
+      progreso.xp +
+      ' XP · Nivel ' +
+      progreso.nivel +
+      ' · ' +
       progreso.hechas +
-      ' de ' +
+      '/' +
       progreso.total +
-      ' requisitos · Nivel estimado: ' +
-      progreso.nivel;
+      ' requisitos';
 
     const track = document.createElement('div');
     track.className = 'confianza-indicador__track';
@@ -831,35 +877,243 @@ const SubirConfianza = {
     lead.className = 'section-lead';
 
     const status = document.createElement('p');
-    status.className = 'status-text';
+    status.className = 'status-text confianza-bio__status';
     status.setAttribute('role', 'status');
 
-    if (SubirConfianza.state.biometriaOk) {
+    const hecha = SubirConfianza.biometriaHecha();
+
+    if (hecha) {
+      const perfil = SubirConfianza.perfil();
       lead.textContent =
-        'Identidad avanzada verificada (mock). El requisito de Nivel 3 ya está desbloqueado.';
-      status.textContent = 'Biometría completada.';
+        'Identidad verificada. La foto se usó solo para el chequeo y no se almacenó.';
+      status.textContent = perfil.biometria_verificada_en
+        ? 'Completada el ' + SubirConfianza.formatoFecha(perfil.biometria_verificada_en) + '.'
+        : 'Biometría completada.';
       wrap.append(titulo, lead, status);
       return wrap;
     }
 
     lead.textContent =
-      'Flujo mock: al completar la verificación biométrica se desbloquea el requisito de Nivel 3.';
+      'Abra la cámara frontal, encuadre su rostro y capture la selfie. La imagen no se guarda.';
+
+    const visor = document.createElement('div');
+    visor.className = 'confianza-bio__preview';
+    visor.hidden = true;
+
+    // Video oculto: solo alimenta el canvas (evita preview negra al capturar).
+    const video = document.createElement('video');
+    video.className = 'confianza-bio__video-src';
+    video.setAttribute('playsinline', '');
+    video.setAttribute('muted', '');
+    video.muted = true;
+    video.autoplay = true;
+    video.playsInline = true;
+
+    const canvas = document.createElement('canvas');
+    canvas.className = 'confianza-bio__canvas';
+    canvas.setAttribute('aria-label', 'Vista de la selfie');
+
+    visor.append(video, canvas);
+
+    let stream = null;
+    let archivoElegido = null;
+    let rafId = 0;
+    let congelado = false;
+    const ctx = canvas.getContext('2d', { alpha: false });
+
+    function detenerLoop() {
+      if (rafId) {
+        cancelAnimationFrame(rafId);
+        rafId = 0;
+      }
+    }
+
+    function detenerCamara() {
+      detenerLoop();
+      if (stream) {
+        stream.getTracks().forEach((t) => t.stop());
+        stream = null;
+      }
+      video.srcObject = null;
+    }
+
+    function pintarFrame() {
+      if (!stream || congelado || !ctx) return;
+      const w = video.videoWidth;
+      const h = video.videoHeight;
+      if (w > 0 && h > 0) {
+        if (canvas.width !== w || canvas.height !== h) {
+          canvas.width = w;
+          canvas.height = h;
+        }
+        // Espejo selfie en el canvas en vivo.
+        ctx.save();
+        ctx.translate(w, 0);
+        ctx.scale(-1, 1);
+        ctx.drawImage(video, 0, 0, w, h);
+        ctx.restore();
+      }
+      rafId = requestAnimationFrame(pintarFrame);
+    }
+
+    const acciones = document.createElement('div');
+    acciones.className = 'confianza-bio__acciones';
+
+    const btnAbrir = document.createElement('button');
+    btnAbrir.type = 'button';
+    btnAbrir.className = 'confianza-bio__btn confianza-bio__btn--cam';
+    btnAbrir.textContent = 'Abrir cámara';
+
+    const btnCapturar = document.createElement('button');
+    btnCapturar.type = 'button';
+    btnCapturar.className = 'confianza-bio__btn';
+    btnCapturar.textContent = 'Capturar selfie';
+    btnCapturar.hidden = true;
+
+    const btnOtra = document.createElement('button');
+    btnOtra.type = 'button';
+    btnOtra.className = 'confianza-bio__btn';
+    btnOtra.textContent = 'Volver a capturar';
+    btnOtra.hidden = true;
 
     const btn = document.createElement('button');
-    btn.className = 'submit-btn';
+    btn.className = 'submit-btn confianza-bio__enviar';
     btn.type = 'button';
-    btn.textContent = 'Iniciar verificación biométrica (mock)';
-    btn.addEventListener('click', () => {
-      btn.disabled = true;
-      status.textContent = 'Procesando verificación...';
-      window.setTimeout(() => {
-        SubirConfianza.state.biometriaOk = true;
-        SubirConfianza.guardar();
-        SubirConfianza.init();
-      }, 700);
+    btn.textContent = 'Verificar identidad';
+    btn.disabled = true;
+
+    function uiInicial() {
+      btnAbrir.hidden = false;
+      btnAbrir.disabled = false;
+      btnAbrir.textContent = 'Abrir cámara';
+      btnCapturar.hidden = true;
+      btnOtra.hidden = true;
+      btn.disabled = !archivoElegido;
+    }
+
+    function uiCamaraLista() {
+      btnAbrir.hidden = true;
+      btnCapturar.hidden = false;
+      btnOtra.hidden = true;
+    }
+
+    function uiTrasCaptura() {
+      btnAbrir.hidden = true;
+      btnCapturar.hidden = true;
+      btnOtra.hidden = false;
+      btn.disabled = false;
+    }
+
+    uiInicial();
+
+    btnAbrir.addEventListener('click', async () => {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        status.textContent = 'Este dispositivo no permite usar la cámara desde el navegador.';
+        return;
+      }
+      btnAbrir.disabled = true;
+      btnCapturar.hidden = true;
+      status.textContent = 'Pidiendo acceso a la cámara…';
+      try {
+        detenerCamara();
+        archivoElegido = null;
+        congelado = false;
+        btn.disabled = true;
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: { ideal: 'user' },
+            width: { ideal: 640 },
+            height: { ideal: 480 }
+          },
+          audio: false
+        });
+        video.srcObject = stream;
+        await video.play();
+        await new Promise((resolve) => {
+          if (video.videoWidth > 0) {
+            resolve();
+            return;
+          }
+          const listo = () => {
+            video.removeEventListener('loadeddata', listo);
+            resolve();
+          };
+          video.addEventListener('loadeddata', listo);
+          setTimeout(resolve, 1500);
+        });
+        visor.hidden = false;
+        detenerLoop();
+        pintarFrame();
+        uiCamaraLista();
+        status.textContent = 'Centre su rostro y pulse Capturar selfie.';
+      } catch {
+        detenerCamara();
+        status.textContent = 'No se pudo abrir la cámara. Permita el acceso e intente de nuevo.';
+        uiInicial();
+      }
     });
 
-    wrap.append(titulo, lead, btn, status);
+    btnCapturar.addEventListener('click', async () => {
+      if (!stream || !ctx || canvas.width < 2 || canvas.height < 2) {
+        status.textContent = 'La cámara aún no está lista.';
+        return;
+      }
+      // Congela el último frame ya pintado en el canvas (no vuelve a drawImage).
+      congelado = true;
+      detenerLoop();
+
+      const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', 0.92));
+      if (!blob || blob.size < 500) {
+        congelado = false;
+        pintarFrame();
+        status.textContent = 'No se pudo capturar la foto. Intente de nuevo.';
+        return;
+      }
+
+      archivoElegido = new File([blob], 'selfie.jpg', { type: 'image/jpeg' });
+      // Apaga la cámara; el canvas sigue mostrando el frame congelado.
+      if (stream) {
+        stream.getTracks().forEach((t) => t.stop());
+        stream = null;
+      }
+      video.srcObject = null;
+      uiTrasCaptura();
+      status.textContent = 'Selfie lista. Pulse Verificar identidad.';
+    });
+
+    btnOtra.addEventListener('click', () => {
+      archivoElegido = null;
+      congelado = false;
+      btn.disabled = true;
+      uiInicial();
+      btnAbrir.click();
+    });
+
+    btn.addEventListener('click', async () => {
+      if (!archivoElegido) {
+        status.textContent = 'Primero capture una selfie.';
+        return;
+      }
+      btn.disabled = true;
+      status.textContent = 'Verificando… la foto no se almacenará.';
+      const res = await Auth.verificarBiometria(archivoElegido);
+      if (!res.ok) {
+        status.textContent = res.error || 'No se pudo verificar.';
+        btn.disabled = false;
+        return;
+      }
+      detenerCamara();
+      SubirConfianza.sincronizarBiometria();
+      SubirConfianza.init();
+    });
+
+    acciones.append(btnAbrir, btnCapturar, btnOtra);
+
+    const nota = document.createElement('p');
+    nota.className = 'confianza-bio__nota';
+    nota.textContent = 'Zero-Retention: solo se registra que la verificación ocurrió.';
+
+    wrap.append(titulo, lead, visor, acciones, btn, status, nota);
     return wrap;
   },
 

@@ -1,11 +1,11 @@
 // Reporte de confianza para cuenta persona: niveles aprobados + datos, imprimible a PDF.
 const ReportePersona = {
   init() {
-    const raiz = document.getElementById('pasaporteRaiz');
+    const raiz = document.getElementById('reporteRaiz');
     if (!raiz) return;
-    if (typeof Pasaporte !== 'undefined') {
-      if (Pasaporte.cerrarModalValidador) Pasaporte.cerrarModalValidador();
-      if (Pasaporte.detenerCamara) Pasaporte.detenerCamara();
+    if (typeof ReporteQr !== 'undefined') {
+      if (ReporteQr.cerrarModalValidador) ReporteQr.cerrarModalValidador();
+      if (ReporteQr.detenerCamara) ReporteQr.detenerCamara();
     }
     if (typeof SubirConfianza !== 'undefined' && SubirConfianza.cargar) {
       SubirConfianza.cargar();
@@ -46,7 +46,7 @@ const ReportePersona = {
     btnQr.className = 'submit-btn submit-btn--secondary';
     btnQr.textContent = 'Validar QR';
     btnQr.addEventListener('click', () => {
-      if (typeof Pasaporte !== 'undefined') Pasaporte.abrirModalValidador();
+      if (typeof ReporteQr !== 'undefined') ReporteQr.abrirModalValidador();
     });
 
     acciones.append(btnPdf, btnQr);
@@ -63,8 +63,8 @@ const ReportePersona = {
     pieAcciones.appendChild(btnAct);
 
     const modal =
-      typeof Pasaporte !== 'undefined'
-        ? Pasaporte.renderModalValidador()
+      typeof ReporteQr !== 'undefined'
+        ? ReporteQr.renderModalValidador()
         : document.createComment('sin-modal-qr');
 
     wrap.append(lead, acciones, doc, pieAcciones, modal);
@@ -275,11 +275,11 @@ const ReportePersona = {
       if (status) status.textContent = 'Inicie sesión para incluir el QR en el informe.';
       return;
     }
-    if (typeof Pasaporte === 'undefined') {
+    if (typeof ReporteQr === 'undefined') {
       if (status) status.textContent = 'No se pudo generar el código QR.';
       return;
     }
-    const res = await Auth.request('/v1/mi-qr', { token: Auth.sesion.token });
+    const res = await ReporteQr.emitir();
     if (!res.ok) {
       if (status) status.textContent = res.error || 'No se pudo cargar el QR.';
       return;
@@ -290,16 +290,16 @@ const ReportePersona = {
     const frame = document.createElement('div');
     frame.className = 'reporte-doc__qr-frame';
     frame.id = 'reporteQrFrame';
-    Pasaporte.dibujarQr(frame, res.data.payload);
+    ReporteQr.dibujarQr(frame, res.data.payload);
 
     const expira = document.createElement('p');
     expira.className = 'reporte-doc__qr-expira';
     expira.textContent =
-      'Válido hasta ' + Pasaporte.formatoFecha(res.data.expires_at);
+      'Válido hasta ' + ReporteQr.formatoFecha(res.data.expires_at);
 
     host.append(frame, expira);
-    if (Pasaporte.programarRenovacion) {
-      Pasaporte.programarRenovacion(res.data.expires_in);
+    if (ReporteQr.programarRenovacion) {
+      ReporteQr.programarRenovacion(res.data.expires_in);
     }
   },
 

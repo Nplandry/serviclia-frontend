@@ -471,7 +471,7 @@ const Market = {
     const tipQr = document.createElement('p');
     tipQr.className = 'market-detalle__tip-qr';
     tipQr.textContent =
-      'Use Mi QR para validar identidad en visitas a terreno, entregas o reuniones de due diligence.';
+      'Use el QR del reporte para verificar identidad en terreno, entregas o reuniones de due diligence.';
 
     sticky.append(cta, estado, tipQr);
     colDer.appendChild(sticky);
@@ -770,38 +770,53 @@ const Market = {
     const boostLegal = verificado ? 18 : 0;
     const boostContract = verificado ? 12 : 0;
     const defs = Market.definicionObservablesIndice();
+    // Scores reales del backend (sonda DNS/TLS/HTTP + reseñas derivadas).
+    const ciberApi = Object.create(null);
+    const listaCiber = rep && Array.isArray(rep.observables_ciber) ? rep.observables_ciber : [];
+    for (let i = 0; i < listaCiber.length; i++) {
+      const o = listaCiber[i];
+      if (o && o.id != null && o.score != null) ciberApi[o.id] = Number(o.score);
+    }
 
     const factores = defs.map((d, i) => {
-      let base = 48;
-      let spread = 36;
-      if (d.grupo === 'ciber') {
-        base = 52;
-        spread = 38;
-      } else if (d.grupo === 'legal') {
-        base = 40 + boostLegal;
-        spread = 30;
-      } else if (d.grupo === 'contractual') {
-        base = 42 + boostContract;
-        spread = 34;
-      } else if (d.grupo === 'operativa') {
-        base = 50;
-        spread = 32;
-        if (d.id === 'resenas-reclamos') {
-          const ratingPart = Math.round((Math.max(0, Math.min(5, google)) / 5) * 55) + 20;
-          const volumePart = Math.round(Math.min(25, (Math.log1p(reviews) / Math.log1p(500)) * 25));
-          base = Math.min(92, ratingPart + volumePart);
-          spread = 10;
+      let score;
+      let esReal = false;
+      if (ciberApi[d.id] != null && Number.isFinite(ciberApi[d.id])) {
+        score = Math.max(0, Math.min(100, Math.round(ciberApi[d.id])));
+        esReal = true;
+      } else {
+        let base = 48;
+        let spread = 36;
+        if (d.grupo === 'ciber') {
+          base = 52;
+          spread = 38;
+        } else if (d.grupo === 'legal') {
+          base = 40 + boostLegal;
+          spread = 30;
+        } else if (d.grupo === 'contractual') {
+          base = 42 + boostContract;
+          spread = 34;
+        } else if (d.grupo === 'operativa') {
+          base = 50;
+          spread = 32;
+          if (d.id === 'resenas-reclamos') {
+            const ratingPart = Math.round((Math.max(0, Math.min(5, google)) / 5) * 55) + 20;
+            const volumePart = Math.round(Math.min(25, (Math.log1p(reviews) / Math.log1p(500)) * 25));
+            base = Math.min(92, ratingPart + volumePart);
+            spread = 10;
+          }
         }
+        score = pct(base, spread, i + 1);
       }
-      const score = pct(base, spread, i + 1);
       return {
         id: d.id,
         grupo: d.grupo,
-        etiqueta: d.etiqueta,
+        etiqueta: esReal ? d.etiqueta + ' (real)' : d.etiqueta,
         valor: score + ' / 100',
         pct: score,
         peso: 'Observable · ' + Market.pesoObservable(d.grupo),
-        detalle: d.detalle
+        detalle: d.detalle,
+        real: esReal
       };
     });
 
@@ -813,7 +828,7 @@ const Market = {
       pct: Math.round((Number(indiceValor) / 10) * 100),
       peso: 'Final',
       detalle:
-        'Mock: Ciber 30% + Legal 30% + Contractual 20% + Operativa 20% (30 observables).'
+        'Ciber 30% + Legal 30% + Contractual 20% + Operativa 20% (30 observables; 11 desde API sin mapear rutas).'
     });
     return factores;
   },

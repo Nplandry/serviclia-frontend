@@ -10,7 +10,7 @@ const SubirConfianza = {
       titulo: 'Nivel 1 · Identidad',
       evalua: 'Que la persona sea real, accesible y localizable',
       requisito: 'Cuenta activa, identidad verificada y datos de contacto con mayoría de edad.',
-      usos: 'Primeros contactos, Mi QR y encuentros iniciales con baja fricción.',
+      usos: 'Primeros contactos, QR de reporte y encuentros iniciales con baja fricción.',
       discriminatorio: false,
       discriminatorioNota: 'NO — base para cualquier trato',
       tareas: [

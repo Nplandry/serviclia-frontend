@@ -8,7 +8,7 @@
   <title>ServiChile</title>
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='48' fill='%232563EB'/%3E%3Ctext x='50' y='65' font-size='45' text-anchor='middle' fill='white' font-family='Arial'%3ES%3C/text%3E%3C/svg%3E">
-  <link rel="stylesheet" href="css/styles.css?v=97">
+  <link rel="stylesheet" href="css/styles.css?v=101">
 </head>
 <body>
   <div id="authGate" class="auth" hidden>
@@ -23,7 +23,7 @@
           <ul class="auth__beneficios">
             <li>Compradores: evalúe proveedores con 32 observables antes de contratar o pagar.</li>
             <li>Pymes B2B: mejore su nota para no quedar fuera del filtro de grandes cuentas.</li>
-            <li>Valide identidad con Mi QR en terreno, reuniones o entregas.</li>
+            <li>Valide el reporte con su QR en terreno, reuniones o entregas.</li>
           </ul>
         </div>
 
@@ -102,7 +102,7 @@
         <svg class="history-menu__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M1 6l7-3 8 3 7-3v15l-7 3-8-3-7 3z"/><path d="M8 3v15M16 6v15"/></svg>
         <span>Explorar</span>
       </button>
-      <button class="history-menu__item" type="button" data-view="verificacion">
+      <button class="history-menu__item" type="button" data-view="reportes">
         <svg class="history-menu__icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3h-3z"/><path d="M20 14v6"/><path d="M14 20h3"/></svg>
         <span>Reportes</span>
       </button>
@@ -196,7 +196,7 @@
 
     <section id="verifyView" class="view" hidden>
       <h2 class="section-heading">Reportes</h2>
-      <div id="pasaporteRaiz" class="mi-qr-raiz"></div>
+      <div id="reporteRaiz" class="reporte-raiz"></div>
     </section>
 
     <section id="subirConfianzaView" class="view" hidden>
@@ -221,17 +221,17 @@
   <script src="js/compliance.js?v=69"></script>
   <script src="js/core/auth.js?v=69"></script>
   <script src="js/modules/progreso-cuenta.js?v=82"></script>
-  <script src="js/modules/pasaporte.js?v=81"></script>
+  <script src="js/modules/reporte-qr.js?v=105"></script>
   <script src="js/modules/subir-confianza.js?v=74"></script>
-  <script src="js/modules/reporte-persona.js?v=81"></script>
-  <script src="js/modules/reporte-empresa.js?v=81"></script>
+  <script src="js/modules/reporte-persona.js?v=82"></script>
+  <script src="js/modules/reporte-empresa.js?v=82"></script>
   <script src="js/modules/market-monetizacion.js?v=97"></script>
-  <script src="js/modules/market.js?v=97"></script>
-  <script src="js/modules/perfil-empresa.js?v=96"></script>
-  <script src="js/app.js?v=88"></script>
+  <script src="js/modules/market.js?v=103"></script>
+  <script src="js/modules/perfil-empresa.js?v=101"></script>
+  <script src="js/app.js?v=106"></script>
   <script>
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('sw.js?v=88').catch(function () {});
+      navigator.serviceWorker.register('sw.js?v=106').catch(function () {});
     }
   </script>
 </body>

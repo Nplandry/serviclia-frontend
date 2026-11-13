@@ -1530,7 +1530,10 @@ body {
 .market-detalle {
   display: grid;
   gap: var(--space-md);
+  width: 100%;
   max-width: 68rem;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .market-detalle__cuerpo {
@@ -1546,7 +1549,7 @@ body {
 
 @media (min-width: 960px) {
   .market-detalle__cuerpo {
-    grid-template-columns: minmax(0, 1fr) minmax(18rem, 22rem);
+    grid-template-columns: minmax(0, 1fr) minmax(22rem, 26rem);
   }
 
   .market-detalle__col--paywall {
@@ -1817,6 +1820,32 @@ body {
   margin: 0;
 }
 
+.perfil-empresa__valor {
+  display: grid;
+  gap: 0.45rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--color-secondary-strong, #dbeafe);
+  border-radius: var(--radius-sm);
+  background: linear-gradient(165deg, #f8fafc 0%, #eef6ff 100%);
+}
+
+.perfil-empresa__valor-titulo {
+  margin: 0;
+  font-weight: 700;
+  font-size: 0.92rem;
+  color: var(--color-primary-dark, #0b3a63);
+}
+
+.perfil-empresa__valor-lista {
+  margin: 0;
+  padding-left: 1.15rem;
+  display: grid;
+  gap: 0.3rem;
+  font-size: 0.86rem;
+  color: var(--color-text);
+  line-height: 1.4;
+}
+
 .perfil-empresa__acciones {
   display: flex;
   flex-wrap: wrap;
@@ -2074,34 +2103,34 @@ body {
 }
 
 
-/* --- Mi QR / carnet de validación --- */
+/* --- QR de reporte / carnet de validación --- */
 #verifyView > .section-heading {
   margin-bottom: 0.2rem;
 }
 
-.mi-qr-raiz,
-.mi-qr {
+.reporte-qr-raiz,
+.reporte-qr {
   display: grid;
   gap: var(--space-sm);
 }
 
-.mi-qr__acciones {
+.reporte-qr__acciones {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-sm);
 }
 
-.mi-qr__acciones .submit-btn {
+.reporte-qr__acciones .submit-btn {
   width: auto;
   min-width: 12rem;
 }
 
 /* Modal validador QR */
-body.mi-qr-modal-open {
+body.reporte-qr-modal-open {
   overflow: hidden;
 }
 
-.mi-qr-modal {
+.reporte-qr-modal {
   position: fixed;
   inset: 0;
   z-index: 80;
@@ -2111,11 +2140,11 @@ body.mi-qr-modal-open {
   background: rgba(15, 23, 42, 0.45);
 }
 
-.mi-qr-modal[hidden] {
+.reporte-qr-modal[hidden] {
   display: none !important;
 }
 
-.mi-qr-modal__dialog {
+.reporte-qr-modal__dialog {
   width: min(100%, 34rem);
   max-height: min(92vh, 44rem);
   overflow: auto;
@@ -2124,7 +2153,7 @@ body.mi-qr-modal-open {
   box-shadow: 0 -8px 32px rgba(15, 23, 42, 0.18);
 }
 
-.mi-qr-modal__head {
+.reporte-qr-modal__head {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
@@ -2137,25 +2166,25 @@ body.mi-qr-modal-open {
   z-index: 1;
 }
 
-.mi-qr-modal__head-text {
+.reporte-qr-modal__head-text {
   display: grid;
   gap: 0.2rem;
 }
 
-.mi-qr-modal__titulo {
+.reporte-qr-modal__titulo {
   margin: 0;
   font-size: 1.1rem;
   color: var(--color-primary-dark);
 }
 
-.mi-qr-modal__lead {
+.reporte-qr-modal__lead {
   margin: 0;
   font-size: 0.9rem;
   color: var(--color-muted);
   line-height: 1.4;
 }
 
-.mi-qr-modal__cerrar {
+.reporte-qr-modal__cerrar {
   flex: 0 0 auto;
   width: 2.5rem;
   height: 2.5rem;
@@ -2168,16 +2197,16 @@ body.mi-qr-modal-open {
   cursor: pointer;
 }
 
-.mi-qr-modal__cerrar:hover,
-.mi-qr-modal__cerrar:focus-visible {
+.reporte-qr-modal__cerrar:hover,
+.reporte-qr-modal__cerrar:focus-visible {
   background: rgba(37, 99, 235, 0.12);
 }
 
-.mi-qr-modal__body {
+.reporte-qr-modal__body {
   padding: var(--space-md);
 }
 
-.mi-qr-modal__body .mi-qr__lector {
+.reporte-qr-modal__body .reporte-qr__lector {
   margin: 0;
   padding: 0;
   border: 0;
@@ -2186,33 +2215,33 @@ body.mi-qr-modal-open {
 }
 
 @media (min-width: 40rem) {
-  .mi-qr-modal {
+  .reporte-qr-modal {
     place-items: center;
   }
 
-  .mi-qr-modal__dialog {
+  .reporte-qr-modal__dialog {
     border-radius: var(--radius);
     max-height: min(88vh, 40rem);
   }
 }
 
-.mi-qr > .section-lead {
+.reporte-qr > .section-lead {
   margin: 0;
   /* Lead pegado al carnet (ServiChile); el status vacío no suma hueco. */
   margin-bottom: 0.15rem;
 }
 
-.mi-qr > .status-text {
+.reporte-qr > .status-text {
   margin: 0;
   min-height: 0;
   font-size: var(--font-size-base);
 }
 
-.mi-qr > .status-text:empty {
+.reporte-qr > .status-text:empty {
   display: none;
 }
 
-.mi-qr__carnet {
+.reporte-qr__carnet {
   overflow: hidden;
   border: 2px solid var(--color-border);
   border-radius: var(--radius);
@@ -2220,7 +2249,7 @@ body.mi-qr-modal-open {
   box-shadow: 0 8px 24px rgba(15, 76, 129, 0.08);
 }
 
-.mi-qr__cabezal {
+.reporte-qr__cabezal {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
@@ -2230,20 +2259,20 @@ body.mi-qr-modal-open {
   background: linear-gradient(135deg, var(--color-primary-dark) 0%, var(--color-primary) 55%, var(--color-primary-light) 100%);
 }
 
-.mi-qr__marca {
+.reporte-qr__marca {
   margin: 0;
   font-size: 1rem;
   font-weight: 700;
   letter-spacing: 0.04em;
 }
 
-.mi-qr__sub {
+.reporte-qr__sub {
   margin: 0;
   font-size: 0.85rem;
   opacity: 0.92;
 }
 
-.mi-qr__cuerpo {
+.reporte-qr__cuerpo {
   display: grid;
   grid-template-columns: minmax(8.5rem, 11rem) 1fr;
   gap: var(--space-md);
@@ -2251,13 +2280,13 @@ body.mi-qr-modal-open {
   padding: var(--space-md);
 }
 
-.mi-qr__qr {
+.reporte-qr__qr {
   display: grid;
   gap: var(--space-sm);
   justify-items: center;
 }
 
-.mi-qr__frame {
+.reporte-qr__frame {
   display: grid;
   place-items: center;
   box-sizing: border-box;
@@ -2270,8 +2299,8 @@ body.mi-qr-modal-open {
   background: #fff;
 }
 
-.mi-qr__frame img,
-.mi-qr__frame canvas {
+.reporte-qr__frame img,
+.reporte-qr__frame canvas {
   display: block;
   width: 100%;
   height: auto;
@@ -2279,7 +2308,7 @@ body.mi-qr-modal-open {
   aspect-ratio: 1;
 }
 
-.mi-qr__token {
+.reporte-qr__token {
   display: inline-block;
   width: max-content;
   max-width: none;
@@ -2293,7 +2322,7 @@ body.mi-qr-modal-open {
   border-radius: var(--radius-sm);
 }
 
-.mi-qr__lector {
+.reporte-qr__lector {
   display: grid;
   gap: var(--space-sm);
   padding: var(--space-md);
@@ -2302,19 +2331,19 @@ body.mi-qr-modal-open {
   background: #fff;
 }
 
-.mi-qr__lector-titulo {
+.reporte-qr__lector-titulo {
   margin: 0;
   font-size: 1.05rem;
   color: var(--color-text);
 }
 
-.mi-qr__lector-ayuda {
+.reporte-qr__lector-ayuda {
   margin: 0;
   font-size: 0.9rem;
   color: var(--color-muted);
 }
 
-.mi-qr__cam-btn {
+.reporte-qr__cam-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -2332,36 +2361,36 @@ body.mi-qr-modal-open {
   cursor: pointer;
 }
 
-.mi-qr__cam-btn:hover,
-.mi-qr__cam-btn:focus-visible {
+.reporte-qr__cam-btn:hover,
+.reporte-qr__cam-btn:focus-visible {
   background: var(--color-primary-dark);
   outline: none;
 }
 
-.mi-qr__cam-btn--activo {
+.reporte-qr__cam-btn--activo {
   background: #b91c1c;
   box-shadow: 0 8px 18px rgba(185, 28, 28, 0.25);
 }
 
-.mi-qr__cam-btn--activo:hover,
-.mi-qr__cam-btn--activo:focus-visible {
+.reporte-qr__cam-btn--activo:hover,
+.reporte-qr__cam-btn--activo:focus-visible {
   background: #991b1b;
 }
 
-.mi-qr__cam-icon {
+.reporte-qr__cam-icon {
   width: 1.35rem;
   height: 1.35rem;
   flex: 0 0 auto;
 }
 
-.mi-qr__lector-acciones {
+.reporte-qr__lector-acciones {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-sm);
   align-items: center;
 }
 
-.mi-qr__file {
+.reporte-qr__file {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -2376,7 +2405,7 @@ body.mi-qr-modal-open {
   cursor: pointer;
 }
 
-.mi-qr__video-wrap {
+.reporte-qr__video-wrap {
   position: relative;
   overflow: hidden;
   border-radius: var(--radius-sm);
@@ -2385,14 +2414,14 @@ body.mi-qr-modal-open {
   max-height: 22rem;
 }
 
-.mi-qr__video-wrap video {
+.reporte-qr__video-wrap video {
   display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-.mi-qr__mira {
+.reporte-qr__mira {
   position: absolute;
   inset: 18% 16%;
   border: 2px solid rgba(255, 255, 255, 0.92);
@@ -2401,7 +2430,7 @@ body.mi-qr-modal-open {
   pointer-events: none;
 }
 
-.mi-qr__video-hint {
+.reporte-qr__video-hint {
   position: absolute;
   left: 0;
   right: 0;
@@ -2416,17 +2445,17 @@ body.mi-qr-modal-open {
   pointer-events: none;
 }
 
-.mi-qr__pegar {
+.reporte-qr__pegar {
   display: grid;
   gap: var(--space-xs);
 }
 
-.mi-qr__resultado {
+.reporte-qr__resultado {
   display: grid;
   gap: var(--space-sm);
 }
 
-.mi-qr__datos {
+.reporte-qr__datos {
   display: grid;
   grid-template-columns: max-content 1fr;
   column-gap: var(--space-md);
@@ -2437,8 +2466,8 @@ body.mi-qr-modal-open {
   width: 100%;
 }
 
-.mi-qr__datos dt,
-.mi-qr__datos dd {
+.reporte-qr__datos dt,
+.reporte-qr__datos dd {
   margin: 0;
   padding: 0;
   line-height: 1.35;
@@ -2447,7 +2476,7 @@ body.mi-qr-modal-open {
   align-items: center;
 }
 
-.mi-qr__datos dt {
+.reporte-qr__datos dt {
   font-size: 0.8rem;
   font-weight: 700;
   letter-spacing: 0.03em;
@@ -2455,14 +2484,14 @@ body.mi-qr-modal-open {
   color: var(--color-muted);
 }
 
-.mi-qr__datos dd {
+.reporte-qr__datos dd {
   font-size: 0.95rem;
   font-weight: 600;
   color: var(--color-text);
   overflow-wrap: anywhere;
 }
 
-.mi-qr__pie {
+.reporte-qr__pie {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -2475,16 +2504,16 @@ body.mi-qr-modal-open {
 }
 
 @media (max-width: 36rem) {
-  .mi-qr__cuerpo {
+  .reporte-qr__cuerpo {
     grid-template-columns: 1fr;
     justify-items: center;
   }
 
-  .mi-qr__datos {
+  .reporte-qr__datos {
     width: 100%;
   }
 
-  .mi-qr__cabezal {
+  .reporte-qr__cabezal {
     flex-direction: column;
     align-items: flex-start;
   }
@@ -3534,7 +3563,7 @@ body.mi-qr-modal-open {
 .paywall__score {
   display: grid;
   gap: 0.15rem;
-  padding: 0.55rem 0.45rem;
+  padding: 0.55rem 0.35rem;
   border-radius: var(--radius-sm);
   background: #fff;
   border: 1px solid var(--color-border);
@@ -3542,11 +3571,13 @@ body.mi-qr-modal-open {
 }
 
 .paywall__score span {
-  font-size: 0.68rem;
+  font-size: 0.62rem;
   font-weight: 700;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.01em;
+  line-height: 1.2;
   text-transform: uppercase;
   color: var(--color-muted);
+  overflow-wrap: anywhere;
 }
 
 .paywall__score strong {
@@ -3864,35 +3895,35 @@ body.paywall-modal-open {
   cursor: pointer;
 }
 
-/* --- Mi QR veredicto --- */
-.mi-qr__veredicto {
+/* --- QR de reporte veredicto --- */
+.reporte-qr__veredicto {
   margin: 0 0 var(--space-md);
   padding: var(--space-md);
   border: 1px solid var(--color-border);
   background: var(--color-secondary, #f8fafc);
 }
 
-.mi-qr__veredicto--ok {
+.reporte-qr__veredicto--ok {
   border-color: var(--color-success, #16a34a);
 }
 
-.mi-qr__veredicto--warn {
+.reporte-qr__veredicto--warn {
   border-color: var(--color-accent, #d97706);
 }
 
-.mi-qr__veredicto-titulo {
+.reporte-qr__veredicto-titulo {
   margin: 0 0 var(--space-xs);
   font-size: 1.05rem;
 }
 
-.mi-qr__veredicto-texto {
+.reporte-qr__veredicto-texto {
   margin: 0 0 var(--space-md);
   color: var(--color-muted);
   font-size: 0.92rem;
   line-height: 1.45;
 }
 
-.mi-qr__veredicto-acciones {
+.reporte-qr__veredicto-acciones {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-sm);
@@ -4271,7 +4302,7 @@ body.paywall-modal-open {
   body.reporte-print .history-overlay,
   body.reporte-print .app-footer,
   body.reporte-print .no-print,
-  body.reporte-print .mi-qr-modal,
+  body.reporte-print .reporte-qr-modal,
   body.reporte-print #mapView,
   body.reporte-print #perfilView,
   body.reporte-print #subirConfianzaView,
@@ -4281,7 +4312,7 @@ body.paywall-modal-open {
 
   body.reporte-print #main,
   body.reporte-print #verifyView,
-  body.reporte-print #pasaporteRaiz,
+  body.reporte-print #reporteRaiz,
   body.reporte-print .reporte {
     display: block !important;
     width: 100% !important;

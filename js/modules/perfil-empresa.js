@@ -1,13 +1,22 @@
-// Perfil: crear empresa en marketplace o reclamar una publicada.
+// Perfil: crear empresa en marketplace o reclamar una publicada (demo con valor).
 const PerfilEmpresa = {
   modo: null,
   seleccionId: null,
   busquedaTimer: null,
+  PRECIO_PUBLICAR: 29990,
+  PRECIO_RECLAMAR: 14990,
 
   esEmpresa() {
     return typeof ProgresoCuenta !== 'undefined'
       ? ProgresoCuenta.actual().es('empresa')
       : false;
+  },
+
+  formatoClp(n) {
+    if (typeof MarketMonetizacion !== 'undefined' && MarketMonetizacion.formatoClp) {
+      return MarketMonetizacion.formatoClp(n);
+    }
+    return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
   },
 
   init() {
@@ -47,7 +56,29 @@ const PerfilEmpresa = {
     const lead = document.createElement('p');
     lead.className = 'section-lead';
     lead.textContent =
-      'Publique su ficha en el marketplace o reclame una empresa ya listada si usted es el titular.';
+      'Publique o reclame su ficha para aparecer ante compradores B2B que hacen due diligence.';
+
+    const valor = document.createElement('div');
+    valor.className = 'perfil-empresa__valor';
+    const valorTitulo = document.createElement('p');
+    valorTitulo.className = 'perfil-empresa__valor-titulo';
+    valorTitulo.textContent = 'Publicar tiene valor: sin ficha activa no lo encuentran en Explorar.';
+    const valorLista = document.createElement('ul');
+    valorLista.className = 'perfil-empresa__valor-lista';
+    [
+      'Crear y publicar ficha + Sello Verificado: $' +
+        PerfilEmpresa.formatoClp(PerfilEmpresa.PRECIO_PUBLICAR) +
+        ' CLP / mes',
+      'Reclamar ficha existente (titularidad): $' +
+        PerfilEmpresa.formatoClp(PerfilEmpresa.PRECIO_RECLAMAR) +
+        ' CLP pago único',
+      'Sin publicar, compradores solo ven alertas y le piden el informe a usted'
+    ].forEach((t) => {
+      const li = document.createElement('li');
+      li.textContent = t;
+      valorLista.appendChild(li);
+    });
+    valor.append(valorTitulo, valorLista);
 
     const acciones = document.createElement('div');
     acciones.className = 'perfil-empresa__acciones';
@@ -55,13 +86,15 @@ const PerfilEmpresa = {
     const btnCrear = document.createElement('button');
     btnCrear.type = 'button';
     btnCrear.className = 'submit-btn';
-    btnCrear.textContent = 'Crear empresa';
+    btnCrear.textContent =
+      'Crear empresa · $' + PerfilEmpresa.formatoClp(PerfilEmpresa.PRECIO_PUBLICAR) + '/mes';
     btnCrear.addEventListener('click', () => PerfilEmpresa.mostrarModo('crear'));
 
     const btnReclamar = document.createElement('button');
     btnReclamar.type = 'button';
     btnReclamar.className = 'submit-btn submit-btn--secondary';
-    btnReclamar.textContent = 'Tengo una y quiero reclamarla';
+    btnReclamar.textContent =
+      'Reclamar la mía · $' + PerfilEmpresa.formatoClp(PerfilEmpresa.PRECIO_RECLAMAR);
     btnReclamar.addEventListener('click', () => PerfilEmpresa.mostrarModo('reclamar'));
 
     acciones.append(btnCrear, btnReclamar);
@@ -85,8 +118,23 @@ const PerfilEmpresa = {
     status.className = 'status-text';
     status.setAttribute('role', 'status');
 
-    wrap.append(titulo, lead, acciones, panel, miasTitulo, mias, status);
+    wrap.append(titulo, lead, valor, acciones, panel, miasTitulo, mias, status);
     return wrap;
+  },
+
+  confirmarPago(modo) {
+    if (modo === 'crear') {
+      return window.confirm(
+        'Activar publicación + Sello Verificado por $' +
+          PerfilEmpresa.formatoClp(PerfilEmpresa.PRECIO_PUBLICAR) +
+          ' CLP / mes?\n\nDemo: no se cobra de verdad. Su ficha quedará visible en Explorar.'
+      );
+    }
+    return window.confirm(
+      'Confirmar reclamo de titularidad por $' +
+        PerfilEmpresa.formatoClp(PerfilEmpresa.PRECIO_RECLAMAR) +
+        ' CLP (pago único)?\n\nDemo: no se cobra de verdad. Podrá administrar la ficha.'
+    );
   },
 
   mostrarModo(modo) {
@@ -110,7 +158,9 @@ const PerfilEmpresa = {
     const intro = document.createElement('p');
     intro.className = 'field__hint';
     intro.textContent =
-      'Se publicará en Explorar y quedará asociada a su cuenta como titular.';
+      'Al publicar se activa el plan de ficha + Sello Verificado ($' +
+      PerfilEmpresa.formatoClp(PerfilEmpresa.PRECIO_PUBLICAR) +
+      ' CLP/mes, demo). Quedará asociada a su cuenta como titular.';
 
     form.append(
       intro,
@@ -150,7 +200,8 @@ const PerfilEmpresa = {
     const enviar = document.createElement('button');
     enviar.type = 'submit';
     enviar.className = 'submit-btn';
-    enviar.textContent = 'Publicar empresa';
+    enviar.textContent =
+      'Pagar y publicar · $' + PerfilEmpresa.formatoClp(PerfilEmpresa.PRECIO_PUBLICAR) + '/mes';
     const cancelar = document.createElement('button');
     cancelar.type = 'button';
     cancelar.className = 'history__clear';
@@ -173,7 +224,9 @@ const PerfilEmpresa = {
     const intro = document.createElement('p');
     intro.className = 'field__hint';
     intro.textContent =
-      'Busque la ficha publicada, selecciónela y confirme con el documento de titularidad (RUT u otro).';
+      'Busque la ficha, selecciónela y confirme titularidad. El reclamo tiene un pago único de $' +
+      PerfilEmpresa.formatoClp(PerfilEmpresa.PRECIO_RECLAMAR) +
+      ' CLP (demo).';
 
     const buscar = PerfilEmpresa.campoTexto('peBuscar', 'Buscar empresa publicada', false, 120);
     const input = buscar.querySelector('input');
@@ -209,7 +262,8 @@ const PerfilEmpresa = {
     const enviar = document.createElement('button');
     enviar.type = 'submit';
     enviar.className = 'submit-btn';
-    enviar.textContent = 'Reclamar empresa';
+    enviar.textContent =
+      'Pagar y reclamar · $' + PerfilEmpresa.formatoClp(PerfilEmpresa.PRECIO_RECLAMAR);
     const cancelar = document.createElement('button');
     cancelar.type = 'button';
     cancelar.className = 'history__clear';
@@ -453,7 +507,11 @@ const PerfilEmpresa = {
       PerfilEmpresa.setStatus('La URL del logo debe comenzar con http:// o https://');
       return;
     }
-    PerfilEmpresa.setStatus('Publicando…');
+    if (!PerfilEmpresa.confirmarPago('crear')) {
+      PerfilEmpresa.setStatus('Publicación cancelada. Sin pago no se publica la ficha.');
+      return;
+    }
+    PerfilEmpresa.setStatus('Activando plan (demo) y publicando…');
     const res = await Auth.request('/v1/businesses', {
       method: 'POST',
       body: {
@@ -472,7 +530,11 @@ const PerfilEmpresa = {
       PerfilEmpresa.setStatus(res.error || 'No se pudo crear la empresa.');
       return;
     }
-    PerfilEmpresa.setStatus('Empresa publicada y asociada a su cuenta.');
+    PerfilEmpresa.setStatus(
+      'Empresa publicada con Sello Verificado (demo · $' +
+        PerfilEmpresa.formatoClp(PerfilEmpresa.PRECIO_PUBLICAR) +
+        '/mes).'
+    );
     PerfilEmpresa.cerrarPanel();
     PerfilEmpresa.cargarMias();
   },
@@ -497,7 +559,11 @@ const PerfilEmpresa = {
     }
     const telefono = ((document.getElementById('peClaimTel') || {}).value || '').trim();
     const sitio_web = ((document.getElementById('peClaimWeb') || {}).value || '').trim();
-    PerfilEmpresa.setStatus('Reclamando…');
+    if (!PerfilEmpresa.confirmarPago('reclamar')) {
+      PerfilEmpresa.setStatus('Reclamo cancelado. Sin pago no se asocia la ficha.');
+      return;
+    }
+    PerfilEmpresa.setStatus('Confirmando pago (demo) y reclamando…');
     const body = { documento_verificacion: doc };
     if (telefono) body.telefono = telefono;
     if (sitio_web) body.sitio_web = sitio_web;
@@ -509,7 +575,12 @@ const PerfilEmpresa = {
       PerfilEmpresa.setStatus(res.error || 'No se pudo reclamar la empresa.');
       return;
     }
-    PerfilEmpresa.setStatus(res.data.mensaje || 'Empresa reclamada correctamente.');
+    PerfilEmpresa.setStatus(
+      (res.data.mensaje || 'Empresa reclamada.') +
+        ' Pago único demo $' +
+        PerfilEmpresa.formatoClp(PerfilEmpresa.PRECIO_RECLAMAR) +
+        ' CLP.'
+    );
     PerfilEmpresa.cerrarPanel();
     PerfilEmpresa.cargarMias();
   }

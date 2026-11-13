@@ -28,7 +28,7 @@ Vistas internas:
 | `js/core/security.js` | RUT / PII en cliente |
 | `js/compliance.js` | Cookies e incidentes locales |
 | `js/modules/market.js` | Explorar proveedores |
-| `js/modules/pasaporte.js` | QR y validador |
+| `js/modules/reporte-qr.js` | Emisión/validación del QR del reporte (`/v1/reporte`) |
 | `js/modules/subir-confianza.js` | Verificación |
 | `js/modules/reporte-persona.js` | Informe persona |
 | `js/modules/reporte-empresa.js` | Informe empresa |
@@ -39,4 +39,13 @@ Vistas internas:
 
 ## Desarrollo local
 
-Servir la carpeta con cualquier static server (p. ej. Live Server en el puerto 5500) apuntando al API en `http://localhost:8000`.
+```bash
+# API
+cd servichile-backend && source .venv/bin/activate && uvicorn app.main:app --reload
+
+# Frontend
+cd servichile-frontend && python3 -m http.server 5500
+```
+
+- App: http://localhost:5500/index.html  
+- API: http://localhost:8000/docs  

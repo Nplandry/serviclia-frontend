@@ -6,7 +6,7 @@ const App = {
     Auth.init();
     App.cacheElements();
     App.bindAuthEvents();
-    Pasaporte.init();
+    ReporteQr.init();
     App.applyAuthState();
     if (typeof Compliance !== 'undefined') Compliance.initCookieBanner();
     App.verifySession();
@@ -67,7 +67,7 @@ const App = {
       if (typeof PerfilEmpresa !== 'undefined') PerfilEmpresa.init();
       return App.showView('perfilView');
     }
-    if (name === 'verificacion') { Pasaporte.init(); return App.showView('verifyView'); }
+    if (name === 'reportes') { ReporteQr.init(); return App.showView('verifyView'); }
     if (name === 'subir-confianza') {
       App.actualizarEtiquetasConfianza();
       SubirConfianza.init();
@@ -393,11 +393,11 @@ const App = {
     const sectionByView = {
       mapView: 'mapa',
       perfilView: 'perfil',
-      verifyView: 'verificacion',
+      verifyView: 'reportes',
       subirConfianzaView: 'subir-confianza'
     };
-    if (name !== 'verifyView' && typeof Pasaporte !== 'undefined' && Pasaporte.detener) {
-      Pasaporte.detener();
+    if (name !== 'verifyView' && typeof ReporteQr !== 'undefined' && ReporteQr.detener) {
+      ReporteQr.detener();
     }
     ['mapView', 'perfilView', 'verifyView', 'subirConfianzaView'].forEach(n => {
       if (App.elements[n]) App.elements[n].hidden = n !== name;

@@ -54,7 +54,7 @@ const Onboarding = {
       id: 'fin',
       type: 'summary',
       titulo: 'Listo para verificar tratos',
-      texto: 'Crearemos tu cuenta. Después podrás subir verificación y usar Mi QR en visitas o entregas.',
+      texto: 'Crearemos tu cuenta. Después podrás subir verificación y usar QR de reporte en visitas o entregas.',
       cta: 'Crear cuenta y entrar'
     }
   ],

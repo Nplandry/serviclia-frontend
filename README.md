@@ -1,66 +1,42 @@
 # ServiChile PWA
 
-Aplicación web progresiva con marketplace de comercios, arriendos y eventos, Subir Confianza y Mi QR. Se conecta al backend `servichile-backend` (FastAPI) para autenticación, perfil y negocios.
+Aplicación web progresiva de **due diligence B2B** e índice de transparencia de proveedores, con capa de confianza (Reportes / QR + verificación).
 
 ## Pantallas
 
 | Ruta | Archivo | Función |
 |---|---|---|
-| `/` | `index.html` | Acceso (login y registro) y, al iniciar sesión, la app completa |
-| `/onboarding/` | `onboarding/index.html` | Bienvenida y preguntas iniciales; crea la cuenta con su perfil |
+| `/` | `index.html` | Acceso y app completa |
+| `/onboarding/` | `onboarding/index.html` | Alta persona/empresa |
 
-Dentro de `index.html`, la app cambia entre vistas que se muestran u ocultan:
+Vistas internas:
 
-- **authGate**: acceso, con información del servicio.
-- **mapView**: Marketplace (comercios, arriendos y eventos por cercanía) y widget de progreso.
-- **verifyView**: Mi QR (carnet real firmado + lector para validar QR de otras personas).
-- **subirConfianzaView**: requisitos por nivel, documentos mock y biometría mock.
-- **perfilView**: datos de cuenta, edición de edad/teléfono/RUT y acciones de cuenta.
-
-El menú lateral (Marketplace, Mi QR, Subir Confianza y Perfil) se abre con el botón de la esquina superior izquierda.
+- **Explorar**: proveedores B2B con índice de transparencia.
+- **Reportes**: informe imprimible (persona: niveles; empresa: 30 observables) + QR y validador.
+- **Verificación**: niveles 1–3 (persona) o documentación / índice (empresa).
+- **Perfil**: datos de cuenta y estado de verificación.
 
 ## Estructura
 
 | Ruta | Contenido |
 |---|---|
-| `index.html` | Estructura de todas las vistas |
-| `onboarding/index.html` | Flujo de bienvenida |
-| `css/styles.css` | Estilos de toda la aplicación |
-| `js/app.js` | Lógica principal: vistas, menú y perfil |
-| `js/core/auth.js` | Sesión: login, registro, perfil y verificación del token |
-| `js/core/security.js` | Validación de RUT y redacción de datos personales en el navegador |
-| `js/compliance.js` | Aviso de cookies y registro local de incidentes de seguridad |
-| `js/data/categorias.js` | Iconos del marketplace |
-| `js/modules/market.js` | Marketplace: grilla, filtros y cercanía |
-| `js/modules/pasaporte.js` | Mi QR (carnet API + lector de validación) |
-| `js/modules/subir-confianza.js` | Subir Confianza (requisitos, documentos y biometría mock) |
-| `js/onboarding.js` | Lógica del flujo de bienvenida |
-| `sw.js` | Service Worker: caché de la app. No guarda respuestas de la API. |
-| `manifest.json` | Configuración de la PWA |
-
-## Scripts cargados en `index.html` (en orden)
-
-1. `js/data/categorias.js`
-2. `js/core/security.js`
-3. `js/compliance.js`
-4. `js/core/auth.js`
-5. `js/modules/pasaporte.js`
-6. `js/modules/subir-confianza.js`
-7. `js/modules/market.js`
-8. `js/app.js`
-
-`sw.js` se registra al final de la página.
-
-## Conexión con el backend
-
-- La URL de la API está en `Auth.API_BASE` (`js/core/auth.js`). Por defecto apunta a `http://localhost:8000`. En producción, defina `window.SERVICHILE_API_BASE` antes de cargar `auth.js`.
-- El token de sesión queda en `localStorage`. Al iniciar la app se verifica con `/v1/auth/yo`; si el token expiró, se pide iniciar sesión de nuevo.
-- Con el backend en local, la app debe abrirse desde `http://localhost:5500` o `http://127.0.0.1:5500`, o desde otro origen incluido en `CORS_ORIGINS` del backend. Abrir `index.html` como archivo (`file://`) no funciona.
+| `index.html` | Estructura de vistas |
+| `onboarding/index.html` | Bienvenida |
+| `css/styles.css` | Estilos |
+| `js/app.js` | Vistas, menú y perfil |
+| `js/core/auth.js` | Sesión API |
+| `js/core/security.js` | RUT / PII en cliente |
+| `js/compliance.js` | Cookies e incidentes locales |
+| `js/modules/market.js` | Explorar proveedores |
+| `js/modules/pasaporte.js` | QR y validador |
+| `js/modules/subir-confianza.js` | Verificación |
+| `js/modules/reporte-persona.js` | Informe persona |
+| `js/modules/reporte-empresa.js` | Informe empresa |
+| `js/modules/progreso-cuenta.js` | Estrategia persona/empresa |
+| `js/onboarding.js` | Alta de cuenta |
+| `sw.js` | Service Worker |
+| `manifest.json` | PWA |
 
 ## Desarrollo local
 
-```bash
-python3 -m http.server 5500
-```
-
-Luego abra `http://localhost:5500/index.html`. El backend debe estar corriendo en el puerto 8000.
+Servir la carpeta con cualquier static server (p. ej. Live Server en el puerto 5500) apuntando al API en `http://localhost:8000`.

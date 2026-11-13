@@ -178,33 +178,6 @@ const Auth = {
     return { ok: true, biometria: data };
   },
 
-  // Sube el PDF de liquidaciones o Dicom para el Nivel 2. El archivo no se guarda en el dispositivo.
-  async subirDocumentoArriendo(archivo) {
-    if (!Auth.sesion) return { ok: false, error: 'Inicie sesión para continuar.' };
-    if (!archivo || archivo.type !== 'application/pdf') return { ok: false, error: 'Seleccione un archivo PDF.' };
-    if (archivo.size > 1024 * 1024) return { ok: false, error: 'El PDF supera 1 MB. Suba una versión más liviana.' };
-    const formulario = new FormData();
-    formulario.append('archivo', archivo);
-    let res;
-    try {
-      res = await fetch(Auth.API_BASE + '/v1/perfil/documentos', {
-        method: 'POST',
-        headers: { Authorization: 'Bearer ' + Auth.sesion.token },
-        body: formulario
-      });
-    } catch {
-      return { ok: false, error: 'No se pudo conectar con el servidor. Intente de nuevo.' };
-    }
-    let data = null;
-    try {
-      data = await res.json();
-    } catch {}
-    if (!res.ok) return { ok: false, error: Auth.mensajeError(res.status, data) };
-    // El estado de confianza cambió: se vuelve a leer desde el servidor.
-    await Auth.verificarSesion();
-    return { ok: true, scoring: data };
-  },
-
   // Actualiza el perfil en el servidor. Envie solo los campos que cambian. Un valor null borra el campo.
   async actualizarPerfil(cambios) {
     if (!Auth.sesion) return { ok: false, error: 'Inicie sesión para continuar.' };

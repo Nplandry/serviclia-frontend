@@ -1,4 +1,4 @@
-const CACHE_NAME = 'servichile-v54';
+const CACHE_NAME = 'servichile-v98';
 const ASSETS = [
   './manifest.json'
 ];

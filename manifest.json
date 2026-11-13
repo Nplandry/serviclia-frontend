@@ -1,7 +1,7 @@
 {
   "name": "ServiChile",
   "short_name": "ServiChile",
-  "description": "Orientación legal-financiera para adultos mayores chilenos",
+  "description": "Due diligence B2B e índice de transparencia de proveedores. Valide identidad con QR.",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#ffffff",

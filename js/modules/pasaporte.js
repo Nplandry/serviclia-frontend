@@ -1,4 +1,4 @@
-// Mi QR: carnet real firmado por la API + lector para validar QR de otras personas.
+// Mi QR: carnet firmado + lector para validar QR de persona, empresa o cualquiera.
 const Pasaporte = {
   _renovarTimer: null,
   _scanTimer: null,
@@ -11,18 +11,36 @@ const Pasaporte = {
     if (!raiz) return;
     Pasaporte.detener();
     Pasaporte.limpiar(raiz);
+    // Persona: reporte de niveles. Empresa: reporte de índice (30 observables).
+    const esEmpresa =
+      typeof App !== 'undefined'
+        ? App.esEmpresa()
+        : typeof ProgresoCuenta !== 'undefined'
+          ? ProgresoCuenta.actual().es('empresa')
+          : false;
+    if (esEmpresa && typeof ReporteEmpresa !== 'undefined') {
+      ReporteEmpresa.init();
+      return;
+    }
+    if (typeof ReportePersona !== 'undefined') {
+      ReportePersona.init();
+      return;
+    }
     raiz.appendChild(Pasaporte.renderShell());
     Pasaporte.cargarCarnet();
   },
 
-  renderShell() {
+  renderShell(opts) {
+    const opciones = opts || {};
     const wrap = document.createElement('div');
     wrap.className = 'mi-qr';
 
-    const lead = document.createElement('p');
-    lead.className = 'section-lead';
-    lead.textContent =
-      'Muestre este carnet en el comercio o escanee el QR de otra persona para validar su nivel de confianza.';
+    if (opciones.lead) {
+      const lead = document.createElement('p');
+      lead.className = 'section-lead';
+      lead.textContent = opciones.lead;
+      wrap.appendChild(lead);
+    }
 
     const status = document.createElement('p');
     status.className = 'status-text';
@@ -34,9 +52,95 @@ const Pasaporte = {
     const carnetHost = document.createElement('div');
     carnetHost.id = 'miQrCarnetHost';
 
-    const lector = Pasaporte.renderLector();
-    wrap.append(lead, status, carnetHost, lector);
+    const acciones = document.createElement('div');
+    acciones.className = 'mi-qr__acciones no-print';
+    const btnValidar = document.createElement('button');
+    btnValidar.type = 'button';
+    btnValidar.className = 'submit-btn';
+    btnValidar.textContent = 'Validar QR';
+    btnValidar.addEventListener('click', () => Pasaporte.abrirModalValidador());
+    acciones.appendChild(btnValidar);
+
+    wrap.append(status, carnetHost, acciones, Pasaporte.renderModalValidador());
     return wrap;
+  },
+
+  renderModalValidador() {
+    const overlay = document.createElement('div');
+    overlay.id = 'miQrModal';
+    overlay.className = 'mi-qr-modal';
+    overlay.hidden = true;
+    overlay.setAttribute('role', 'presentation');
+
+    const dialog = document.createElement('div');
+    dialog.className = 'mi-qr-modal__dialog';
+    dialog.setAttribute('role', 'dialog');
+    dialog.setAttribute('aria-modal', 'true');
+    dialog.setAttribute('aria-labelledby', 'miQrModalTitulo');
+
+    const head = document.createElement('div');
+    head.className = 'mi-qr-modal__head';
+    const headText = document.createElement('div');
+    headText.className = 'mi-qr-modal__head-text';
+    const titulo = document.createElement('h3');
+    titulo.id = 'miQrModalTitulo';
+    titulo.className = 'mi-qr-modal__titulo';
+    titulo.textContent = 'Validar QR';
+    const lead = document.createElement('p');
+    lead.className = 'mi-qr-modal__lead';
+    lead.textContent =
+      'Funciona con QR de persona, empresa o cualquier cuenta ServiChile. Escanee, suba una foto o pegue el código.';
+    headText.append(titulo, lead);
+
+    const cerrar = document.createElement('button');
+    cerrar.type = 'button';
+    cerrar.className = 'mi-qr-modal__cerrar';
+    cerrar.setAttribute('aria-label', 'Cerrar');
+    cerrar.textContent = '×';
+    cerrar.addEventListener('click', () => Pasaporte.cerrarModalValidador());
+    head.append(headText, cerrar);
+
+    const body = document.createElement('div');
+    body.className = 'mi-qr-modal__body';
+    body.appendChild(Pasaporte.renderLector());
+
+    dialog.append(head, body);
+    overlay.appendChild(dialog);
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) Pasaporte.cerrarModalValidador();
+    });
+    return overlay;
+  },
+
+  abrirModalValidador() {
+    let modal = document.getElementById('miQrModal');
+    if (!modal) {
+      const raiz = document.getElementById('pasaporteRaiz');
+      if (!raiz) return;
+      modal = Pasaporte.renderModalValidador();
+      raiz.appendChild(modal);
+    }
+    modal.hidden = false;
+    document.body.classList.add('mi-qr-modal-open');
+    if (!Pasaporte._escModalBound) {
+      Pasaporte._escModalBound = (e) => {
+        if (e.key === 'Escape') Pasaporte.cerrarModalValidador();
+      };
+      document.addEventListener('keydown', Pasaporte._escModalBound);
+    }
+    const btn = document.getElementById('miQrCamBtn');
+    if (btn) btn.focus();
+  },
+
+  cerrarModalValidador() {
+    const modal = document.getElementById('miQrModal');
+    if (modal) modal.hidden = true;
+    document.body.classList.remove('mi-qr-modal-open');
+    if (Pasaporte._escModalBound) {
+      document.removeEventListener('keydown', Pasaporte._escModalBound);
+      Pasaporte._escModalBound = null;
+    }
+    Pasaporte.detenerCamara();
   },
 
   renderLector() {
@@ -46,12 +150,12 @@ const Pasaporte = {
 
     const titulo = document.createElement('h3');
     titulo.className = 'mi-qr__lector-titulo';
-    titulo.textContent = 'Validar QR de otra persona';
+    titulo.textContent = 'Validar QR de cualquiera';
 
     const ayuda = document.createElement('p');
     ayuda.className = 'mi-qr__lector-ayuda';
     ayuda.textContent =
-      'Apunte al QR de la otra persona. Si no puede usar cámara, suba una foto o pegue el código.';
+      'Persona o empresa: apunte al QR, suba una foto o pegue el código.';
 
     const btnCam = document.createElement('button');
     btnCam.type = 'button';
@@ -191,12 +295,23 @@ const Pasaporte = {
 
     const cabezal = document.createElement('header');
     cabezal.className = 'mi-qr__cabezal';
+    const tipoCuenta = Pasaporte.resolverTipoCuenta(d, propio);
+    const tipoTxt = Pasaporte.etiquetaTipoCuenta(tipoCuenta);
+
     const marca = document.createElement('p');
     marca.className = 'mi-qr__marca';
     marca.textContent = 'ServiChile';
     const sub = document.createElement('p');
     sub.className = 'mi-qr__sub';
-    sub.textContent = propio ? 'Carnet de confianza' : d.es_propio ? 'Es su propio QR' : 'Carnet validado';
+    if (propio) {
+      sub.textContent = tipoTxt
+        ? 'Carnet de confianza · ' + tipoTxt
+        : 'Carnet de confianza';
+    } else if (d.es_propio) {
+      sub.textContent = 'Es su propio QR';
+    } else {
+      sub.textContent = tipoTxt ? 'Carnet validado · ' + tipoTxt : 'Carnet validado';
+    }
     cabezal.append(marca, sub);
 
     const cuerpo = document.createElement('div');
@@ -216,18 +331,22 @@ const Pasaporte = {
       cuerpo.appendChild(qrCol);
     }
 
-    const filas = [
-      ['Titular', d.nombre],
-      propio && d.email ? ['Correo', d.email] : null,
-      ['Nivel pasaporte', 'Nivel ' + d.nivel_pasaporte],
-      ['XP', (d.xp != null ? d.xp : 0) + ' · Nivel ' + (d.nivel_xp || 1)],
-      ['Estado', Pasaporte.etiquetaEstado(d.estado_pasaporte)],
-      [
-        'Confiabilidad',
-        d.score_confiabilidad == null ? 'Sin reservas cerradas' : d.score_confiabilidad + ' / 100'
-      ],
-      ['RUT', d.rut_verificado ? 'Verificado' : 'Sin verificar']
-    ].filter(Boolean);
+    // Al validar a otro: solo datos del API (persona o empresa). No usar ficha local del escáner.
+    const filas = !propio
+      ? Pasaporte.filasCarnetValidado(d)
+      : typeof ProgresoCuenta !== 'undefined'
+        ? ProgresoCuenta.para({ tipo_cuenta: tipoCuenta }).filasEstado({
+            origen: 'qr',
+            perfil: { tipo_cuenta: tipoCuenta },
+            datos: d,
+            propio
+          })
+        : [
+            ['Tipo', tipoTxt || 'Sin indicar'],
+            ['Titular', d.nombre],
+            ['Estado', Pasaporte.etiquetaEstado(d.estado_pasaporte)],
+            ['RUT', d.rut_verificado ? 'Verificado' : 'Sin verificar']
+          ];
 
     const datos = document.createElement('dl');
     datos.className = 'mi-qr__datos';
@@ -283,9 +402,19 @@ const Pasaporte = {
     // Renueva un minuto antes del vencimiento (mínimo 20 s).
     const espera = Math.max(20, seg - 60) * 1000;
     Pasaporte._renovarTimer = setTimeout(() => {
-      if (document.getElementById('verifyView') && !document.getElementById('verifyView').hidden) {
-        Pasaporte.cargarCarnet();
+      const vista = document.getElementById('verifyView');
+      if (!vista || vista.hidden) return;
+      if (document.getElementById('reporteQrHost')) {
+        if (typeof ReporteEmpresa !== 'undefined' && document.querySelector('.reporte-doc--empresa')) {
+          ReporteEmpresa.cargarQrInforme();
+          return;
+        }
+        if (typeof ReportePersona !== 'undefined') {
+          ReportePersona.cargarQrInforme();
+          return;
+        }
       }
+      Pasaporte.cargarCarnet();
     }, espera);
   },
 
@@ -403,11 +532,89 @@ const Pasaporte = {
       if (status) status.textContent = res.error || 'No se pudo validar el QR.';
       return;
     }
-    if (status) status.textContent = res.data.es_propio ? 'Escaneó su propio carnet.' : 'Carnet válido.';
+    if (status) {
+      status.textContent = res.data.es_propio
+        ? 'Escaneó su propio carnet.'
+        : 'Carnet válido.';
+    }
     if (host) {
       Pasaporte.limpiar(host);
+      host.appendChild(Pasaporte.renderVeredicto(res.data));
       host.appendChild(Pasaporte.renderCarnet(res.data, false));
     }
+  },
+
+  filasCarnetValidado(d) {
+    const tipo = d.tipo_cuenta === 'empresa' ? 'empresa' : d.tipo_cuenta === 'persona' ? 'persona' : null;
+    const tipoTxt = Pasaporte.etiquetaTipoCuenta(tipo) || 'Sin indicar';
+    const filas = [
+      ['Tipo de cuenta', tipoTxt],
+      ['Titular', d.nombre || 'Sin nombre'],
+      ['RUT', d.rut_verificado ? 'Verificado' : 'Sin verificar'],
+      ['Estado', Pasaporte.etiquetaEstado(d.estado_pasaporte)]
+    ];
+    if (tipo === 'empresa') {
+      filas.push(['Contexto', 'Empresa · carnet de identidad corporativa']);
+      if (d.score_confiabilidad != null && d.score_confiabilidad !== '') {
+        filas.push(['Confiabilidad', Number(d.score_confiabilidad).toFixed(1) + '%']);
+      }
+    } else {
+      const score =
+        d.score_confiabilidad == null || d.score_confiabilidad === ''
+          ? 'Sin historial'
+          : Number(d.score_confiabilidad).toFixed(1) + '%';
+      filas.push(['Confiabilidad', score]);
+      if (d.nivel_xp != null) {
+        filas.push(['Nivel XP', 'Nivel ' + d.nivel_xp]);
+      }
+    }
+    filas.push(['Válido hasta', Pasaporte.formatoFecha(d.expires_at)]);
+    return filas;
+  },
+
+  renderVeredicto(d) {
+    const box = document.createElement('section');
+    box.className = 'mi-qr__veredicto';
+    box.setAttribute('aria-live', 'polite');
+
+    const rutOk = !!d.rut_verificado;
+    const esEmpresa = d.tipo_cuenta === 'empresa';
+    const esPersona = d.tipo_cuenta === 'persona' || (!esEmpresa && d.tipo_cuenta !== 'empresa');
+    const propio = !!d.es_propio;
+
+    let tono = 'ok';
+    let titulo = 'Carnet ServiChile válido';
+    let detalle = 'Se validó un código firmado de cualquier cuenta activa.';
+
+    if (propio) {
+      tono = 'warn';
+      titulo = 'Es su propio QR';
+      detalle = 'Escanee el carnet de otra persona o empresa.';
+    } else if (esEmpresa) {
+      titulo = 'Empresa validada';
+      detalle = rutOk
+        ? 'Carnet de empresa válido · RUT verificado.'
+        : 'Carnet de empresa válido · RUT aún pendiente.';
+      if (!rutOk) tono = 'warn';
+    } else if (esPersona && rutOk) {
+      titulo = 'Persona validada';
+      detalle = 'Carnet de persona válido · RUT verificado.';
+    } else {
+      tono = 'warn';
+      titulo = 'Persona con RUT pendiente';
+      detalle = 'El carnet es válido, pero esa cuenta aún no verifica RUT.';
+    }
+
+    box.classList.add('mi-qr__veredicto--' + tono);
+
+    const h = document.createElement('h3');
+    h.className = 'mi-qr__veredicto-titulo';
+    h.textContent = titulo;
+    const p = document.createElement('p');
+    p.className = 'mi-qr__veredicto-texto';
+    p.textContent = detalle;
+    box.append(h, p);
+    return box;
   },
 
   detenerCamara() {
@@ -433,6 +640,7 @@ const Pasaporte = {
       clearTimeout(Pasaporte._renovarTimer);
       Pasaporte._renovarTimer = null;
     }
+    Pasaporte.cerrarModalValidador();
     Pasaporte.detenerCamara();
   },
 
@@ -444,6 +652,25 @@ const Pasaporte = {
       rechazado: 'Rechazado'
     };
     return mapa[estado] || 'Básico';
+  },
+
+  etiquetaTipoCuenta(tipo) {
+    if (tipo !== 'empresa' && tipo !== 'persona') return '';
+    return typeof ProgresoCuenta !== 'undefined'
+      ? ProgresoCuenta.de(tipo).etiquetaCorta()
+      : tipo === 'empresa'
+        ? 'Empresa'
+        : 'Persona';
+  },
+
+  resolverTipoCuenta(d, propio) {
+    if (d && (d.tipo_cuenta === 'empresa' || d.tipo_cuenta === 'persona')) {
+      return d.tipo_cuenta;
+    }
+    if (!propio || typeof Auth === 'undefined') return null;
+    const user = Auth.getCurrentUser();
+    const tipo = user && user.perfil ? user.perfil.tipo_cuenta : null;
+    return tipo === 'empresa' || tipo === 'persona' ? tipo : null;
   },
 
   formatoFecha(iso) {

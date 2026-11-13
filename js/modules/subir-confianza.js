@@ -7,101 +7,79 @@ const SubirConfianza = {
   NIVELES: [
     {
       id: 1,
-      titulo: 'Nivel 1',
-      evalua: 'Actividad básica',
-      requisito: 'Registro, cédula de identidad y perfil básico completo.',
-      usos: 'Eventos masivos, reservas simples, comercios locales y primer contacto.',
+      titulo: 'Nivel 1 · Identidad',
+      evalua: 'Que la persona sea real, accesible y localizable',
+      requisito: 'Cuenta activa, identidad verificada y datos de contacto con mayoría de edad.',
+      usos: 'Primeros contactos, Mi QR y encuentros iniciales con baja fricción.',
       discriminatorio: false,
-      discriminatorioNota: 'NO (Es para todos los usuarios)',
+      discriminatorioNota: 'NO — base para cualquier trato',
       tareas: [
         {
           id: 'n1-registro',
-          label: 'Completar registro inicial en la plataforma',
-          como: 'Se desbloquea al crear tu cuenta e iniciar sesión.'
+          label: 'Crear cuenta e iniciar sesión',
+          como: 'Se completa al registrarse y mantener una sesión activa en la plataforma.'
         },
         {
           id: 'n1-cedula',
-          label: 'Verificar cédula de identidad',
-          como: 'Se desbloquea al subir tu cédula o verificar el RUT en Perfil.'
+          label: 'Verificar su identidad',
+          como: 'Se completa al verificar el RUT en el perfil o al cargar la cédula de identidad.'
         },
         {
           id: 'n1-perfil',
-          label: 'Completar datos básicos del perfil',
-          como: 'Se desbloquea al guardar edad y teléfono en Perfil.'
+          label: 'Completar teléfono y edad',
+          como: 'Se completa al guardar un teléfono móvil y declarar edad de 18 años o más.'
         }
       ]
     },
     {
       id: 2,
-      titulo: 'Nivel 2',
-      evalua: 'Disciplina operativa',
-      requisito: 'Historial de asistencia y puntualidad (behavior_score ≥ 85%, baja tasa de no-shows).',
-      usos: 'Descuentos, accesos preferenciales y prioridad en gimnasios o reservas.',
+      titulo: 'Nivel 2 · Cumplimiento',
+      evalua: 'Que cumpla lo que agenda y mantenga buen historial',
+      requisito: 'Al menos un encuentro cerrado, reputación alta y pocas inasistencias.',
+      usos: 'Visitas, entregas y tratos recurrentes con respaldo de comportamiento.',
       discriminatorio: false,
-      discriminatorioNota: 'NO (Se gana exclusivamente portándose bien y cumpliendo)',
+      discriminatorioNota: 'NO — se gana cumpliendo encuentros',
       tareas: [
         {
           id: 'n2-asistencias',
-          label: 'Acumular historial de asistencia en reservas',
-          como: 'Se desbloquea con reservas cerradas (asistencias registradas).'
+          label: 'Completar al menos un encuentro',
+          como: 'Se completa cuando existe al menos una visita, turno o entrega cerrada con éxito.'
         },
         {
           id: 'n2-puntualidad',
-          label: 'Mantener behavior_score ≥ 85%',
-          como: 'Se desbloquea cuando tu score de confiabilidad llega a 85% o más.'
+          label: 'Mantener buena reputación',
+          como: 'Se completa cuando el puntaje de confiabilidad alcanza 85% o más.'
         },
         {
           id: 'n2-noshow',
-          label: 'Mantener baja tasa de no-shows',
-          como: 'Se desbloquea manteniendo un score de confiabilidad ≥ 85%.'
+          label: 'Mantener pocas inasistencias',
+          como: 'Se completa cuando la tasa de cancelaciones o inasistencias se mantiene bajo 15%.'
         }
       ]
     },
     {
       id: 3,
-      titulo: 'Nivel 3',
-      evalua: 'Idoneidad cívica y social',
-      requisito: 'Antecedentes limpios, biometría avanzada y aval cívico.',
-      usos: 'Galas exclusivas, preventas, máxima confianza y estatus dentro de la comunidad.',
+      titulo: 'Nivel 3 · Identidad reforzada',
+      evalua: 'Mayor certeza para tratos de alto valor',
+      requisito: 'Antecedentes, verificación facial y un aval o garantía.',
+      usos: 'Contratos sensibles, entregas de alto valor y menor riesgo para ambas partes.',
       discriminatorio: false,
-      discriminatorioNota: 'NO (Basado en conducta y cívica, totalmente ajeno al nivel socioeconómico)',
+      discriminatorioNota: 'NO — refuerza identidad, no mide plata',
       tareas: [
         {
           id: 'n3-antecedentes',
-          label: 'Subir certificado de antecedentes limpios',
-          como: 'Se desbloquea al subir el certificado de antecedentes.'
+          label: 'Presentar certificado de antecedentes',
+          como: 'Se completa al cargar el certificado de antecedentes o un certificado comercial equivalente.'
         },
         {
           id: 'n3-biometria',
-          label: 'Completar verificación biométrica de identidad',
-          como: 'Se desbloquea al completar el flujo de biometría.'
+          label: 'Confirmar identidad con foto',
+          como: 'Se completa al aprobar la verificación facial en vivo; la foto no se almacena.'
         },
         {
           id: 'n3-aval',
-          label: 'Registrar aval cívico de referencia',
-          como: 'Se desbloquea al subir el documento de aval en Documentos.'
-        }
-      ]
-    },
-    {
-      id: 4,
-      titulo: 'Nivel 4',
-      evalua: 'Solvencia patrimonial',
-      requisito: 'Liquidaciones de sueldo / Certificado AFP procesados con Zero-Retention.',
-      usos: 'Única y exclusivamente para arriendos de departamentos y contratos inmobiliarios.',
-      discriminatorio: true,
-      discriminatorioNota: 'SÍ, pero es estrictamente legal y necesario solo para el rubro inmobiliario bajo la Ley 19.628.',
-      especial: true,
-      tareas: [
-        {
-          id: 'n4-liquidacion',
-          label: 'Subir liquidaciones de sueldo (PDF, Zero-Retention)',
-          como: 'Se desbloquea al subir una liquidación de sueldo.'
-        },
-        {
-          id: 'n4-afp',
-          label: 'Subir certificado AFP (PDF, Zero-Retention)',
-          como: 'Se desbloquea al subir el certificado AFP.'
+          label: 'Registrar un aval o garantía',
+          como: 'Se completa al cargar un aval, garantía o documento de respaldo.'
         }
       ]
     }
@@ -170,8 +148,28 @@ const SubirConfianza = {
     return (user && user.perfil) || {};
   },
 
+  esEmpresa() {
+    return typeof ProgresoCuenta !== 'undefined'
+      ? ProgresoCuenta.actual().es('empresa')
+      : SubirConfianza.perfil().tipo_cuenta === 'empresa';
+  },
+
   biometriaHecha() {
     return !!SubirConfianza.perfil().biometria_verificada;
+  },
+
+  // Documentos tipados: la estrategia persona/empresa es la fuente.
+  tiposDocumento() {
+    return typeof ProgresoCuenta !== 'undefined'
+      ? ProgresoCuenta.actual().tiposDocumento()
+      : [];
+  },
+
+  // Ficha índice: delega a la estrategia empresa.
+  fichaEmpresaMock() {
+    return typeof ProgresoCuenta !== 'undefined'
+      ? ProgresoCuenta.de('empresa').calcularFicha()
+      : { indice_transparencia: 4.2, _docsCargados: 0, _verificado: false, nombre: 'Mi empresa' };
   },
 
   tieneDoc(tipo) {
@@ -185,6 +183,23 @@ const SubirConfianza = {
     return Number.isFinite(n) ? n : null;
   },
 
+  // Derivada del score: tasa_no_shows ≈ 100 − score_confiabilidad.
+  tasaNoShows() {
+    const score = SubirConfianza.scoreConfiabilidad();
+    if (score == null) return null;
+    return Math.round((100 - score) * 10) / 10;
+  },
+
+  edadNumerica() {
+    const n = Number(SubirConfianza.perfil().edad);
+    return Number.isFinite(n) ? n : null;
+  },
+
+  telefonoOk() {
+    const tel = SubirConfianza.perfil().telefono;
+    return !!(tel && String(tel).trim());
+  },
+
   // Solo acciones reales (o mock de esas acciones) desbloquean. Sin toggle manual.
   estaHecha(tareaId) {
     return SubirConfianza.estadoPunto(tareaId) === 'ok';
@@ -194,6 +209,7 @@ const SubirConfianza = {
   estadoPunto(tareaId) {
     const perfil = SubirConfianza.perfil();
     const score = SubirConfianza.scoreConfiabilidad();
+    const tasa = SubirConfianza.tasaNoShows();
 
     switch (tareaId) {
       case 'n1-registro':
@@ -202,18 +218,23 @@ const SubirConfianza = {
         if (perfil.rut_verificado || SubirConfianza.tieneDoc('cedula')) return 'ok';
         return 'pendiente';
       case 'n1-perfil': {
-        const edadOk = perfil.edad != null && perfil.edad !== '';
-        const telOk = !!(perfil.telefono && String(perfil.telefono).trim());
+        const edad = SubirConfianza.edadNumerica();
+        const edadOk = edad != null && edad >= 18;
+        const telOk = SubirConfianza.telefonoOk();
         if (edadOk && telOk) return 'ok';
-        if (edadOk || telOk) return 'progreso';
+        if (edad != null || telOk) return 'progreso';
         return 'pendiente';
       }
       case 'n2-asistencias':
+        // interactions_count >= 1: hay score solo si hay reservas cerradas.
         return score != null ? 'ok' : 'pendiente';
       case 'n2-puntualidad':
-      case 'n2-noshow':
         if (score != null && score >= 85) return 'ok';
         if (score != null) return 'progreso';
+        return 'pendiente';
+      case 'n2-noshow':
+        if (tasa != null && tasa < 15) return 'ok';
+        if (tasa != null) return 'progreso';
         return 'pendiente';
       case 'n3-antecedentes':
         return SubirConfianza.tieneDoc('antecedentes') ? 'ok' : 'pendiente';
@@ -221,10 +242,6 @@ const SubirConfianza = {
         return SubirConfianza.biometriaHecha() ? 'ok' : 'pendiente';
       case 'n3-aval':
         return SubirConfianza.tieneDoc('aval') ? 'ok' : 'pendiente';
-      case 'n4-liquidacion':
-        return SubirConfianza.tieneDoc('liquidacion') ? 'ok' : 'pendiente';
-      case 'n4-afp':
-        return SubirConfianza.tieneDoc('afp') ? 'ok' : 'pendiente';
       default:
         return 'pendiente';
     }
@@ -240,57 +257,52 @@ const SubirConfianza = {
   detallePunto(tareaId) {
     const perfil = SubirConfianza.perfil();
     const score = SubirConfianza.scoreConfiabilidad();
+    const tasa = SubirConfianza.tasaNoShows();
     const estado = SubirConfianza.estadoPunto(tareaId);
 
     switch (tareaId) {
       case 'n1-registro':
         return estado === 'ok'
-          ? 'Cuenta activa e iniciaste sesión.'
-          : 'Debes crear una cuenta e iniciar sesión.';
+          ? 'Cuenta activa e inició sesión correctamente.'
+          : 'Debe crear una cuenta e iniciar sesión.';
       case 'n1-cedula':
-        if (perfil.rut_verificado) return 'RUT verificado en tu perfil.';
-        if (SubirConfianza.tieneDoc('cedula')) return 'Cédula cargada (mock Zero-Retention).';
-        return 'Falta verificar RUT en Perfil o subir la cédula.';
+        if (perfil.rut_verificado) return 'Identidad verificada con RUT.';
+        if (SubirConfianza.tieneDoc('cedula')) return 'Cédula cargada correctamente.';
+        return 'Falta verificar el RUT o cargar la cédula.';
       case 'n1-perfil': {
-        const edadOk = perfil.edad != null && perfil.edad !== '';
-        const telOk = !!(perfil.telefono && String(perfil.telefono).trim());
-        if (edadOk && telOk) return 'Perfil básico completo (edad y teléfono).';
-        if (edadOk) return 'Edad guardada. Falta teléfono en Perfil.';
-        if (telOk) return 'Teléfono guardado. Falta edad en Perfil.';
-        return 'Completa edad y teléfono en Perfil.';
+        const edad = SubirConfianza.edadNumerica();
+        const telOk = SubirConfianza.telefonoOk();
+        const edadOk = edad != null && edad >= 18;
+        if (edadOk && telOk) return 'Teléfono y mayoría de edad completados.';
+        if (edad != null && edad < 18) return 'Debe declarar 18 años o más.';
+        if (edadOk) return 'Edad completa. Falta el teléfono móvil.';
+        if (telOk) return 'Teléfono completo. Falta declarar la edad.';
+        return 'Complete el teléfono móvil y la edad (18 o más).';
       }
       case 'n2-asistencias':
         return estado === 'ok'
-          ? 'Ya tienes historial de reservas cerradas.'
-          : 'Aún no hay asistencias registradas en tus reservas.';
+          ? 'Ya registra al menos un encuentro cerrado.'
+          : 'Aún no hay visitas, turnos o entregas cerradas.';
       case 'n2-puntualidad':
-        if (score == null) return 'Sin score aún. Se calcula con tus asistencias.';
-        if (score >= 85) return 'behavior_score ' + score + '% · meta ≥ 85% alcanzada.';
-        return 'behavior_score ' + score + '% · faltan ' + (85 - score).toFixed(1) + ' puntos para la meta.';
+        if (score == null) return 'Sin puntaje aún: se calcula con su historial.';
+        if (score >= 85) return 'Puntaje de confiabilidad ' + score + '% (meta 85% alcanzada).';
+        return 'Puntaje actual ' + score + '%. Debe llegar a 85% o más.';
       case 'n2-noshow':
-        if (score == null) return 'Sin historial: la tasa de no-shows aún no se mide.';
-        if (score >= 85) return 'Tasa de no-shows controlada (score ' + score + '%).';
-        return 'Score ' + score + '%: baja la tasa de no-shows para llegar a 85%.';
+        if (tasa == null) return 'Sin historial aún para medir inasistencias.';
+        if (tasa < 15) return 'Tasa de inasistencias ' + tasa + '% (bajo el 15% exigido).';
+        return 'Tasa de inasistencias ' + tasa + '%. Debe bajar del 15%.';
       case 'n3-antecedentes':
         return estado === 'ok'
           ? 'Certificado de antecedentes cargado.'
-          : 'Sube el certificado de antecedentes en Documentos.';
+          : 'Debe cargar el certificado de antecedentes.';
       case 'n3-biometria':
         return estado === 'ok'
-          ? 'Verificación biométrica completada.'
-          : 'Completa el flujo de biometría más abajo.';
+          ? 'Verificación facial completada.'
+          : 'Complete la verificación facial más abajo.';
       case 'n3-aval':
         return estado === 'ok'
-          ? 'Aval cívico registrado.'
-          : 'Sube el documento de aval en Documentos.';
-      case 'n4-liquidacion':
-        return estado === 'ok'
-          ? 'Liquidación procesada (Zero-Retention).'
-          : 'Solo para arriendos: sube liquidación de sueldo en PDF.';
-      case 'n4-afp':
-        return estado === 'ok'
-          ? 'Certificado AFP procesado (Zero-Retention).'
-          : 'Solo para arriendos: sube certificado AFP en PDF.';
+          ? 'Aval o garantía registrado.'
+          : 'Debe cargar un aval, garantía o respaldo.';
       default:
         return SubirConfianza.etiquetaPunto(estado);
     }
@@ -331,109 +343,50 @@ const SubirConfianza = {
   nivelXp() {
     const perfil = SubirConfianza.perfil();
     const n = Number(perfil && perfil.nivel_xp);
-    if (Number.isFinite(n) && n >= 1) return Math.min(4, Math.floor(n));
+    if (Number.isFinite(n) && n >= 1) return Math.min(3, Math.floor(n));
     return SubirConfianza.nivelSugerido();
   },
 
-  // Datos de progreso: la UI del marketplace (u otra vista) solo consume esto.
+  // Datos de progreso: delega al motor tipado (persona/empresa).
   resumenProgreso() {
-    SubirConfianza.cargar();
-    const hechas = SubirConfianza.tareasHechas();
-    const total = SubirConfianza.totalTareas();
+    const snap = ProgresoCuenta.actual().snapshot();
+    const x = snap.extras || {};
     return {
-      hechas,
-      total,
-      pct: SubirConfianza.progresoPct(),
-      nivel: SubirConfianza.nivelXp(),
-      xp: SubirConfianza.xpActual()
+      tipo: snap.tipo,
+      hechas: x.hechas != null ? x.hechas : 0,
+      total: x.total != null ? x.total : 0,
+      pct: snap.pct,
+      nivel: x.nivel != null ? x.nivel : 1,
+      xp: x.xp != null ? x.xp : 0,
+      meta: snap.meta,
+      valor: snap.valor,
+      titulo: snap.titulo
     };
   },
 
-  // Monta el widget de progreso en un contenedor ajeno (p. ej. Marketplace).
+  // Monta el widget en un contenedor ajeno (Marketplace, etc.).
   montarIndicador(contenedor, opts) {
-    if (!contenedor) return null;
-    SubirConfianza.limpiar(contenedor);
-    const card = SubirConfianza.bloqueIndicador(opts || {});
-    contenedor.appendChild(card);
-    return card;
+    return ProgresoCuenta.actual().montarIndicador(contenedor, opts || {});
   },
 
   render(raiz) {
     SubirConfianza.limpiar(raiz);
-    raiz.append(
-      SubirConfianza.bloqueIndicador(),
-      SubirConfianza.bloqueChecklist(),
-      SubirConfianza.bloqueDocumentos(),
-      SubirConfianza.bloqueBiometria(),
-      SubirConfianza.bloqueTablaNiveles()
-    );
+    ProgresoCuenta.actual().montarContenido(raiz);
+  },
+
+  bloqueDesgloseEmpresa() {
+    const ficha = SubirConfianza.fichaEmpresaMock();
+    if (typeof Market === 'undefined' || !Market.bloqueDesgloseIndice) {
+      const fallback = document.createElement('p');
+      fallback.className = 'section-lead';
+      fallback.textContent = 'El desglose del índice no está disponible.';
+      return fallback;
+    }
+    return Market.bloqueDesgloseIndice(ficha, null, ficha.indice_transparencia, ficha._verificado);
   },
 
   bloqueIndicador(opts) {
-    const opciones = opts || {};
-    const progreso = SubirConfianza.resumenProgreso();
-    const card = document.createElement('section');
-    card.className =
-      'confianza-indicador' + (opciones.onAbrir ? ' confianza-indicador--accion' : '');
-    card.setAttribute('aria-label', 'Progreso de confianza');
-
-    const titulo = document.createElement('h3');
-    titulo.className = 'confianza-indicador__titulo';
-    titulo.textContent = 'Tu progreso';
-
-    const meta = document.createElement('p');
-    meta.className = 'confianza-indicador__meta';
-    meta.textContent =
-      progreso.xp +
-      ' XP · Nivel ' +
-      progreso.nivel +
-      ' · ' +
-      progreso.hechas +
-      '/' +
-      progreso.total +
-      ' requisitos';
-
-    const track = document.createElement('div');
-    track.className = 'confianza-indicador__track';
-    track.setAttribute('role', 'progressbar');
-    track.setAttribute('aria-valuemin', '0');
-    track.setAttribute('aria-valuemax', '100');
-    track.setAttribute('aria-valuenow', String(progreso.pct));
-    track.setAttribute('aria-label', 'Progreso de Subir Confianza');
-
-    const fill = document.createElement('div');
-    fill.className = 'confianza-indicador__fill';
-    fill.style.width = progreso.pct + '%';
-
-    const pie = document.createElement('div');
-    pie.className = 'confianza-indicador__pie';
-
-    const pctLabel = document.createElement('span');
-    pctLabel.className = 'confianza-indicador__pct';
-    pctLabel.textContent = progreso.pct + '%';
-
-    pie.appendChild(pctLabel);
-
-    if (typeof opciones.onAbrir === 'function') {
-      const cta = document.createElement('span');
-      cta.className = 'confianza-indicador__cta';
-      cta.textContent = 'Ver requisitos';
-      pie.appendChild(cta);
-
-      card.tabIndex = 0;
-      card.setAttribute('role', 'button');
-      const abrir = e => {
-        if (e.type === 'keydown' && e.key !== 'Enter' && e.key !== ' ') return;
-        e.preventDefault();
-        opciones.onAbrir();
-      };
-      card.addEventListener('click', abrir);
-      card.addEventListener('keydown', abrir);
-    }
-
-    track.appendChild(fill);
-    card.append(titulo, meta, track, pie);
-    return card;
+    return ProgresoCuenta.actual().crearIndicador(opts || {});
   },
 
   bloqueChecklist() {
@@ -443,12 +396,12 @@ const SubirConfianza = {
 
     const titulo = document.createElement('h3');
     titulo.className = 'section-heading';
-    titulo.textContent = 'Lista para subir de nivel';
+    titulo.textContent = 'Qué desbloquea cada verificación';
 
     const lead = document.createElement('p');
     lead.className = 'section-lead';
     lead.textContent =
-      'No se marca a mano: cada ítem se desbloquea solo cuando completas la acción real.';
+      'Cumpla solo lo necesario según el tipo de trato. Cada nivel refuerza identidad y cumplimiento.';
 
     const normales = SubirConfianza.NIVELES.filter(n => !n.especial);
     const especiales = SubirConfianza.NIVELES.filter(n => n.especial);
@@ -678,13 +631,16 @@ const SubirConfianza = {
     const head = document.createElement('div');
     head.className = 'confianza-docs__head';
 
+    const prog = typeof ProgresoCuenta !== 'undefined' ? ProgresoCuenta.actual() : null;
     const titulo = document.createElement('h3');
     titulo.className = 'section-heading';
-    titulo.textContent = 'Subir documentos';
+    titulo.textContent = prog ? prog.tituloDocumentos() : 'Subir documentos';
 
     const nota = document.createElement('p');
     nota.className = 'confianza-docs__nota';
-    nota.textContent = 'Zero-Retention (mock): el archivo no se guarda; solo desbloquea el requisito.';
+    nota.textContent = prog
+      ? prog.notaDocumentos()
+      : 'Zero-Retention (mock): el archivo no se guarda; solo desbloquea el requisito.';
 
     head.append(titulo, nota);
 
@@ -701,13 +657,7 @@ const SubirConfianza = {
     const select = document.createElement('select');
     select.id = 'confianzaDocTipo';
     select.className = 'field__input confianza-docs__select';
-    [
-      ['cedula', 'Cédula de identidad (Nivel 1)'],
-      ['antecedentes', 'Certificado de antecedentes (Nivel 3)'],
-      ['aval', 'Aval cívico de referencia (Nivel 3)'],
-      ['liquidacion', 'Liquidación de sueldo (Nivel 4)'],
-      ['afp', 'Certificado AFP (Nivel 4)']
-    ].forEach(([value, text]) => {
+    SubirConfianza.tiposDocumento().forEach(([value, text]) => {
       const opt = document.createElement('option');
       opt.value = value;
       opt.textContent = text;
@@ -1196,11 +1146,13 @@ const SubirConfianza = {
 
   etiquetaTipo(tipo) {
     const mapa = {
-      cedula: 'Cédula',
+      cedula: 'Identidad',
       antecedentes: 'Antecedentes',
-      aval: 'Aval',
-      liquidacion: 'Liquidación',
-      afp: 'AFP'
+      aval: 'Aval / garantía',
+      constitucion: 'Constitución',
+      patente: 'Patente municipal',
+      inicio_actividades: 'Inicio de actividades',
+      poder_representante: 'Poder representante'
     };
     return mapa[tipo] || tipo;
   },

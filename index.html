@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="ServiChile marketplace, Mi QR y Subir Confianza">
+  <meta name="description" content="ServiChile: due diligence B2B e índice de transparencia de proveedores.">
   <meta name="theme-color" content="#2563EB">
   <title>ServiChile</title>
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='48' fill='%232563EB'/%3E%3Ctext x='50' y='65' font-size='45' text-anchor='middle' fill='white' font-family='Arial'%3ES%3C/text%3E%3C/svg%3E">
-  <link rel="stylesheet" href="css/styles.css?v=55">
+  <link rel="stylesheet" href="css/styles.css?v=97">
 </head>
 <body>
   <div id="authGate" class="auth" hidden>
@@ -19,11 +19,11 @@
             <span class="brand__mark">S</span>
             <h1 class="auth__title">ServiChile</h1>
           </div>
-          <p class="auth__subtitle">Marketplace, Mi QR y Subir Confianza</p>
+          <p class="auth__subtitle">Due diligence B2B con índice de transparencia</p>
           <ul class="auth__beneficios">
-            <li>Comercios, arriendos y eventos cerca de ti, con índice de transparencia.</li>
-            <li>Mi QR y Subir Confianza para validarse en comercios y beneficios.</li>
-            <li>Sus datos personales se protegen según la Ley 21.719.</li>
+            <li>Compradores: evalúe proveedores con 32 observables antes de contratar o pagar.</li>
+            <li>Pymes B2B: mejore su nota para no quedar fuera del filtro de grandes cuentas.</li>
+            <li>Valide identidad con Mi QR en terreno, reuniones o entregas.</li>
           </ul>
         </div>
 
@@ -41,21 +41,29 @@
             <p id="loginStatus" class="error-text" role="alert" aria-live="assertive"></p>
             <p class="auth__alta">
               ¿No tienes cuenta?
-              <a class="auth__alta-link" href="./onboarding/?v=54">Regístrate aquí</a>
+              <a class="auth__alta-link" href="./onboarding/?v=69">Regístrate aquí</a>
             </p>
           </form>
         </div>
       </div>
     </section>
 
-    <section class="auth__ads" aria-label="Publicidad">
+    <section class="auth__ads" aria-label="Cómo funciona">
       <div class="auth__columna auth__columna--ads">
-        <p class="auth__ads-label">Publicidad</p>
-        <div class="ad-slot ad-slot--banner" data-ad-slot="auth-banner" aria-label="Espacio publicitario">Espacio publicitario</div>
-        <div class="auth__ads-grid">
-          <div class="ad-slot" data-ad-slot="auth-1" aria-label="Espacio publicitario">Espacio publicitario</div>
-          <div class="ad-slot" data-ad-slot="auth-2" aria-label="Espacio publicitario">Espacio publicitario</div>
-          <div class="ad-slot" data-ad-slot="auth-3" aria-label="Espacio publicitario">Espacio publicitario</div>
+        <p class="auth__ads-label">Cómo funciona</p>
+        <div class="auth-flow">
+          <article class="auth-flow__card">
+            <h2 class="auth-flow__title">1. Verifíquese</h2>
+            <p class="auth-flow__text">RUT, documentos y transparencia según sea persona o empresa.</p>
+          </article>
+          <article class="auth-flow__card">
+            <h2 class="auth-flow__title">2. Publique o postule</h2>
+            <p class="auth-flow__text">Tecnología, industria, construcción y servicios profesionales B2B.</p>
+          </article>
+          <article class="auth-flow__card">
+            <h2 class="auth-flow__title">3. Valide con QR</h2>
+            <p class="auth-flow__text">En la visita al depto o en la entrega del producto, confirmen identidad al instante.</p>
+          </article>
         </div>
       </div>
     </section>
@@ -76,7 +84,7 @@
         <span class="brand__mark">S</span>
         <h1 class="brand__title">ServiChile</h1>
       </div>
-      <p class="brand__subtitle">Marketplace, Mi QR y Subir Confianza</p>
+      <p class="brand__subtitle">Transparencia de proveedores B2B</p>
       <div class="header-actions">
         <button id="logoutBtn" class="install-btn" type="button" hidden>Cerrar sesión</button>
       </div>
@@ -92,15 +100,15 @@
     <nav id="historyMenu" class="history-menu" aria-label="Menú principal">
       <button class="history-menu__item history-menu__item--active" type="button" data-view="mapa" aria-current="page">
         <svg class="history-menu__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M1 6l7-3 8 3 7-3v15l-7 3-8-3-7 3z"/><path d="M8 3v15M16 6v15"/></svg>
-        <span>Marketplace</span>
+        <span>Explorar</span>
       </button>
       <button class="history-menu__item" type="button" data-view="verificacion">
         <svg class="history-menu__icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3h-3z"/><path d="M20 14v6"/><path d="M14 20h3"/></svg>
-        <span>Mi QR</span>
+        <span>Reportes</span>
       </button>
       <button class="history-menu__item" type="button" data-view="subir-confianza">
         <svg class="history-menu__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5"/><path d="M5 12l7-7 7 7"/><path d="M4 19h16"/></svg>
-        <span>Subir Confianza</span>
+        <span>Verificación</span>
       </button>
       <button class="history-menu__item" type="button" data-view="perfil">
         <svg class="history-menu__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
@@ -113,13 +121,13 @@
     <section id="mapView" class="view">
       <div id="marketList" class="market">
         <div class="market__head">
-          <h2 class="section-heading">Marketplace</h2>
-          <p class="section-lead">Comercios, arriendos y eventos cerca de ti, ordenados por cercanía.</p>
+          <h2 class="section-heading">Proveedores</h2>
+          <p class="section-lead">Directorio B2B para due diligence: tecnología, industria, construcción y servicios profesionales.</p>
+          <div id="marketJobs" class="market__jobs" role="group" aria-label="Verticales B2B"></div>
           <div id="marketProgreso" class="market__progreso"></div>
           <div class="market__search">
-            <input id="marketSearch" class="field__input" type="search" placeholder="Buscar gimnasios, arriendos, eventos..." maxlength="80" />
+            <input id="marketSearch" class="field__input" type="search" placeholder="Buscar proveedores, maestranzas, SaaS, contratistas..." maxlength="80" />
           </div>
-          <div id="marketFilters" class="market__filters" role="group" aria-label="Filtrar por categoría"></div>
           <p class="market__count" id="marketCount"></p>
         </div>
         <div id="marketGrid" class="market__grid"></div>
@@ -130,7 +138,7 @@
 
     <section id="perfilView" class="view" hidden>
       <h2 class="section-heading">Mi perfil</h2>
-      <p class="section-lead">Sus datos de cuenta y el estado de su confianza en la plataforma.</p>
+      <p class="section-lead">Datos de cuenta y estado de verificación para due diligence B2B.</p>
       <div id="perfilStatus" class="status-text" aria-live="polite"></div>
 
       <form id="perfilForm" class="form config-card">
@@ -150,11 +158,11 @@
         </div>
         <div class="field">
           <label class="field__label" for="perfilTelefono">Teléfono</label>
-          <input id="perfilTelefono" class="field__input" type="tel" maxlength="30" placeholder="+56 9 1234 5678" />
+          <input id="perfilTelefono" class="field__input" type="tel" maxlength="30" inputmode="tel" autocomplete="tel" placeholder="+56 9 1234 5678" />
         </div>
         <div class="field">
           <label class="field__label" for="perfilRut">RUT</label>
-          <input id="perfilRut" class="field__input" type="text" maxlength="15" placeholder="12.345.678-5" />
+          <input id="perfilRut" class="field__input" type="text" maxlength="12" inputmode="text" autocomplete="off" placeholder="12.345.678-5" />
           <p id="perfilRutHint" class="field__hint">Una vez verificado, el RUT no se puede cambiar.</p>
         </div>
 
@@ -166,6 +174,8 @@
         <h3 class="section-heading">Estado de confianza</h3>
         <dl id="perfilPasaporte" class="perfil-datos"></dl>
       </div>
+
+      <div class="config-card" id="perfilEmpresaRaiz"></div>
 
       <div class="config-card">
         <h3 class="section-heading">Cuenta</h3>
@@ -185,18 +195,19 @@
     </section>
 
     <section id="verifyView" class="view" hidden>
-      <h2 class="section-heading">Mi QR</h2>
+      <h2 class="section-heading">Reportes</h2>
       <div id="pasaporteRaiz" class="mi-qr-raiz"></div>
     </section>
 
     <section id="subirConfianzaView" class="view" hidden>
-      <h2 class="section-heading">Subir Confianza</h2>
+      <h2 class="section-heading">Verificación</h2>
       <div id="subirConfianzaRaiz" class="confianza"></div>
     </section>
+
   </main>
 
   <footer class="app-footer">
-    <p class="app-footer__note">ServiChile es una orientación inicial, no reemplaza asesoría profesional.</p>
+    <p class="app-footer__note">ServiChile facilita verificación de identidad y transparencia. No reemplaza asesoría legal ni contratos notariales.</p>
     <nav class="app-footer__nav" aria-label="Enlaces de interés">
       <a class="app-footer__link" href="https://www.sernac.cl" target="_blank" rel="noopener noreferrer">SERNAC</a>
       <a class="app-footer__link" href="https://www.sernamyp.cl" target="_blank" rel="noopener noreferrer">SERNAMYP</a>
@@ -204,18 +215,23 @@
     </nav>
   </footer>
 
-  <script src="js/vendor/qrcode.min.js?v=54"></script>
-  <script src="js/data/categorias.js?v=54"></script>
-  <script src="js/core/security.js?v=54"></script>
-  <script src="js/compliance.js?v=54"></script>
-  <script src="js/core/auth.js?v=54"></script>
-  <script src="js/modules/pasaporte.js?v=54"></script>
-  <script src="js/modules/subir-confianza.js?v=54"></script>
-  <script src="js/modules/market.js?v=54"></script>
-  <script src="js/app.js?v=55"></script>
+  <script src="js/vendor/qrcode.min.js?v=69"></script>
+  <script src="js/data/categorias.js?v=92"></script>
+  <script src="js/core/security.js?v=84"></script>
+  <script src="js/compliance.js?v=69"></script>
+  <script src="js/core/auth.js?v=69"></script>
+  <script src="js/modules/progreso-cuenta.js?v=82"></script>
+  <script src="js/modules/pasaporte.js?v=81"></script>
+  <script src="js/modules/subir-confianza.js?v=74"></script>
+  <script src="js/modules/reporte-persona.js?v=81"></script>
+  <script src="js/modules/reporte-empresa.js?v=81"></script>
+  <script src="js/modules/market-monetizacion.js?v=97"></script>
+  <script src="js/modules/market.js?v=97"></script>
+  <script src="js/modules/perfil-empresa.js?v=96"></script>
+  <script src="js/app.js?v=88"></script>
   <script>
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('sw.js?v=55').catch(function () {});
+      navigator.serviceWorker.register('sw.js?v=88').catch(function () {});
     }
   </script>
 </body>

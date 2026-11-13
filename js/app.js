@@ -42,8 +42,11 @@ const App = {
     App.elements.historyOverlay.addEventListener('click', App.closeHistory);
     App.elements.historyMenu.addEventListener('click', App.handleMenuClick);
     App.elements.perfilForm.addEventListener('submit', App.handlePerfilGuardar);
-    ['perfilEdad', 'perfilTelefono', 'perfilRut'].forEach(id =>
-      App.elements[id].addEventListener('input', App.actualizarBotonGuardarPerfil));
+    App.elements.perfilEdad.addEventListener('input', App.actualizarBotonGuardarPerfil);
+    App.elements.perfilTelefono.addEventListener('input', App.formatearTelefonoPerfil);
+    App.elements.perfilTelefono.addEventListener('blur', App.corregirTelefonoPerfil);
+    App.elements.perfilRut.addEventListener('input', App.formatearRutPerfil);
+    App.elements.perfilRut.addEventListener('blur', App.corregirRutPerfil);
     App.elements.perfilLogout.addEventListener('click', App.handleLogout);
     App.elements.perfilEliminar.addEventListener('click', App.mostrarEliminarCuenta);
     App.elements.perfilEliminarCancelar.addEventListener('click', App.ocultarEliminarCuenta);
@@ -59,9 +62,38 @@ const App = {
   openSection(name) {
     App.closeHistory();
     if (name === 'mapa') { App.showView('mapView'); return Market.init(); }
-    if (name === 'perfil') { App.renderPerfil(); return App.showView('perfilView'); }
+    if (name === 'perfil') {
+      App.renderPerfil();
+      if (typeof PerfilEmpresa !== 'undefined') PerfilEmpresa.init();
+      return App.showView('perfilView');
+    }
     if (name === 'verificacion') { Pasaporte.init(); return App.showView('verifyView'); }
-    if (name === 'subir-confianza') { SubirConfianza.init(); return App.showView('subirConfianzaView'); }
+    if (name === 'subir-confianza') {
+      App.actualizarEtiquetasConfianza();
+      SubirConfianza.init();
+      return App.showView('subirConfianzaView');
+    }
+  },
+
+  esEmpresa() {
+    return typeof ProgresoCuenta !== 'undefined'
+      ? ProgresoCuenta.actual().es('empresa')
+      : false;
+  },
+
+  actualizarEtiquetasConfianza() {
+    const prog =
+      typeof ProgresoCuenta !== 'undefined' ? ProgresoCuenta.actual() : null;
+    const menuBtn = App.elements.historyMenu
+      ? App.elements.historyMenu.querySelector('[data-view="subir-confianza"] span')
+      : null;
+    if (menuBtn) {
+      menuBtn.textContent = prog ? prog.etiquetaMenu() : 'Subir Confianza';
+    }
+    const tituloVista = document.querySelector('#subirConfianzaView > .section-heading');
+    if (tituloVista) {
+      tituloVista.textContent = prog ? prog.etiquetaVista() : 'Subir Confianza';
+    }
   },
 
   setMenuActive(name) {
@@ -85,31 +117,130 @@ const App = {
     App.elements.perfilNombre.value = user.nombre || '';
     App.elements.perfilCorreo.value = user.email || '';
     App.elements.perfilEdad.value = perfil.edad != null ? perfil.edad : '';
-    App.elements.perfilTelefono.value = perfil.telefono || '';
+    const telRaw = perfil.telefono || '';
+    App.elements.perfilTelefono.value =
+      telRaw && typeof Security !== 'undefined' ? Security.formatTelefono(telRaw) : telRaw;
+    const prog =
+      typeof ProgresoCuenta !== 'undefined' ? ProgresoCuenta.para(perfil) : null;
+    const campoEdad = App.elements.perfilEdad.closest('.field');
+    if (campoEdad) campoEdad.hidden = prog ? !prog.soporta('edad') : false;
     App.state.rutVerificado = !!perfil.rut_verificado;
     App.elements.perfilRut.value = App.state.rutVerificado ? 'Verificado' : '';
     App.elements.perfilRut.placeholder = App.state.rutVerificado ? 'Verificado' : '12.345.678-5';
     App.elements.perfilRut.disabled = App.state.rutVerificado;
-    App.state.perfilGuardado = { edad: App.elements.perfilEdad.value, telefono: App.elements.perfilTelefono.value };
+    App.state.perfilGuardado = {
+      edad: App.elements.perfilEdad.value,
+      telefono: App.elements.perfilTelefono.value
+    };
 
-    const scoring = perfil.inmobiliaria_scoring;
-    const tipoCuenta =
-      perfil.tipo_cuenta === 'empresa' ? 'Empresa' : perfil.tipo_cuenta === 'persona' ? 'Persona' : 'Sin indicar';
-    App.renderDefinitionList(App.elements.perfilPasaporte, [
-      ['Tipo de cuenta', tipoCuenta],
-      ['Nivel pasaporte', 'Nivel ' + (perfil.nivel_pasaporte || 1)],
-      ['XP', (perfil.xp != null ? perfil.xp : 0) + ' · Nivel ' + (perfil.nivel_xp || 1)],
-      ['Estado', App.etiquetaEstadoPasaporte(perfil.estado_pasaporte)],
-      ['Confiabilidad', perfil.score_confiabilidad == null ? 'Sin reservas cerradas' : perfil.score_confiabilidad + ' / 100'],
-      ['Score de arriendo', scoring && scoring.score_financiero != null ? scoring.score_financiero + ' / 1000' : 'Sin verificar']
-    ]);
-
+    const filas = prog
+      ? prog.filasEstado({ origen: 'perfil', perfil })
+      : [['Tipo de cuenta', perfil.tipo_cuenta || 'Sin indicar']];
+    App.renderDefinitionList(App.elements.perfilPasaporte, filas);
+    App.actualizarEtiquetasConfianza();
     App.actualizarBotonGuardarPerfil();
   },
 
   actualizarBotonGuardarPerfil() {
     const cambios = App.cambiosPerfil();
     App.elements.perfilGuardar.disabled = Object.keys(cambios).length === 0;
+  },
+
+  _aplicarFormatoInput(input, formateado, caretAntes, largoAntes) {
+    if (formateado === input.value) return;
+    input.value = formateado;
+    const delta = formateado.length - largoAntes;
+    const next = Math.max(0, (caretAntes || 0) + delta);
+    try {
+      input.setSelectionRange(next, next);
+    } catch (_) {}
+  },
+
+  formatearTelefonoPerfil() {
+    const input = App.elements.perfilTelefono;
+    if (!input || input.disabled) return;
+    if (typeof Security === 'undefined') return;
+    const valor = input.value;
+    if (!valor.trim()) {
+      input.setCustomValidity('');
+      input.removeAttribute('aria-invalid');
+      App.actualizarBotonGuardarPerfil();
+      return;
+    }
+    const caret = input.selectionStart;
+    const formateado = Security.formatTelefono(valor);
+    App._aplicarFormatoInput(input, formateado, caret, valor.length);
+    if (Security.validateTelefono(formateado)) {
+      input.setCustomValidity('');
+      input.removeAttribute('aria-invalid');
+    } else {
+      input.removeAttribute('aria-invalid');
+      input.setCustomValidity('');
+    }
+    App.actualizarBotonGuardarPerfil();
+  },
+
+  corregirTelefonoPerfil() {
+    App.formatearTelefonoPerfil();
+    const input = App.elements.perfilTelefono;
+    if (!input || input.disabled) return;
+    const valor = input.value.trim();
+    if (!valor) {
+      input.setCustomValidity('');
+      input.removeAttribute('aria-invalid');
+      return;
+    }
+    if (typeof Security !== 'undefined' && !Security.validateTelefono(valor)) {
+      input.setCustomValidity('Use un móvil chileno, p. ej. +56 9 1234 5678');
+      input.setAttribute('aria-invalid', 'true');
+    }
+  },
+
+  formatearRutPerfil() {
+    const input = App.elements.perfilRut;
+    if (!input || input.disabled || App.state.rutVerificado) return;
+    if (typeof Security === 'undefined') return;
+    const valor = input.value;
+    if (!valor.trim()) {
+      input.setCustomValidity('');
+      input.removeAttribute('aria-invalid');
+      App.actualizarBotonGuardarPerfil();
+      return;
+    }
+    const caret = input.selectionStart;
+    const formateado = Security.formatRut(valor);
+    App._aplicarFormatoInput(input, formateado, caret, valor.length);
+    if (Security.validateRut(formateado)) {
+      input.setCustomValidity('');
+      input.removeAttribute('aria-invalid');
+    } else {
+      input.removeAttribute('aria-invalid');
+      input.setCustomValidity('');
+    }
+    App.actualizarBotonGuardarPerfil();
+  },
+
+  corregirRutPerfil() {
+    const input = App.elements.perfilRut;
+    if (!input || input.disabled || App.state.rutVerificado) return;
+    const valor = input.value.trim();
+    if (!valor) {
+      input.setCustomValidity('');
+      input.removeAttribute('aria-invalid');
+      App.actualizarBotonGuardarPerfil();
+      return;
+    }
+    if (typeof Security === 'undefined') return;
+    const formateado = Security.formatRut(valor);
+    if (formateado !== input.value) input.value = formateado;
+    if (Security.validateRut(formateado)) {
+      input.setCustomValidity('');
+      input.removeAttribute('aria-invalid');
+    } else {
+      input.setCustomValidity('RUT inválido. Revise el dígito verificador.');
+      input.setAttribute('aria-invalid', 'true');
+    }
+    App.actualizarBotonGuardarPerfil();
   },
 
   cambiosPerfil() {
@@ -143,12 +274,31 @@ const App = {
 
   async handlePerfilGuardar(e) {
     e.preventDefault();
+    App.corregirTelefonoPerfil();
+    App.corregirRutPerfil();
+
+    const telefono = App.elements.perfilTelefono.value.trim();
+    const rut = App.elements.perfilRut.value.trim();
+    if (telefono && typeof Security !== 'undefined' && !Security.validateTelefono(telefono)) {
+      App.elements.perfilFormStatus.textContent =
+        'Teléfono inválido. Se espera un móvil chileno, p. ej. +56 9 1234 5678.';
+      App.elements.perfilTelefono.focus();
+      return;
+    }
+    if (!App.state.rutVerificado && rut && typeof Security !== 'undefined' && !Security.validateRut(rut)) {
+      App.elements.perfilFormStatus.textContent =
+        'RUT inválido. Se corrigió el formato; revise el dígito verificador.';
+      App.elements.perfilRut.focus();
+      return;
+    }
+
     const cambios = App.cambiosPerfil();
     if (Object.keys(cambios).length === 0) {
       App.actualizarBotonGuardarPerfil();
       return;
     }
     App.elements.perfilGuardar.disabled = true;
+    App.elements.perfilFormStatus.textContent = '';
     const res = await Auth.actualizarPerfil(cambios);
     App.elements.perfilGuardar.disabled = false;
     if (!res.ok) {
@@ -197,6 +347,7 @@ const App = {
     App.elements.historyBtn.hidden = !authed;
 
     if (authed) {
+      App.actualizarEtiquetasConfianza();
       App.openSection('mapa');
     } else {
       App.closeHistory();
@@ -249,7 +400,7 @@ const App = {
       Pasaporte.detener();
     }
     ['mapView', 'perfilView', 'verifyView', 'subirConfianzaView'].forEach(n => {
-      App.elements[n].hidden = n !== name;
+      if (App.elements[n]) App.elements[n].hidden = n !== name;
     });
     App.setMenuActive(sectionByView[name] || 'mapa');
     window.scrollTo(0, 0);

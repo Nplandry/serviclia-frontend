@@ -7,8 +7,8 @@ const Onboarding = {
       id: 'tipo_cuenta',
       type: 'choice',
       campo: 'tipo_cuenta',
-      titulo: '¿Eres persona o empresa?',
-      texto: 'Primero elige el tipo de cuenta. Así adaptamos el Pasaporte de Confianza.',
+      titulo: '¿Cómo vas a usar ServiChile?',
+      texto: 'Persona: evaluar proveedores. Empresa: mejorar su índice de transparencia.',
       opciones: [
         { value: 'persona', label: 'Persona' },
         { value: 'empresa', label: 'Empresa' }
@@ -19,7 +19,7 @@ const Onboarding = {
       type: 'text',
       campo: 'nombre',
       titulo: '¿Cómo te llamas?',
-      texto: 'Usaremos tu nombre para acompañarte mejor.',
+      texto: 'Aparecerá en tu carnet QR al validar una visita o entrega.',
       placeholder: 'Tu nombre',
       inputType: 'text'
     },
@@ -28,8 +28,8 @@ const Onboarding = {
       type: 'text',
       campo: 'edad',
       titulo: '¿Qué edad tienes?',
-      texto: 'Nos ayuda a adaptar la orientación.',
-      placeholder: 'Ej: 68',
+      texto: 'Solo para completar tu perfil de verificación.',
+      placeholder: 'Ej: 32',
       inputType: 'number'
     },
     {
@@ -53,8 +53,8 @@ const Onboarding = {
     {
       id: 'fin',
       type: 'summary',
-      titulo: 'Todo listo',
-      texto: 'Crearemos tu cuenta y entrarás directo a la app.',
+      titulo: 'Listo para verificar tratos',
+      texto: 'Crearemos tu cuenta. Después podrás subir verificación y usar Mi QR en visitas o entregas.',
       cta: 'Crear cuenta y entrar'
     }
   ],
@@ -121,14 +121,25 @@ const Onboarding = {
     }
   },
 
-  esEmpresa() {
-    return Onboarding.datos.tipo_cuenta === 'empresa';
+  // Estrategia tipada del borrador (persona/empresa).
+  progreso() {
+    return typeof ProgresoCuenta !== 'undefined'
+      ? ProgresoCuenta.para({ tipo_cuenta: Onboarding.datos.tipo_cuenta })
+      : null;
   },
 
-  // Oculta edad para empresa: no aplica a la razón social.
+  esEmpresa() {
+    const prog = Onboarding.progreso();
+    return prog ? prog.es('empresa') : Onboarding.datos.tipo_cuenta === 'empresa';
+  },
+
+  // Oculta edad si la estrategia no soporta ese feature.
   pasosVisibles() {
+    const prog = Onboarding.progreso();
     return Onboarding.pasos.filter((p) => {
-      if (p.id === 'edad' && Onboarding.esEmpresa()) return false;
+      if (p.id === 'edad') {
+        return prog ? prog.soporta('edad') : !Onboarding.esEmpresa();
+      }
       return true;
     });
   },
@@ -139,14 +150,12 @@ const Onboarding = {
 
   copyPaso(paso) {
     if (!paso) return { titulo: '', texto: '' };
-    if (paso.id === 'nombre' && Onboarding.esEmpresa()) {
+    const prog = Onboarding.progreso();
+    if (paso.id === 'nombre' && prog && prog.es('empresa')) {
       return {
-        titulo: '¿Cuál es el nombre de la empresa?',
-        texto: 'Usaremos la razón social o el nombre comercial en tu cuenta.'
+        titulo: prog.tituloNombreOnboarding(),
+        texto: prog.textoNombreOnboarding()
       };
-    }
-    if (paso.id === 'edad' && !Onboarding.esEmpresa()) {
-      return { titulo: paso.titulo, texto: paso.texto };
     }
     return { titulo: paso.titulo, texto: paso.texto };
   },
@@ -202,9 +211,10 @@ const Onboarding = {
     const input = document.createElement('input');
     input.className = 'field__input';
     input.type = paso.inputType || 'text';
+    const prog = Onboarding.progreso();
     input.placeholder =
-      paso.id === 'nombre' && Onboarding.esEmpresa()
-        ? 'Nombre de la empresa'
+      paso.id === 'nombre' && prog
+        ? prog.placeholderNombre()
         : paso.placeholder || '';
     input.value = Onboarding.datos[paso.campo] || '';
     input.maxLength = paso.inputType === 'password' ? 40 : 120;
@@ -282,18 +292,22 @@ const Onboarding = {
   },
 
   etiquetaTipoCuenta(valor) {
-    if (valor === 'empresa') return 'Empresa';
-    if (valor === 'persona') return 'Persona';
-    return valor || 'Sin responder';
+    if (valor !== 'empresa' && valor !== 'persona') return valor || 'Sin responder';
+    return typeof ProgresoCuenta !== 'undefined'
+      ? ProgresoCuenta.de(valor).etiquetaCorta()
+      : valor === 'empresa'
+        ? 'Empresa'
+        : 'Persona';
   },
 
   renderSummaryStep(card, paso) {
     const list = document.createElement('dl');
     list.className = 'onboarding__summary';
+    const prog = Onboarding.progreso();
     const campos = [
       ['Tipo', Onboarding.etiquetaTipoCuenta(Onboarding.datos.tipo_cuenta)],
-      [Onboarding.esEmpresa() ? 'Empresa' : 'Nombre', Onboarding.datos.nombre],
-      Onboarding.esEmpresa() ? null : ['Edad', Onboarding.datos.edad],
+      [prog ? prog.labelNombre() : 'Nombre', Onboarding.datos.nombre],
+      prog && prog.soporta('edad') ? ['Edad', Onboarding.datos.edad] : null,
       ['Correo', Onboarding.datos.email]
     ].filter(Boolean);
     campos.forEach(([k, v]) => {
@@ -351,11 +365,12 @@ const Onboarding = {
     btn.textContent = 'Creando tu cuenta...';
     Onboarding.elements.stepStatus.textContent = '';
 
+    const prog = Onboarding.progreso();
     const res = await Auth.onboardApi({
       nombre: Onboarding.datos.nombre,
       email: Onboarding.datos.email,
       password: Onboarding.datos.password,
-      edad: Onboarding.esEmpresa() ? undefined : Onboarding.datos.edad,
+      edad: prog && prog.soporta('edad') ? Onboarding.datos.edad : undefined,
       tipo_cuenta: Onboarding.datos.tipo_cuenta
     });
 
@@ -378,7 +393,9 @@ const Onboarding = {
     title.textContent = '¡Bienvenido, ' + (res.user.nombre || '') + '!';
     const text = document.createElement('p');
     text.className = 'onboarding__card-text';
-    text.textContent = 'Tu cuenta quedó registrada. Entrando a ServiChile...';
+    text.textContent = Onboarding.esEmpresa()
+      ? 'Cuenta empresa lista. Puede publicar en el marketplace y validar con QR.'
+      : 'Cuenta lista. Puede explorar departamentos y validar a la otra parte con QR.';
     done.appendChild(title);
     done.appendChild(text);
     Onboarding.elements.deck.appendChild(done);

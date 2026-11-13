@@ -1,21 +1,54 @@
-// Marketplace: grilla de tarjetas y ficha de detalle.
+// Directorio B2B: proveedores evaluables (32 observables / due diligence).
 // Consume GET /v1/businesses. Ordena por cercanía a la ubicación del usuario.
 const Market = {
   CATEGORIAS: [
-    { id: 'all', label: 'Todos' },
-    { id: 'gimnasio', label: 'Gimnasios' },
-    { id: 'clinica-dental', label: 'Salud' },
-    { id: 'restaurante', label: 'Comida' },
-    { id: 'comercio', label: 'Comercio' },
-    { id: 'arriendo', label: 'Arriendos' },
-    { id: 'evento', label: 'Eventos' },
-    { id: 'automotriz', label: 'Automotriz' },
-    { id: 'otro', label: 'Educación y otros' }
+    { id: 'tecnologia', label: 'Tecnología y datos' },
+    { id: 'industria', label: 'Minería e industria' },
+    { id: 'construccion', label: 'Construcción' },
+    { id: 'servicios-profesionales', label: 'Servicios profesionales' },
+    {
+      id: 'logistica',
+      label: 'Transporte, Logística y Última Milla'
+    },
+    { id: 'all', label: 'Todos' }
+  ],
+  JOBS: [
+    {
+      id: 'tecnologia',
+      label: 'Tecnología',
+      hint: 'SaaS · TI · agencias',
+      categoria: 'tecnologia'
+    },
+    {
+      id: 'industria',
+      label: 'Industria',
+      hint: 'Minería · faenas',
+      categoria: 'industria'
+    },
+    {
+      id: 'construccion',
+      label: 'Construcción',
+      hint: 'Obras · montaje',
+      categoria: 'construccion'
+    },
+    {
+      id: 'profesionales',
+      label: 'Profesionales',
+      hint: 'RR.HH. · legal',
+      categoria: 'servicios-profesionales'
+    },
+    {
+      id: 'logistica',
+      label: 'Logística',
+      hint: 'Flotas · courier · bodega',
+      categoria: 'logistica'
+    }
   ],
   REF_DEFECTO: { lat: -33.4265, lng: -70.6190 },
 
   negocios: [],
-  categoria: 'all',
+  categoria: 'tecnologia',
+  job: 'tecnologia',
   busqueda: '',
   ref: null,
   timer: null,
@@ -26,11 +59,11 @@ const Market = {
       list: document.getElementById('marketList'),
       detail: document.getElementById('marketDetail'),
       search: document.getElementById('marketSearch'),
-      filters: document.getElementById('marketFilters'),
       count: document.getElementById('marketCount'),
       grid: document.getElementById('marketGrid'),
       status: document.getElementById('marketStatus'),
-      progreso: document.getElementById('marketProgreso')
+      progreso: document.getElementById('marketProgreso'),
+      jobs: document.getElementById('marketJobs')
     };
     if (!Market.el.grid) return;
     if (!Market.el.bound) {
@@ -38,16 +71,95 @@ const Market = {
       Market.el.bound = true;
     }
     Market.cerrarDetalle();
+    Market.renderJobs();
     Market.renderProgreso();
-    Market.renderFiltros();
     Market.pedirUbicacion();
     Market.cargar();
   },
 
-  // El marketplace solo monta el widget; la lógica de progreso vive en SubirConfianza.
+  renderJobs() {
+    if (!Market.el.jobs) return;
+    Market.limpiar(Market.el.jobs);
+
+    Market.JOBS.forEach((job) => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className =
+        'market__job' + (Market.job === job.id ? ' market__job--activo' : '');
+      const titulo = document.createElement('span');
+      titulo.className = 'market__job-label';
+      titulo.textContent = job.label;
+      const hint = document.createElement('span');
+      hint.className = 'market__job-hint';
+      hint.textContent = job.hint;
+      btn.append(titulo, hint);
+      btn.addEventListener('click', () => {
+        Market.job = job.id;
+        Market.categoria = job.categoria;
+        Market.renderJobs();
+        Market.renderAccionEmpresa();
+        Market.cargar();
+      });
+      Market.el.jobs.appendChild(btn);
+    });
+    Market.renderAccionEmpresa();
+  },
+
+  esEmpresa() {
+    return typeof ProgresoCuenta !== 'undefined'
+      ? ProgresoCuenta.actual().es('empresa')
+      : false;
+  },
+
+  // Oferta: pymes afiliadas mejoran su nota / reclaman ficha.
+  renderAccionEmpresa() {
+    if (!Market.el.list) return;
+    let barra = document.getElementById('marketEmpresaAccion');
+    const mostrar = Market.esEmpresa();
+
+    if (!mostrar) {
+      if (barra) barra.remove();
+      return;
+    }
+
+    if (!barra) {
+      barra = document.createElement('div');
+      barra.id = 'marketEmpresaAccion';
+      barra.className = 'market__empresa-accion';
+
+      const texto = document.createElement('p');
+      texto.className = 'market__empresa-accion-texto';
+      texto.textContent =
+        '¿Es proveedor B2B? Mejore su índice de transparencia para no quedar fuera del filtro.';
+
+      const cta = document.createElement('button');
+      cta.type = 'button';
+      cta.className = 'submit-btn market__empresa-accion-cta';
+      cta.textContent = 'Mejorar mi nota';
+      cta.addEventListener('click', () => {
+        if (typeof App !== 'undefined' && App.openSection) App.openSection('subir-confianza');
+      });
+
+      barra.append(texto, cta);
+
+      const search = Market.el.search && Market.el.search.closest
+        ? Market.el.search.closest('.market__search') || Market.el.search
+        : Market.el.search;
+      const head = Market.el.list.querySelector('.market__head');
+      if (head && search && search.parentNode === head) {
+        head.insertBefore(barra, search);
+      } else if (head) {
+        head.appendChild(barra);
+      } else {
+        Market.el.list.insertBefore(barra, Market.el.list.firstChild);
+      }
+    }
+  },
+
+  // El marketplace solo monta el widget; el motor tipado vive en ProgresoCuenta.
   renderProgreso() {
-    if (!Market.el.progreso || typeof SubirConfianza === 'undefined') return;
-    SubirConfianza.montarIndicador(Market.el.progreso, {
+    if (!Market.el.progreso || typeof ProgresoCuenta === 'undefined') return;
+    ProgresoCuenta.actual().montarIndicador(Market.el.progreso, {
       onAbrir: () => {
         if (typeof App !== 'undefined' && App.openSection) App.openSection('subir-confianza');
       }
@@ -75,6 +187,17 @@ const Market = {
     Market.timer = setTimeout(Market.cargar, 250);
   },
 
+  jobActual() {
+    return Market.JOBS.find((j) => j.id === Market.job) || null;
+  },
+
+  filtrarPorJob(lista) {
+    const job = Market.jobActual();
+    const excluir = job && Array.isArray(job.excluir) ? job.excluir : [];
+    if (!excluir.length) return lista;
+    return lista.filter((n) => excluir.indexOf(n.categoria) === -1);
+  },
+
   async cargar() {
     Market.el.status.textContent = 'Cargando...';
     const params = new URLSearchParams();
@@ -87,13 +210,14 @@ const Market = {
       return;
     }
     Market.el.status.textContent = '';
-    Market.negocios = res.data;
+    Market.negocios = Market.filtrarPorJob(Array.isArray(res.data) ? res.data : []);
     Market.render();
   },
 
   render() {
     const lista = Market.ordenarPorCercania(Market.negocios);
-    Market.el.count.textContent = `${lista.length} lugar${lista.length === 1 ? '' : 'es'}`;
+    Market.el.count.textContent =
+      lista.length + ' proveedor' + (lista.length === 1 ? '' : 'es');
     Market.limpiar(Market.el.grid);
     if (lista.length === 0) {
       const vacio = document.createElement('p');
@@ -243,8 +367,7 @@ const Market = {
     if (bloqueado) {
       const aviso = document.createElement('p');
       aviso.className = 'market-detalle__aviso-nivel';
-      aviso.textContent =
-        'Tu nivel es ' + Market.nivelUsuario() + '. Este lugar pide nivel ' + pide + '.';
+      aviso.textContent = Market.textoAvisoNivel(n, pide);
       raiz.appendChild(aviso);
     }
 
@@ -264,14 +387,20 @@ const Market = {
     }
 
     const negocioIndice = Object.assign({}, n, { indice_transparencia: indiceValor, is_verified_profile: verificado });
-    raiz.appendChild(Market.bloqueIndice(negocioIndice, true));
-    raiz.appendChild(Market.bloqueDesgloseIndice(n, rep, indiceValor, verificado));
+
+    const cuerpo = document.createElement('div');
+    cuerpo.className = 'market-detalle__cuerpo';
+
+    const colIzq = document.createElement('div');
+    colIzq.className = 'market-detalle__col';
+    colIzq.appendChild(Market.bloqueIndice(negocioIndice, true));
+    colIzq.appendChild(Market.bloqueDesgloseIndice(n, rep, indiceValor, verificado));
 
     if (rep && rep.descargo) {
       const descargo = document.createElement('p');
       descargo.className = 'market-detalle__descargo';
       descargo.textContent = rep.descargo;
-      raiz.appendChild(descargo);
+      colIzq.appendChild(descargo);
     }
 
     const filas = [
@@ -306,20 +435,60 @@ const Market = {
       fila.append(dt, dd);
       datos.appendChild(fila);
     });
+    colIzq.appendChild(datos);
+
+    const colDer = document.createElement('div');
+    colDer.className = 'market-detalle__col market-detalle__col--paywall';
+    const sticky = document.createElement('div');
+    sticky.className = 'market-detalle__sticky';
+    if (typeof MarketMonetizacion !== 'undefined') {
+      sticky.appendChild(MarketMonetizacion.panel(n));
+    }
 
     const estado = document.createElement('p');
     estado.id = 'marketDetalleStatus';
-    estado.className = 'status-text';
+    estado.className = 'status-text market-detalle__cta-status';
     estado.setAttribute('aria-live', 'polite');
 
     const cta = document.createElement('button');
     cta.type = 'button';
     cta.id = 'marketDetalleCta';
-    cta.className = 'market__cta' + (bloqueado ? ' market__cta--bloqueado' : '');
-    cta.textContent = bloqueado ? 'Subir a nivel ' + pide : Market.textoCta(n);
+    cta.className =
+      'market-detalle__cta-contacto' + (bloqueado ? ' market-detalle__cta-contacto--bloqueado' : '');
+    if (bloqueado) {
+      cta.textContent = Market.textoCtaBloqueado(n, pide);
+    } else {
+      const ctaLabel = document.createElement('span');
+      ctaLabel.className = 'market-detalle__cta-label';
+      ctaLabel.textContent = 'Contactar a esta empresa';
+      const ctaHint = document.createElement('span');
+      ctaHint.className = 'market-detalle__cta-hint';
+      ctaHint.textContent = 'Pedir cotización · respuesta rápida';
+      cta.append(ctaLabel, ctaHint);
+    }
     cta.addEventListener('click', () => Market.accion(n, bloqueado, cta, estado));
 
-    raiz.append(datos, estado, cta);
+    const tipQr = document.createElement('p');
+    tipQr.className = 'market-detalle__tip-qr';
+    tipQr.textContent =
+      'Use Mi QR para validar identidad en visitas a terreno, entregas o reuniones de due diligence.';
+
+    sticky.append(cta, estado, tipQr);
+    colDer.appendChild(sticky);
+    cuerpo.append(colIzq, colDer);
+    raiz.appendChild(cuerpo);
+  },
+
+  textoAvisoNivel(n, pide) {
+    return (
+      'Este proveedor pide verificación nivel ' +
+      pide +
+      '. Complete su verificación y vuelva a la ficha.'
+    );
+  },
+
+  textoCtaBloqueado(n, pide) {
+    return 'Completar verificación (nivel ' + pide + ')';
   },
 
   estaBloqueado(n) {
@@ -374,145 +543,287 @@ const Market = {
     return sello;
   },
 
-  // Mock: solo datos por API oficial, registros del Estado o aporte del titular.
-  // Nada que requiera scrapeo con Puppeteer/Playwright u otros headless.
-  factoresIndiceMock(n, rep, indiceValor, verificado) {
-    const seed = Market.hashTexto(String(n.id || n.nombre || 'negocio'));
-    const pct = (base, spread) => Math.max(8, Math.min(98, Math.round(base + ((seed % 1000) / 1000) * spread)));
-    const google = rep && rep.google_rating_avg != null ? Number(rep.google_rating_avg) : 3.5 + (seed % 15) / 10;
-    const reviews = rep && rep.google_reviews_count != null ? Number(rep.google_reviews_count) : 40 + (seed % 260);
-    const googleNorm = Math.round((Math.max(0, Math.min(5, google)) / 5) * 100);
-    const volumenNorm = Math.round(Math.min(100, (Math.log1p(reviews) / Math.log1p(500)) * 100));
-
-    // Docs legales pesan más que el resto, pero sin aplastar el núcleo (24% vs ~14–16%).
-    const rutDeclarado = verificado ? pct(82, 14) : pct(45, 25);
-    const docsLegales = verificado ? pct(78, 10) : pct(28, 20);
-    const openDataSanciones = pct(70, 22);
-    const openDataListados = pct(66, 24);
-    const consistenciaPlaces = pct(58, 30);
-    const seoPlaces = pct(48, 42);
-    const ley21719 = pct(42, 40);
-    const verifNorm = verificado ? 100 : 40;
-    const indiceTxt = Number(indiceValor).toFixed(1);
-
+  // Mock: 30 observables — Ciber 30% + Legal 30% + Contractual 20% + Operativa 20%.
+  definicionObservablesIndice() {
     return [
       {
-        id: 'docs-legales',
-        grupo: 'identidad',
-        etiqueta: 'Documentos legales procesados',
-        valor: docsLegales + ' / 100',
-        pct: docsLegales,
-        peso: 'Núcleo · 24%',
+        grupo: 'ciber',
+        id: 'ssl-tls',
+        etiqueta: 'Vigencia y calidad de certificados SSL/TLS',
         detalle:
-          'Factor de mayor peso (moderado). PDF/metadata del comercio (constitución, patente, inicio de actividades) analizados en API propia.'
+          'HTTPS válido, TLS moderno y ausencia de certificados expirados o autofirmados.'
       },
       {
-        id: 'titularidad',
-        grupo: 'identidad',
-        etiqueta: 'Titularidad ServiChile',
-        valor: verificado ? 'Reclamado' : 'Sin reclamo',
-        pct: verifNorm,
-        peso: 'Núcleo · 16%',
+        grupo: 'ciber',
+        id: 'email-auth',
+        etiqueta: 'Seguridad de correo (SPF, DKIM, DMARC)',
         detalle:
-          'Estado interno del claim: amarra identidad del dueño a la ficha sin crawlear terceros.'
+          'Registros DNS para prevenir spoofing y suplantación de identidad corporativa.'
       },
       {
-        id: 'rut-declarado',
-        grupo: 'identidad',
-        etiqueta: 'RUT y giro declarados',
-        valor: rutDeclarado + ' / 100',
-        pct: rutDeclarado,
-        peso: 'Núcleo · 14%',
+        grupo: 'ciber',
+        id: 'puertos',
+        etiqueta: 'Exposición de puertos y servicios críticos',
         detalle:
-          'Aporte del titular al reclamar/verificar (formulario ServiChile). Sin scrapeo de portales.'
+          'Detección pasiva de puertos/servicios administrativos abiertos (RDP, SSH, DB, SMB).'
       },
       {
-        id: 'open-data-sanciones',
-        grupo: 'estado',
-        etiqueta: 'Sanciones en registros del Estado',
-        valor: openDataSanciones + ' / 100',
-        pct: openDataSanciones,
-        peso: 'Núcleo · 12%',
+        grupo: 'ciber',
+        id: 'brechas',
+        etiqueta: 'Credenciales corporativas filtradas en dark web/breaches',
         detalle:
-          'Cruce por RUT/razón social contra registros oficiales publicados por organismos del Estado (archivos o API pública).'
+          'Correos @dominio en bases públicas de brechas o filtraciones recientes.'
       },
       {
-        id: 'open-data-listados',
-        grupo: 'estado',
-        etiqueta: 'Listados oficiales del Estado',
-        valor: openDataListados + ' / 100',
-        pct: openDataListados,
-        peso: 'Núcleo · 12%',
+        grupo: 'ciber',
+        id: 'headers-http',
+        etiqueta: 'Cabeceras de seguridad HTTP',
+        detalle: 'HSTS, CSP, X-Frame-Options y X-Content-Type-Options.'
+      },
+      {
+        grupo: 'ciber',
+        id: 'stack-vulnerable',
+        etiqueta: 'Tecnologías web obsoletas o vulnerables (CVEs abiertos)',
         detalle:
-          'Presencia o ausencia en listados gubernamentales publicados para consulta (p. ej. inhabilidades, quiebras u otros boletines oficiales).'
+          'CMS, servidores o librerías con CVEs críticos conocidos sin remediación.'
       },
       {
-        id: 'ley-21719',
-        grupo: 'gobernanza',
-        etiqueta: 'Señal Ley 21.719',
-        valor: ley21719 + ' / 100',
-        pct: ley21719,
-        peso: 'Observable · 5%',
+        grupo: 'ciber',
+        id: 'blacklist',
+        etiqueta: 'Reputación de IP y dominio en listas negras globales',
+        detalle: 'Marcas por malware, phishing o spam en blocklists globales.'
+      },
+      {
+        grupo: 'ciber',
+        id: 'dnssec',
+        etiqueta: 'Protección de infraestructura DNS y secuestro de dominios',
+        detalle: 'DNSSEC, DNS resiliente y señales de riesgo de hijacking.'
+      },
+      {
+        grupo: 'ciber',
+        id: 'subdominios',
+        etiqueta: 'Seguridad en subdominios expuestos (Shadow IT)',
         detalle:
-          'Mock: transparencia declarada sobre protección de datos personales (p. ej. política de privacidad visible). No certifica cumplimiento de la Ley 21.719.'
+          'Entornos dev/staging/test u otros subdominios públicos sin autenticación.'
       },
       {
-        id: 'places-consistencia',
-        grupo: 'mercado',
-        etiqueta: 'Consistencia ficha Places',
-        valor: consistenciaPlaces + ' / 100',
-        pct: consistenciaPlaces,
-        peso: 'Observable · 7%',
+        grupo: 'ciber',
+        id: 'whois',
+        etiqueta: 'Antigüedad, configuración y estabilidad del dominio',
         detalle:
-          'Google Places API: nombre, dirección, categoría y estado del negocio. API oficial, sin headless.'
+          'Edad WHOIS, configuración DNS y vigencia de renovación.'
       },
       {
-        id: 'seo',
-        grupo: 'mercado',
-        etiqueta: 'Presencia SEO local',
-        valor: seoPlaces + ' / 100',
-        pct: seoPlaces,
-        peso: 'Observable · 5%',
+        grupo: 'legal',
+        id: 'persona-juridica',
+        etiqueta: 'Vigencia y estado de la persona jurídica',
         detalle:
-          'Derivado de Places/Search APIs (completitud de ficha, sitio, fotos). No scrapeo de SERPs con bots.'
+          'Constitución activa, sin disolución ni quiebra declarada.'
       },
       {
-        id: 'google',
-        grupo: 'mercado',
-        etiqueta: 'Calificación Google',
-        valor: google.toFixed(1) + ' / 5',
-        pct: googleNorm,
-        peso: 'Observable · 3%',
-        detalle: 'Places API (`rating`). Observable de mercado, no prueba legal.'
-      },
-      {
-        id: 'volumen',
-        grupo: 'mercado',
-        etiqueta: 'Volumen de reseñas',
-        valor: reviews + ' reseñas',
-        pct: volumenNorm,
-        peso: 'Observable · 2%',
-        detalle: 'Places API (`user_ratings_total`). Apoyo estadístico abierto.'
-      },
-      {
-        id: 'indice',
-        grupo: 'resumen',
-        etiqueta: 'Índice resultante',
-        valor: indiceTxt + ' / 10',
-        pct: Math.round((Number(indiceValor) / 10) * 100),
-        peso: 'Final',
+        grupo: 'legal',
+        id: 'representantes',
+        etiqueta: 'Consistencia de representantes legales, directorio y poderes',
         detalle:
-          'Mock: documentos legales pesan más (24%); el resto del núcleo y observables completan el 100%.'
+          'Coincidencia entre firmantes, directorio y representantes vigentes inscritos.'
+      },
+      {
+        grupo: 'legal',
+        id: 'litigios-civiles',
+        etiqueta: 'Litigiosidad civil y comercial (juicios pendientes)',
+        detalle:
+          'Demandas activas como demandado (incumplimientos, indemnizaciones).'
+      },
+      {
+        grupo: 'legal',
+        id: 'cobranza',
+        etiqueta: 'Demandas de cobranza y juicios ejecutivos',
+        detalle: 'Juicios por pagarés, facturas impagas o títulos ejecutivos.'
+      },
+      {
+        grupo: 'legal',
+        id: 'multas-laborales',
+        etiqueta: 'Multas laborales y previsionales vigentes',
+        detalle:
+          'Sanciones de la Dirección del Trabajo / no pago de cotizaciones.'
+      },
+      {
+        grupo: 'legal',
+        id: 'juicios-laborales',
+        etiqueta: 'Demandas laborales activas',
+        detalle:
+          'Despido injustificado, tutela de derechos o accidentes del trabajo.'
+      },
+      {
+        grupo: 'legal',
+        id: 'dicom',
+        etiqueta: 'Morosidad comercial y financiera (boletines / DICOM)',
+        detalle: 'Deudas morosas publicadas, protestos y endeudamiento impago.'
+      },
+      {
+        grupo: 'legal',
+        id: 'sii',
+        etiqueta: 'Situación tributaria, cumplimiento y facturación electrónica',
+        detalle:
+          'Inicio de actividades, facturación electrónica y ausencia de bloqueos SII.'
+      },
+      {
+        grupo: 'legal',
+        id: 'mercado-publico',
+        etiqueta: 'Historial y penalidades en compras públicas / Estado',
+        detalle:
+          'Adjudicaciones, multas contractuales o inhabilidades para contratar.'
+      },
+      {
+        grupo: 'legal',
+        id: 'sanciones-sectoriales',
+        etiqueta: 'Sanciones sectoriales o ambientales',
+        detalle:
+          'Multas en superintendencias según rubro (Salud, SEC, Medio Ambiente).'
+      },
+      {
+        grupo: 'contractual',
+        id: 'politica-privacidad',
+        etiqueta: 'Política de Privacidad accesible y actualizada',
+        detalle:
+          'Documento claro sobre tratamiento de datos (Ley 21.719 / estándares LATAM).'
+      },
+      {
+        grupo: 'contractual',
+        id: 'arco',
+        etiqueta: 'Responsable y canal de derechos ARCO',
+        detalle:
+          'Identificación del responsable y canal para acceso, rectificación, cancelación u oposición.'
+      },
+      {
+        grupo: 'contractual',
+        id: 'cookies',
+        etiqueta: 'Consentimiento de cookies y rastreadores',
+        detalle:
+          'Banner funcional que permite rechazar cookies/rastreadores no esenciales.'
+      },
+      {
+        grupo: 'contractual',
+        id: 'terminos',
+        etiqueta: 'Términos y Condiciones públicos de la oferta comercial',
+        detalle:
+          'Reglas de contratación, garantías, devoluciones y jurisdicción.'
+      },
+      {
+        grupo: 'contractual',
+        id: 'sla',
+        etiqueta: 'Cláusulas de servicio, SLA y DPA',
+        detalle:
+          'Transparencia en niveles de servicio y acuerdos de tratamiento de datos (DPA).'
+      },
+      {
+        grupo: 'operativa',
+        id: 'domicilio',
+        etiqueta: 'Verificación de domicilio operativo real y oficinas',
+        detalle:
+          'Cruce dirección tributaria vs evidencia física (fachada, oficinas reales).'
+      },
+      {
+        grupo: 'operativa',
+        id: 'huella-digital',
+        etiqueta: 'Coherencia y solidez de huella digital y reputación corporativa',
+        detalle:
+          'Correlación entre tamaño declarado, presencia digital y reputación pública.'
+      },
+      {
+        grupo: 'operativa',
+        id: 'incidentes',
+        etiqueta: 'Historial de incidentes físicos, brechas o escándalos públicos',
+        detalle:
+          'Noticias, emergencias, clausuras, brechas o escándalos con impacto reputacional.'
+      },
+      {
+        grupo: 'operativa',
+        id: 'uptime',
+        etiqueta: 'Continuidad operativa y estabilidad de infraestructura (uptime)',
+        detalle: 'Disponibilidad histórica de canales digitales e infraestructura.'
+      },
+      {
+        grupo: 'operativa',
+        id: 'resenas-reclamos',
+        etiqueta: 'Reseñas B2B verificadas, satisfacción y resolución de reclamos',
+        detalle:
+          'Calificaciones B2B validadas y tasa de respuesta/resolución de reclamos.'
       }
     ];
   },
 
+  pesoObservable(grupo) {
+    // Ciber/Legal 30% (10×3%). Contractual/Operativa 20% (5×4%).
+    if (grupo === 'ciber' || grupo === 'legal') return '3.0%';
+    return '4.0%';
+  },
+
+  factoresIndiceMock(n, rep, indiceValor, verificado) {
+    const seed = Market.hashTexto(String(n.id || n.nombre || 'negocio'));
+    const pct = (base, spread, offset) => {
+      const t = ((seed + (offset || 0) * 9973) % 1000) / 1000;
+      return Math.max(8, Math.min(98, Math.round(base + t * spread)));
+    };
+    const google = rep && rep.google_rating_avg != null ? Number(rep.google_rating_avg) : 3.5 + (seed % 15) / 10;
+    const reviews = rep && rep.google_reviews_count != null ? Number(rep.google_reviews_count) : 40 + (seed % 260);
+    const boostLegal = verificado ? 18 : 0;
+    const boostContract = verificado ? 12 : 0;
+    const defs = Market.definicionObservablesIndice();
+
+    const factores = defs.map((d, i) => {
+      let base = 48;
+      let spread = 36;
+      if (d.grupo === 'ciber') {
+        base = 52;
+        spread = 38;
+      } else if (d.grupo === 'legal') {
+        base = 40 + boostLegal;
+        spread = 30;
+      } else if (d.grupo === 'contractual') {
+        base = 42 + boostContract;
+        spread = 34;
+      } else if (d.grupo === 'operativa') {
+        base = 50;
+        spread = 32;
+        if (d.id === 'resenas-reclamos') {
+          const ratingPart = Math.round((Math.max(0, Math.min(5, google)) / 5) * 55) + 20;
+          const volumePart = Math.round(Math.min(25, (Math.log1p(reviews) / Math.log1p(500)) * 25));
+          base = Math.min(92, ratingPart + volumePart);
+          spread = 10;
+        }
+      }
+      const score = pct(base, spread, i + 1);
+      return {
+        id: d.id,
+        grupo: d.grupo,
+        etiqueta: d.etiqueta,
+        valor: score + ' / 100',
+        pct: score,
+        peso: 'Observable · ' + Market.pesoObservable(d.grupo),
+        detalle: d.detalle
+      };
+    });
+
+    factores.push({
+      id: 'indice',
+      grupo: 'resumen',
+      etiqueta: 'Índice resultante',
+      valor: Number(indiceValor).toFixed(1) + ' / 10',
+      pct: Math.round((Number(indiceValor) / 10) * 100),
+      peso: 'Final',
+      detalle:
+        'Mock: Ciber 30% + Legal 30% + Contractual 20% + Operativa 20% (30 observables).'
+    });
+    return factores;
+  },
+
   filtrosIndiceGrupos() {
     return [
-      { id: 'identidad', etiqueta: 'Identidad (docs, titularidad, RUT)' },
-      { id: 'estado', etiqueta: 'Registros del Estado' },
-      { id: 'gobernanza', etiqueta: 'Gobernanza de datos' },
-      { id: 'mercado', etiqueta: 'Presencia de mercado' }
+      { id: 'ciber', etiqueta: 'Ciberseguridad (10 · 30%)' },
+      { id: 'legal', etiqueta: 'Legal y regulatoria (10 · 30%)' },
+      { id: 'contractual', etiqueta: 'Contractual y datos (5 · 20%)' },
+      { id: 'operativa', etiqueta: 'Física y reputacional (5 · 20%)' }
     ];
   },
 
@@ -530,16 +841,19 @@ const Market = {
     const factores = Market.factoresIndiceMock(n, rep, indiceValor, verificado);
     const resumen = factores.find((f) => f.grupo === 'resumen');
     const detalleFactores = factores.filter((f) => f.grupo !== 'resumen');
-    // Por defecto: docs, titularidad y RUT/giro.
-    const estado = { todos: false, activos: { identidad: true, estado: false, gobernanza: false, mercado: false } };
+    // Por defecto: dimensión ciberseguridad.
+    const estado = {
+      todos: false,
+      activos: { ciber: true, legal: false, contractual: false, operativa: false }
+    };
 
     const sec = document.createElement('section');
     sec.className = 'indice-desglose';
-    sec.setAttribute('aria-label', 'Por qué este índice');
+    sec.setAttribute('aria-label', 'Desglose del índice de transparencia');
 
     const titulo = document.createElement('h3');
     titulo.className = 'market-detalle__subtitulo';
-    titulo.textContent = 'Por qué este índice';
+    titulo.textContent = 'Desglose del índice';
 
     const cabecera = document.createElement('div');
     cabecera.className = 'indice-desglose__cabecera';
@@ -552,7 +866,7 @@ const Market = {
     const lead = document.createElement('p');
     lead.className = 'indice-desglose__lead';
     lead.textContent =
-      'Filtro inicial: documentos, titularidad y RUT/giro. Un grupo a la vez, o Ver todos.';
+      '30 observables: Ciber 30% · Legal 30% · Contractual 20% · Operativa 20%. Un grupo a la vez, o Ver todos.';
 
     const filtros = document.createElement('div');
     filtros.className = 'indice-desglose__filtros';
@@ -621,8 +935,8 @@ const Market = {
       vacio.hidden = visibles.length > 0;
       visibles.forEach((f) => lista.appendChild(Market.itemFactorIndice(f)));
       nota.textContent = estado.todos
-        ? 'Mostrando todos los factores (mock).'
-        : 'Filtros activos · mock sin scrapeo headless.';
+        ? 'Mostrando las 4 dimensiones · 30 observables (mock de superficie pública).'
+        : 'Dimensión activa · mock sin agente interno ni scrapeo headless.';
     }
 
     pintarFiltros();
@@ -654,10 +968,11 @@ const Market = {
     pista.setAttribute('aria-label', f.etiqueta + ': ' + f.pct + ' por ciento');
     const barra = document.createElement('span');
     barra.className = 'indice-desglose__barra';
-    if (String(f.peso).indexOf('Núcleo') === 0) barra.classList.add('indice-desglose__barra--nucleo');
-    if (f.id === 'docs-legales') barra.classList.add('indice-desglose__barra--docs');
-    if (f.id === 'seo') barra.classList.add('indice-desglose__barra--seo');
-    if (f.grupo === 'gobernanza') barra.classList.add('indice-desglose__barra--gob');
+    if (f.grupo === 'ciber') barra.classList.add('indice-desglose__barra--ciber');
+    if (f.grupo === 'legal') barra.classList.add('indice-desglose__barra--legal');
+    if (f.grupo === 'contractual') barra.classList.add('indice-desglose__barra--contractual');
+    if (f.grupo === 'operativa') barra.classList.add('indice-desglose__barra--operativa');
+    if (f.grupo === 'resumen') barra.classList.add('indice-desglose__barra--nucleo');
     barra.style.width = f.pct + '%';
     pista.appendChild(barra);
 
@@ -710,52 +1025,16 @@ const Market = {
     return d < 1 ? Math.round(d * 1000) + ' m' : d.toFixed(1) + ' km';
   },
 
-  renderFiltros() {
-    Market.limpiar(Market.el.filters);
-    Market.CATEGORIAS.forEach(c => {
-      const b = document.createElement('button');
-      b.type = 'button';
-      b.className = 'market__filtro' + (Market.categoria === c.id ? ' market__filtro--activo' : '');
-      b.textContent = c.label;
-      b.addEventListener('click', () => {
-        Market.categoria = c.id;
-        Market.renderFiltros();
-        Market.cargar();
-      });
-      Market.el.filters.appendChild(b);
-    });
-  },
-
   async accion(n, bloqueado, boton, estadoEl) {
     if (bloqueado) {
       App.openSection('subir-confianza');
       return;
     }
-    const sesion = Auth.getCurrentUser();
-    if (!sesion || !sesion.token) {
-      if (estadoEl) estadoEl.textContent = 'Inicie sesión para continuar.';
+    if (typeof MarketMonetizacion !== 'undefined') {
+      MarketMonetizacion.interceptarContacto(n, estadoEl);
       return;
     }
-    if (boton) boton.disabled = true;
-    if (estadoEl) {
-      estadoEl.style.color = '';
-      estadoEl.textContent = 'Enviando reserva...';
-    }
-    const res = await Auth.request('/v1/reservas', {
-      method: 'POST',
-      body: { business_id: n.id },
-      token: sesion.token
-    });
-    if (boton) boton.disabled = false;
-    if (!estadoEl) return;
-    if (!res.ok) {
-      estadoEl.style.color = 'var(--color-error)';
-      estadoEl.textContent = res.error || 'No se pudo crear la reserva.';
-      return;
-    }
-    estadoEl.style.color = 'var(--color-success)';
-    estadoEl.textContent =
-      'Reserva creada. Estado: ' + res.data.estado + '. Código: ' + res.data.qr_token;
+    if (estadoEl) estadoEl.textContent = 'Módulo de contacto no disponible.';
   },
 
   nivelUsuario() {
@@ -769,7 +1048,8 @@ const Market = {
   },
 
   textoCta(n) {
-    return n.cta_texto || 'Ver más';
+    if (n.cta_texto) return n.cta_texto;
+    return 'Ver ficha';
   },
 
   limpiar(el) {
